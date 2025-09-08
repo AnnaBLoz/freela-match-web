@@ -1,0 +1,414 @@
+<div class="auth-container">
+  <!-- Header -->
+  <header class="header sticky-top">
+    <div class="container">
+      <div class="d-flex align-items-center">
+        <div class="logo-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h1 class="h3 mb-0 fw-bold text-dark">Freela Match</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="container my-5">
+    <div class="row g-4 align-items-stretch">
+      <!-- Hero Section (esquerda) -->
+      <div class="col-md-8 d-flex justify-content-center align-items-center">
+        <div
+          class="hero-section animate-section card-section w-100 text-center"
+          style="
+            height: 95%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <div class="hero-content mb-4">
+            <h2>
+              A plataforma que conecta
+              <span class="highlight">freelancers</span> e empresas
+            </h2>
+            <p class="lead">
+              Encontre os melhores profissionais para seus projetos ou descubra
+              oportunidades incríveis para sua carreira freelancer.
+            </p>
+          </div>
+
+          <div class="row g-4 justify-content-center text-center">
+            <div class="col" *ngFor="let stat of stats; trackBy: trackByFn">
+              <div class="stat-item h-100">
+                <div class="stat-icon" [ngClass]="stat.iconClass">
+                  <i [class]="stat.icon"></i>
+                </div>
+                <h3>{{ stat.value }}</h3>
+                <p>{{ stat.label }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Section (direita) -->
+      <div class="col-md-4 d-flex">
+        <div class="form-section animate-section w-100" style="height: 95%">
+          <!-- Main Auth Tabs -->
+          <ul class="nav nav-tabs justify-content-center m-0" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                [class.active]="activeTab === 'login'"
+                (click)="setActiveTab('login')"
+                type="button"
+              >
+                Entrar
+              </button>
+            </li>
+            <!-- <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                [class.active]="activeTab === 'register'"
+                (click)="setActiveTab('register')"
+                type="button"
+              >
+                Cadastrar
+              </button>
+            </li> -->
+          </ul>
+
+          <div class="tab-content">
+            <!-- Login Tab -->
+            <div
+              class="tab-pane fade"
+              [class.show]="activeTab === 'login'"
+              [class.active]="activeTab === 'login'"
+              *ngIf="activeTab === 'login'"
+            >
+              <div class="tab-header">
+                <h3>Bem-vindo</h3>
+                <p>Entre na sua conta para continuar</p>
+              </div>
+
+              <form (ngSubmit)="handleLogin()" #loginFormRef="ngForm">
+                <div class="mb-3">
+                  <label for="loginEmail" class="form-label">Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    [class.is-invalid]="
+                      loginFormRef.submitted &&
+                      (!loginForm.email || !isValidEmail(loginForm.email))
+                    "
+                    id="loginEmail"
+                    [(ngModel)]="loginForm.email"
+                    name="email"
+                    placeholder="seu@email.com"
+                    required
+                    email
+                  />
+                  <div class="invalid-feedback">
+                    Email é obrigatório e deve ser válido
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="loginPassword" class="form-label">Senha</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    [class.is-invalid]="
+                      loginFormRef.submitted && !loginForm.password
+                    "
+                    id="loginPassword"
+                    [(ngModel)]="loginForm.password"
+                    name="password"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <div class="invalid-feedback">Senha é obrigatória</div>
+                </div>
+
+                <div class="alert alert-danger" *ngIf="error">
+                  {{ error }}
+                </div>
+
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="isLoading"
+                >
+                  <span *ngIf="!isLoading">Entrar</span>
+                  <span *ngIf="isLoading">
+                    <span
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
+                    Entrando...
+                  </span>
+                  <i class="fas fa-arrow-right ms-2" *ngIf="!isLoading"></i>
+                </button>
+              </form>
+            </div>
+
+            <!-- Register Tab -->
+            <div
+              class="tab-pane fade"
+              [class.show]="activeTab === 'register'"
+              [class.active]="activeTab === 'register'"
+              *ngIf="activeTab === 'register'"
+            >
+              <div class="tab-header">
+                <h3>Criar conta</h3>
+                <p>Junte-se à nossa comunidade</p>
+              </div>
+
+              <form (ngSubmit)="handleRegister()" #registerFormRef="ngForm">
+                <!-- User Type Selection -->
+                <ul
+                  class="nav nav-tabs user-type-tabs justify-content-center mb-3"
+                  role="tablist"
+                >
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link"
+                      [class.active]="registerForm.type === 'freelancer'"
+                      (click)="setUserType('freelancer')"
+                      type="button"
+                    >
+                      Freelancer
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link"
+                      [class.active]="registerForm.type === 'company'"
+                      (click)="setUserType('company')"
+                      type="button"
+                    >
+                      Empresa
+                    </button>
+                  </li>
+                </ul>
+
+                <!-- Common Fields -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label for="registerEmail" class="form-label">Email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      [class.is-invalid]="
+                        registerFormRef.submitted &&
+                        (!registerForm.email ||
+                          !isValidEmail(registerForm.email))
+                      "
+                      id="registerEmail"
+                      [(ngModel)]="registerForm.email"
+                      name="regEmail"
+                      placeholder="seu@email.com"
+                      required
+                      email
+                    />
+                    <div class="invalid-feedback">
+                      Email é obrigatório e deve ser válido
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="registerPassword" class="form-label"
+                      >Senha</label
+                    >
+                    <input
+                      type="password"
+                      class="form-control"
+                      [class.is-invalid]="
+                        registerFormRef.submitted &&
+                        (!registerForm.password ||
+                          registerForm.password.length < 6)
+                      "
+                      id="registerPassword"
+                      [(ngModel)]="registerForm.password"
+                      name="regPassword"
+                      placeholder="••••••••"
+                      required
+                      minlength="6"
+                    />
+                    <div class="invalid-feedback">
+                      Senha deve ter pelo menos 6 caracteres
+                    </div>
+                  </div>
+                </div>
+
+                <!-- User Type Specific Fields -->
+                <div>
+                  <!-- Freelancer Fields -->
+                  <div *ngIf="registerForm.type === 'freelancer'">
+                    <div class="mb-3">
+                      <label for="freelancerName" class="form-label"
+                        >Nome completo</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        [class.is-invalid]="
+                          registerFormRef.submitted && !registerForm.name
+                        "
+                        id="freelancerName"
+                        [(ngModel)]="registerForm.name"
+                        name="name"
+                        placeholder="Seu nome"
+                        required
+                      />
+                      <div class="invalid-feedback">Nome é obrigatório</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="freelancerBio" class="form-label">Bio</label>
+                      <textarea
+                        class="form-control"
+                        [class.is-invalid]="
+                          registerFormRef.submitted && !registerForm.bio
+                        "
+                        id="freelancerBio"
+                        [(ngModel)]="registerForm.bio"
+                        name="bio"
+                        rows="3"
+                        placeholder="Conte sobre sua experiência"
+                        required
+                      ></textarea>
+                      <div class="invalid-feedback">Bio é obrigatória</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="freelancerSkills" class="form-label"
+                        >Habilidades (separadas por vírgula)</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        [class.is-invalid]="
+                          registerFormRef.submitted && !registerForm.skills
+                        "
+                        id="freelancerSkills"
+                        [(ngModel)]="registerForm.skills"
+                        name="skills"
+                        placeholder="React, Node.js, Python"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Habilidades são obrigatórias
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Company Fields -->
+                  <div *ngIf="registerForm.type === 'company'">
+                    <div class="mb-3">
+                      <label for="companyName" class="form-label"
+                        >Nome da empresa</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        [class.is-invalid]="
+                          registerFormRef.submitted && !registerForm.companyName
+                        "
+                        id="companyName"
+                        [(ngModel)]="registerForm.companyName"
+                        name="companyName"
+                        placeholder="Sua empresa"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Nome da empresa é obrigatório
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="companyDescription" class="form-label"
+                        >Descrição</label
+                      >
+                      <textarea
+                        class="form-control"
+                        [class.is-invalid]="
+                          registerFormRef.submitted && !registerForm.description
+                        "
+                        id="companyDescription"
+                        [(ngModel)]="registerForm.description"
+                        name="description"
+                        rows="3"
+                        placeholder="Sobre sua empresa"
+                        required
+                      ></textarea>
+                      <div class="invalid-feedback">
+                        Descrição é obrigatória
+                      </div>
+                    </div>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="companyIndustry" class="form-label"
+                          >Setor</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          [class.is-invalid]="
+                            registerFormRef.submitted && !registerForm.industry
+                          "
+                          id="companyIndustry"
+                          [(ngModel)]="registerForm.industry"
+                          name="industry"
+                          placeholder="Tecnologia"
+                          required
+                        />
+                        <div class="invalid-feedback">Setor é obrigatório</div>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="companyContact" class="form-label"
+                          >Responsável</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          [class.is-invalid]="
+                            registerFormRef.submitted &&
+                            !registerForm.contactPerson
+                          "
+                          id="companyContact"
+                          [(ngModel)]="registerForm.contactPerson"
+                          name="contactPerson"
+                          placeholder="Nome do contato"
+                          required
+                        />
+                        <div class="invalid-feedback">
+                          Nome do responsável é obrigatório
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert alert-danger" *ngIf="error">
+                  {{ error }}
+                </div>
+
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="isLoading"
+                >
+                  <span *ngIf="!isLoading">Criar conta</span>
+                  <span *ngIf="isLoading">
+                    <span
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
+                    Criando conta...
+                  </span>
+                  <i class="fas fa-arrow-right ms-2" *ngIf="!isLoading"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
