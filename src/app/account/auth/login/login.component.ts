@@ -51,7 +51,7 @@ export class LoginComponent {
 
   constructor(private authService: AuthService, private router: Router) {
     if (this.authService.currentUser) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['freelancer/dashboard']);
     }
   }
 

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { LoginComponent } from './account/auth/login/login.component';
+import { TopbarComponent } from './components/topbar/topbar.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'account/auth/login', pathMatch: 'full' },
@@ -13,6 +14,19 @@ export const routes: Routes = [
     path: 'account',
     loadChildren: () =>
       import('./account/account.module').then((m) => m.AccountModule),
+  },
+  {
+    path: 'freelancer',
+    component: TopbarComponent,
+    children: [
+      {
+        path: '',
+        loadChildren: () =>
+          import('./freelancer/freelancer.module').then(
+            (m) => m.FreelancerModule
+          ),
+      },
+    ],
   },
   // tslint:disable-next-line: max-line-length
   // { path: '', component: LayoutComponent, loadChildren: () => import('./pages/pages.module').then(m => m.PagesModule), canActivate: [AuthGuard] },

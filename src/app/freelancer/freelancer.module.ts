@@ -1,34 +1,30 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { AuthRoutingModule } from './auth-routing.module';
-import { LoginComponent } from './login/login.component';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatIconModule } from '@angular/material/icon';
-import {
-  provideHttpClient,
-  withInterceptorsFromDi,
-} from '@angular/common/http';
+import { ToastrModule } from 'ngx-toastr';
+import { AuthModule } from '../account/auth/auth.module';
+import { FreelancerRoutingModule } from './freelancer-routing.module';
+import { HttpClientModule } from '@angular/common/http';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @NgModule({
-  declarations: [LoginComponent],
+  declarations: [DashboardComponent],
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    AuthRoutingModule,
+    FreelancerRoutingModule,
+    AuthModule,
+    ToastrModule.forRoot(),
+    // BrowserAnimationsModule,
     MatTabsModule,
     MatButtonModule,
     MatInputModule,
     MatFormFieldModule,
     MatBadgeModule,
-    MatIconModule,
-    MatBadgeModule,
+    HttpClientModule,
   ],
-  providers: [],
 })
-export class AuthModule {}
+export class FreelancerModule {}
