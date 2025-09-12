@@ -1,0 +1,179 @@
+<div class="min-vh-100 bg-light">
+  <!-- Loading State -->
+  <div
+    *ngIf="isLoading"
+    class="min-vh-100 bg-light d-flex align-items-center justify-content-center"
+  >
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && user" class="container py-5">
+    <!-- Header -->
+    <div class="mb-5">
+      <h1 class="display-5 fw-bold text-dark mb-3">
+        {{
+          user.type === "freelancer"
+            ? "Propostas Disponíveis"
+            : "Explorar Propostas"
+        }}
+      </h1>
+      <p class="text-muted fs-5">
+        {{
+          user.type === "freelancer"
+            ? "Encontre oportunidades que combinam com suas habilidades"
+            : "Veja as propostas ativas na plataforma"
+        }}
+      </p>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="card mb-5 shadow-sm">
+      <div class="card-header bg-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-funnel me-2"></i>
+          Filtros
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Search Input -->
+          <div class="col-md-3">
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-search"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control border-start-0"
+                placeholder="Buscar propostas..."
+                [(ngModel)]="searchTerm"
+                (input)="onSearchChange()"
+              />
+            </div>
+          </div>
+
+          <!-- Skill Filter -->
+          <div class="col-md-3">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Filtrar por habilidade..."
+              [(ngModel)]="skillFilter"
+              (input)="onSkillFilterChange()"
+            />
+          </div>
+
+          <!-- Budget Filter -->
+          <div class="col-md-3">
+            <select
+              class="form-select"
+              [(ngModel)]="budgetFilter"
+              (change)="onBudgetFilterChange()"
+            >
+              <option value="all">Todos os orçamentos</option>
+              <option value="low">Até R$ 2.000</option>
+              <option value="medium">R$ 2.000 - R$ 5.000</option>
+              <option value="high">Acima de R$ 5.000</option>
+            </select>
+          </div>
+
+          <!-- Clear Filters Button -->
+          <div class="col-md-3">
+            <button
+              type="button"
+              class="btn btn-outline-secondary w-100"
+              (click)="clearFilters()"
+            >
+              Limpar Filtros
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proposals Grid -->
+    <div class="row g-4" *ngIf="filteredProposals.length > 0">
+      <div class="col-lg-6" *ngFor="let proposal of filteredProposals">
+        <div class="card h-100 shadow-sm hover-shadow-lg transition-all">
+          <div class="card-header bg-white border-bottom">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <h5 class="card-title mb-2">{{ proposal.title }}</h5>
+                <p class="card-text text-muted">
+                  {{ truncateDescription(proposal.description) }}
+                </p>
+              </div>
+              <span class="badge bg-success ms-3">
+                {{ proposal.status === "open" ? "Aberta" : "Fechada" }}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Budget and Deadline -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="text-success fw-bold">
+                R$ {{ formatCurrency(proposal.budget) }}
+              </div>
+              <div class="text-muted small">
+                <i class="bi bi-calendar me-1"></i>
+                Prazo: {{ formatDate(proposal.deadline) }}
+              </div>
+            </div>
+
+            <!-- Required Skills -->
+            <div class="mb-3">
+              <h6 class="text-dark mb-2">Habilidades necessárias:</h6>
+              <div class="d-flex flex-wrap gap-1">
+                <span
+                  *ngFor="let skill of proposal.requiredSkills"
+                  class="badge bg-light text-dark border small"
+                >
+                  {{ skill }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Posted Time -->
+            <div class="text-muted small mb-3">
+              <i class="bi bi-clock me-1"></i>
+              Publicado em {{ formatDate(proposal.createdAt) }}
+            </div>
+
+            <!-- Action Button -->
+            <button
+              type="button"
+              class="btn btn-primary w-100"
+              (click)="viewProposalDetails(proposal.id)"
+            >
+              Ver Detalhes e Candidatar-se
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="filteredProposals.length === 0"
+      class="card text-center py-5 shadow-sm"
+    >
+      <div class="card-body">
+        <div
+          class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+          style="width: 64px; height: 64px"
+        >
+          <i class="bi bi-search text-muted fs-3"></i>
+        </div>
+        <h5 class="card-title text-dark mb-2">Nenhuma proposta encontrada</h5>
+        <p class="card-text text-muted">
+          Tente ajustar seus filtros ou volte mais tarde para ver novas
+          oportunidades.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

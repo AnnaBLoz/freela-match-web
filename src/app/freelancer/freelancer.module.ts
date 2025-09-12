@@ -8,11 +8,13 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ToastrModule } from 'ngx-toastr';
 import { AuthModule } from '../account/auth/auth.module';
 import { FreelancerRoutingModule } from './freelancer-routing.module';
-import { HttpClientModule } from '@angular/common/http';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { OffersComponent } from './offers/offers.component';
+import { OfferViewComponent } from './offers/offer-view/offer-view.component';
 
 @NgModule({
-  declarations: [DashboardComponent],
+  declarations: [DashboardComponent, OffersComponent, OfferViewComponent],
   imports: [
     CommonModule,
     FreelancerRoutingModule,
@@ -24,7 +26,8 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     MatInputModule,
     MatFormFieldModule,
     MatBadgeModule,
-    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule,
   ],
 })
 export class FreelancerModule {}
