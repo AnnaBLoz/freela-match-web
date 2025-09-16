@@ -1,0 +1,233 @@
+/* Custom styles for create proposal component */
+
+.min-vh-100 {
+  min-height: 100vh;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+/* Success state styles */
+.bg-success-subtle {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.border-success {
+  border-color: #198754 !important;
+}
+
+.text-success-emphasis {
+  color: #0a3622 !important;
+}
+
+.success-icon {
+  animation: successPulse 2s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Card styles */
+.card {
+  border: none;
+  border-radius: 12px;
+}
+
+.card-header {
+  border-bottom: 1px solid #e9ecef;
+  border-radius: 12px 12px 0 0 !important;
+  background-color: #fff !important;
+}
+
+/* Form styles */
+.form-label {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.75rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #6f42c1;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.1);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 150px;
+}
+
+/* Button styles */
+.btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #6f42c1;
+  border-color: #5a32a3;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-outline-secondary {
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #fff;
+}
+
+.btn-link {
+  color: #6f42c1;
+  font-weight: 500;
+}
+
+.btn-link:hover {
+  color: #5a32a3;
+  text-decoration: underline !important;
+}
+
+/* Badge styles for skills */
+.badge {
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+.badge .btn-close {
+  font-size: 0.7em;
+  opacity: 0.8;
+}
+
+.badge .btn-close:hover {
+  opacity: 1;
+}
+
+/* Input group styles */
+.input-group .btn {
+  border-radius: 0 8px 8px 0;
+}
+
+.input-group .form-control {
+  border-radius: 8px 0 0 8px;
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .display-5 {
+    font-size: 2rem;
+  }
+
+  .btn {
+    padding: 0.625rem 1.25rem;
+  }
+}
+
+/* Custom validation styles */
+.invalid-feedback {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.form-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Animation for form submission */
+.btn:disabled .spinner-border {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hover effects */
+.card:hover {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Focus styles for accessibility */
+.btn:focus,
+.form-control:focus {
+  outline: none;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #6f42c1;
+  outline-offset: 2px;
+}
+
+/* Custom border top for submit section */
+.border-top {
+  border-top: 1px solid #dee2e6 !important;
+}
+
+.btn-outline-primary {
+  color: #6f42c1;
+  border-color: #6f42c1;
+
+  &:hover {
+    background-color: #6f42c1;
+    color: #fff;
+  }
+}

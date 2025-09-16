@@ -1,0 +1,71 @@
+/* Header */
+.header {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+}
+
+/* Dashboard link */
+.nav-link-custom {
+  font-weight: 600;
+  color: #334155;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+.nav-link-custom:hover {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Logo */
+.logo-icon {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  margin-right: 10px;
+}
+
+/* Avatar */
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.user-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.tab-header h3 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.stat-item h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.5rem;
+  line-height: normal;
+}
+
+::ng-deep .mat-display-large,
+::ng-deep .mat-typography .mat-display-large,
+::ng-deep .mat-typography h1 {
+  font: 367 1.562rem / 4rem Roboto, sans-serif;
+}

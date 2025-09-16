@@ -1,0 +1,262 @@
+<!-- Loading State -->
+<div
+  *ngIf="isLoading"
+  class="min-vh-100 bg-light d-flex align-items-center justify-content-center"
+>
+  <div class="text-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+    <p class="mt-2">Carregando...</p>
+  </div>
+</div>
+
+<!-- Success State -->
+<div *ngIf="isCreated && !isLoading" class="min-vh-100 bg-light">
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card border-success bg-success-subtle">
+          <div class="card-body text-center py-5">
+            <div class="success-icon mb-4">
+              <i
+                class="fas fa-check-circle text-success"
+                style="font-size: 4rem"
+              ></i>
+            </div>
+            <h3 class="text-success mb-3">Proposta Criada com Sucesso!</h3>
+            <p class="text-success-emphasis mb-4">
+              Sua proposta foi publicada e já está disponível para freelancers
+              se candidatarem.
+            </p>
+            <div
+              class="d-flex flex-column flex-sm-row gap-3 justify-content-center"
+            >
+              <button class="btn btn-primary" (click)="goToMyProposals()">
+                Ver Minhas Propostas
+              </button>
+              <button class="btn btn-outline-primary" (click)="goToDashboard()">
+                Voltar ao Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Form -->
+<div *ngIf="!isCreated && !isLoading" class="min-vh-100 bg-light">
+  <div class="container py-5">
+    <!-- Back Button -->
+    <div class="mb-4">
+      <button
+        class="btn btn-link text-decoration-none p-0"
+        (click)="goToDashboard()"
+      >
+        <i class="fas fa-arrow-left me-2"></i>
+        Voltar ao Dashboard
+      </button>
+    </div>
+
+    <!-- Header -->
+    <div class="mb-5">
+      <h1 class="display-5 fw-bold text-dark mb-3">Criar Nova Proposta</h1>
+      <p class="text-muted">
+        Descreva seu projeto e encontre o freelancer ideal para realizá-lo.
+      </p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h5 class="card-title mb-1">Detalhes do Projeto</h5>
+            <p class="card-text text-muted small mb-0">
+              Forneça informações claras e detalhadas para atrair os melhores
+              profissionais.
+            </p>
+          </div>
+
+          <div class="card-body">
+            <form [formGroup]="proposalForm" (ngSubmit)="onSubmit()" novalidate>
+              <!-- Title -->
+              <div class="mb-4">
+                <label for="title" class="form-label fw-semibold">
+                  Título do Projeto <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('title')"
+                  id="title"
+                  formControlName="title"
+                  placeholder="ex: Desenvolvimento de E-commerce"
+                />
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('title')">
+                  {{ getFieldErrorMessage("title") }}
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-4">
+                <label for="description" class="form-label fw-semibold">
+                  Descrição Detalhada <span class="text-danger">*</span>
+                </label>
+                <textarea
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('description')"
+                  id="description"
+                  formControlName="description"
+                  rows="6"
+                  placeholder="Descreva seu projeto, objetivos, requisitos técnicos e qualquer informação relevante..."
+                ></textarea>
+                <div
+                  class="invalid-feedback"
+                  *ngIf="isFieldInvalid('description')"
+                >
+                  {{ getFieldErrorMessage("description") }}
+                </div>
+                <div class="form-text">
+                  Seja específico sobre o que você precisa. Projetos bem
+                  descritos recebem mais candidaturas de qualidade.
+                </div>
+              </div>
+
+              <!-- Budget and Deadline -->
+              <div class="row mb-4">
+                <div class="col-md-6 mb-3 mb-md-0">
+                  <label for="budget" class="form-label fw-semibold">
+                    Orçamento (R$) <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    [class.is-invalid]="isFieldInvalid('budget')"
+                    id="budget"
+                    formControlName="budget"
+                    placeholder="5000"
+                    min="1"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="isFieldInvalid('budget')"
+                  >
+                    {{ getFieldErrorMessage("budget") }}
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="deadline" class="form-label fw-semibold">
+                    Prazo de Entrega <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    [class.is-invalid]="isFieldInvalid('deadline')"
+                    id="deadline"
+                    formControlName="deadline"
+                    [min]="getTodayDate()"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="isFieldInvalid('deadline')"
+                  >
+                    {{ getFieldErrorMessage("deadline") }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Required Skills -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">
+                  Habilidades Necessárias <span class="text-danger">*</span>
+                </label>
+
+                <div class="input-group mb-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="skillInput"
+                    [ngModelOptions]="{ standalone: true }"
+                    (keydown)="onSkillInputKeyPress($event)"
+                    placeholder="Digite uma habilidade e pressione Enter"
+                  />
+                  <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="addSkill()"
+                  >
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+
+                <!-- Skills Display -->
+                <div *ngIf="requiredSkills.length > 0" class="mb-3">
+                  <div class="d-flex flex-wrap gap-2">
+                    <span
+                      *ngFor="let skill of requiredSkills"
+                      class="badge bg-secondary d-flex align-items-center"
+                    >
+                      {{ skill }}
+                      <button
+                        type="button"
+                        class="btn-close btn-close-white ms-2"
+                        style="font-size: 0.7em"
+                        (click)="removeSkill(skill)"
+                        aria-label="Remover habilidade"
+                      ></button>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Skills validation message -->
+                <div
+                  *ngIf="requiredSkills.length === 0"
+                  class="text-danger small"
+                >
+                  Adicione pelo menos uma habilidade necessária
+                </div>
+
+                <div class="form-text">
+                  Adicione as principais habilidades técnicas necessárias para o
+                  projeto.
+                </div>
+              </div>
+
+              <!-- Submit Buttons -->
+              <div class="d-flex justify-content-end gap-3 pt-4 border-top">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="cancel()"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="
+                    isSubmitting ||
+                    proposalForm.invalid ||
+                    requiredSkills.length === 0
+                  "
+                >
+                  <span
+                    *ngIf="isSubmitting"
+                    class="spinner-border spinner-border-sm me-2"
+                    role="status"
+                  ></span>
+                  {{ isSubmitting ? "Criando..." : "Criar Proposta" }}
+                  <i *ngIf="!isSubmitting" class="fas fa-save ms-2"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
