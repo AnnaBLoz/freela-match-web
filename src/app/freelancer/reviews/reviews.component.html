@@ -1,0 +1,178 @@
+<div class="min-vh-100 bg-light">
+  <!-- Loading State -->
+  <div
+    *ngIf="isLoading"
+    class="min-vh-100 bg-light d-flex align-items-center justify-content-center"
+  >
+    <div class="spinner-border text-success" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && user" class="container py-5">
+    <!-- Header -->
+    <div class="mb-5 text-center">
+      <h1 class="display-5 fw-bold text-dark mb-3">Avaliações</h1>
+      <p class="text-muted fs-5">
+        Veja o que outros usuários dizem sobre você e acompanhe suas próprias
+        avaliações
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <div class="row g-4">
+          <!-- Overall Rating -->
+          <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3">
+              <div class="card-header bg-white border-0">
+                <h6 class="card-title mb-0 d-flex align-items-center">
+                  <i class="bi bi-star-fill text-warning me-2"></i>
+                  Avaliação Geral
+                </h6>
+              </div>
+              <div class="card-body text-center">
+                <div class="display-4 fw-bold text-dark mb-3">
+                  {{ averageRating.toFixed(1) }}
+                </div>
+                <app-star-rating
+                  [rating]="roundedAverage"
+                  [readonly]="true"
+                  [size]="'lg'"
+                  class="d-flex justify-content-center mb-3"
+                ></app-star-rating>
+                <p class="text-muted small mb-0">
+                  Baseado em {{ receivedReviews.length }} avaliação(ões)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating Distribution -->
+          <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3">
+              <div class="card-header bg-white border-0">
+                <h6 class="card-title mb-0">Distribuição das Notas</h6>
+              </div>
+              <div class="card-body">
+                <div
+                  class="d-flex align-items-center mb-3"
+                  *ngFor="let item of ratingDistribution"
+                >
+                  <div
+                    class="d-flex align-items-center me-3"
+                    style="min-width: 48px"
+                  >
+                    <span class="small fw-medium me-1">{{ item.rating }}</span>
+                    <i class="bi bi-star-fill text-warning small"></i>
+                  </div>
+                  <div class="flex-grow-1 me-3">
+                    <div class="progress" style="height: 8px">
+                      <div
+                        class="progress-bar bg-warning"
+                        role="progressbar"
+                        [style.width.%]="item.percentage"
+                        [attr.aria-valuenow]="item.percentage"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                  </div>
+                  <span class="small text-muted" style="min-width: 24px">{{
+                    item.count
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3">
+              <div class="card-header bg-white border-0">
+                <h6 class="card-title mb-0">Estatísticas</h6>
+              </div>
+              <div class="card-body">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-3"
+                >
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-chat-square-text text-primary me-2"></i>
+                    <span class="small">Recebidas</span>
+                  </div>
+                  <span class="fw-semibold">{{ receivedReviews.length }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-send-check text-success me-2"></i>
+                    <span class="small">Enviadas</span>
+                  </div>
+                  <span class="fw-semibold">{{ sentReviews.length }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Content -->
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-3">
+          <div class="card-header bg-white border-0">
+            <ul
+              class="nav nav-pills justify-content-center gap-3"
+              role="tablist"
+            >
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link custom-tab"
+                  [class.active]="activeTab === 'received'"
+                  type="button"
+                  (click)="setActiveTab('received')"
+                >
+                  <i class="bi bi-inbox me-2"></i>
+                  Recebidas
+                  <span class="badge bg-light text-dark ms-2">{{
+                    receivedReviews.length
+                  }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link custom-tab"
+                  [class.active]="activeTab === 'sent'"
+                  type="button"
+                  (click)="setActiveTab('sent')"
+                >
+                  <i class="bi bi-send me-2"></i>
+                  Enviadas
+                  <span class="badge bg-light text-dark ms-2">{{
+                    sentReviews.length
+                  }}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <div *ngIf="activeTab === 'received'">
+              <app-reviews-list
+                [reviews]="receivedReviews"
+                [type]="'received'"
+              ></app-reviews-list>
+            </div>
+
+            <div *ngIf="activeTab === 'sent'">
+              <app-reviews-list
+                [reviews]="sentReviews"
+                [type]="'sent'"
+              ></app-reviews-list>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

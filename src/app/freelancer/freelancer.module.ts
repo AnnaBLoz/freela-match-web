@@ -12,9 +12,23 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { OffersComponent } from './offers/offers.component';
 import { OfferViewComponent } from './offers/offer-view/offer-view.component';
+import { ReviewsComponent } from './reviews/reviews.component';
+import { StarRatingComponent } from './reviews/star-rating/star-rating.component';
+import { ReviewsListComponent } from './reviews/reviews-list/reviews-list.component';
+import { CommunityComponent } from './community/community.component';
+import { CommunityViewComponent } from './community/community-view/community-view.component';
 
 @NgModule({
-  declarations: [DashboardComponent, OffersComponent, OfferViewComponent],
+  declarations: [
+    DashboardComponent,
+    OffersComponent,
+    OfferViewComponent,
+    ReviewsComponent,
+    StarRatingComponent,
+    ReviewsListComponent,
+    CommunityComponent,
+    CommunityViewComponent,
+  ],
   imports: [
     CommonModule,
     FreelancerRoutingModule,

@@ -22,7 +22,6 @@ interface Proposal {
 
 @Component({
   selector: 'app-offers',
-  standalone: false,
   templateUrl: './offers.component.html',
   styleUrl: './offers.component.css',
 })

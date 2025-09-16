@@ -1,0 +1,491 @@
+<div class="min-vh-100 bg-light">
+  <!-- Loading State -->
+  <div
+    class="container-fluid d-flex justify-content-center align-items-center"
+    style="height: 50vh"
+    *ngIf="isLoading"
+  >
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+  </div>
+
+  <!-- Freelancer Not Found -->
+  <div class="container py-4" *ngIf="!isLoading && !freelancer">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card text-center py-5">
+          <div class="card-body">
+            <i class="bi bi-person-x display-1 text-muted mb-3"></i>
+            <h3 class="h4 fw-semibold text-dark mb-2">
+              Freelancer não encontrado
+            </h3>
+            <p class="text-muted mb-4">
+              O perfil que você está procurando não existe.
+            </p>
+            <button class="btn btn-primary" (click)="navigateToFreelancers()">
+              Voltar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-4" *ngIf="!isLoading && freelancer">
+    <!-- Back Button -->
+    <button
+      class="btn btn-link text-decoration-none mb-4 p-0"
+      (click)="navigateToFreelancers()"
+    >
+      <i class="bi bi-arrow-left me-2"></i>
+      Voltar
+    </button>
+
+    <div class="row">
+      <!-- Main Profile -->
+      <div class="col-lg-8 mb-4">
+        <!-- Profile Header -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex flex-column flex-md-row">
+              <div class="text-center text-md-start me-md-4 mb-3 mb-md-0">
+                <img
+                  [src]="
+                    freelancer.profileImage || 'https://via.placeholder.com/96'
+                  "
+                  [alt]="freelancer.name"
+                  class="rounded-circle profile-image-large mb-2"
+                />
+                <div class="d-md-none">
+                  <h1 class="h3 fw-bold mb-1">{{ freelancer.name }}</h1>
+                </div>
+              </div>
+
+              <div class="flex-grow-1">
+                <div class="d-none d-md-block">
+                  <div
+                    class="d-flex justify-content-between align-items-start mb-3"
+                  >
+                    <h1 class="h3 fw-bold mb-0">{{ freelancer.name }}</h1>
+                    <span
+                      class="badge fs-6"
+                      [ngClass]="{
+                        'bg-success': freelancer.availability === 'available',
+                        'bg-warning': freelancer.availability === 'busy',
+                        'bg-secondary':
+                          freelancer.availability === 'unavailable'
+                      }"
+                    >
+                      {{ getAvailabilityText(freelancer.availability) }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-3">
+                  <div
+                    class="me-2"
+                    [innerHTML]="getStars(round(averageRating)).join('')"
+                  ></div>
+                  <span class="fw-semibold me-2">{{
+                    averageRating.toFixed(1)
+                  }}</span>
+                  <span class="text-muted">
+                    ({{ reviews.length }} avaliação{{
+                      reviews.length !== 1 ? "ões" : ""
+                    }})
+                  </span>
+                </div>
+
+                <p class="text-muted mb-3">{{ freelancer.bio }}</p>
+
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                  <div
+                    class="d-flex align-items-center text-success fw-semibold"
+                  >
+                    <i class="bi bi-currency-dollar me-1"></i>
+                    <span class="h5 mb-0"
+                      >R$ {{ freelancer.hourlyRate }}/h</span
+                    >
+                  </div>
+                  <span class="text-muted"
+                    >{{ freelancer.completedProjects }} projetos
+                    concluídos</span
+                  >
+                </div>
+
+                <!-- Mobile Badge -->
+                <div class="d-md-none mt-3">
+                  <span
+                    class="badge"
+                    [ngClass]="{
+                      'bg-success': freelancer.availability === 'available',
+                      'bg-warning': freelancer.availability === 'busy',
+                      'bg-secondary': freelancer.availability === 'unavailable'
+                    }"
+                  >
+                    {{ getAvailabilityText(freelancer.availability) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="card">
+          <div class="card-header border-bottom">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  [class.active]="activeTab === 'skills'"
+                  (click)="setActiveTab('skills')"
+                >
+                  Habilidades
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  [class.active]="activeTab === 'portfolio'"
+                  (click)="setActiveTab('portfolio')"
+                >
+                  Portfólio
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  [class.active]="activeTab === 'reviews'"
+                  (click)="setActiveTab('reviews')"
+                >
+                  Avaliações ({{ reviews.length }})
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <!-- Skills Tab -->
+            <div *ngIf="activeTab === 'skills'">
+              <h5 class="fw-semibold mb-3">Habilidades e Experiência</h5>
+
+              <div class="mb-4">
+                <h6 class="fw-medium text-dark mb-3">Tecnologias</h6>
+                <div class="d-flex flex-wrap gap-2">
+                  <span
+                    class="badge bg-secondary skill-badge"
+                    *ngFor="let skill of freelancer.skills"
+                  >
+                    {{ skill }}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <h6 class="fw-medium text-dark mb-2">Experiência</h6>
+                <p class="text-muted">{{ freelancer.experience }}</p>
+              </div>
+            </div>
+
+            <!-- Portfolio Tab -->
+            <div *ngIf="activeTab === 'portfolio'">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h5 class="fw-semibold mb-0">Portfólio</h5>
+              </div>
+              <p class="text-muted mb-4">Trabalhos e projetos realizados</p>
+
+              <div *ngIf="freelancer.portfolio.length > 0; else noPortfolio">
+                <div class="row">
+                  <div
+                    class="col-12 mb-3"
+                    *ngFor="let item of freelancer.portfolio"
+                  >
+                    <div class="border rounded p-3">
+                      <a
+                        [href]="item"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-primary text-decoration-none fw-medium"
+                      >
+                        <i class="bi bi-link-45deg me-1"></i>
+                        {{ item }}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #noPortfolio>
+                <div class="text-center py-5">
+                  <i class="bi bi-briefcase display-1 text-muted mb-3"></i>
+                  <p class="text-muted">Nenhum item no portfólio ainda.</p>
+                </div>
+              </ng-template>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div *ngIf="activeTab === 'reviews'">
+              <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-chat-square-text me-2"></i>
+                <h5 class="fw-semibold mb-0">Avaliações dos Clientes</h5>
+              </div>
+
+              <div *ngIf="reviews.length > 0; else noReviews">
+                <div
+                  class="review-item border rounded p-3 mb-3"
+                  *ngFor="let review of reviews"
+                >
+                  <div class="d-flex">
+                    <div class="me-3">
+                      <img
+                        [src]="
+                          getCompanyInfo(review.fromUserId).logo ||
+                          'https://via.placeholder.com/40'
+                        "
+                        [alt]="getCompanyInfo(review.fromUserId).name"
+                        class="rounded-circle"
+                        width="40"
+                        height="40"
+                      />
+                    </div>
+
+                    <div class="flex-grow-1">
+                      <div
+                        class="d-flex justify-content-between align-items-start mb-2"
+                      >
+                        <div>
+                          <p class="fw-medium mb-1">
+                            {{ getCompanyInfo(review.fromUserId).name }}
+                          </p>
+                          <div class="d-flex align-items-center">
+                            <div
+                              class="me-2"
+                              [innerHTML]="getStars(review.rating).join('')"
+                            ></div>
+                            <small class="text-muted">{{
+                              formatDate(review.createdAt)
+                            }}</small>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="text-muted mb-0">{{ review.comment }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #noReviews>
+                <div class="text-center py-5">
+                  <i
+                    class="bi bi-chat-square-text display-1 text-muted mb-3"
+                  ></i>
+                  <p class="text-muted">Nenhuma avaliação ainda.</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Ações</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <button
+                class="btn btn-primary"
+                *ngIf="user?.type === 'company'"
+                (click)="sendMessage()"
+              >
+                <i class="bi bi-send me-2"></i>
+                Enviar Mensagem
+              </button>
+              <button
+                class="btn btn-outline-warning"
+                *ngIf="user?.type === 'company'"
+                (click)="openReviewModal()"
+              >
+                <i class="bi bi-star me-2"></i>
+                Avaliar Freelancer
+              </button>
+              <button
+                class="btn btn-primary"
+                *ngIf="user?.type === 'freelancer'"
+                (click)="sendMessage()"
+              >
+                <i class="bi bi-envelope me-2"></i>
+                Entrar em Contato
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Estatísticas</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between py-2">
+              <span class="text-muted">Projetos:</span>
+              <span class="fw-semibold">{{
+                freelancer.completedProjects
+              }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2">
+              <span class="text-muted">Avaliação:</span>
+              <span class="fw-semibold">{{ averageRating.toFixed(1) }}/5</span>
+            </div>
+            <div class="d-flex justify-content-between py-2">
+              <span class="text-muted">Taxa/Hora:</span>
+              <span class="fw-semibold text-success"
+                >R$ {{ freelancer.hourlyRate }}</span
+              >
+            </div>
+            <div class="d-flex justify-content-between py-2">
+              <span class="text-muted">Status:</span>
+              <span
+                class="badge"
+                [ngClass]="{
+                  'bg-success': freelancer.availability === 'available',
+                  'bg-warning': freelancer.availability === 'busy',
+                  'bg-secondary': freelancer.availability === 'unavailable'
+                }"
+              >
+                {{ getAvailabilityText(freelancer.availability) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div
+  class="modal fade"
+  [class.show]="showReviewModal"
+  [style.display]="showReviewModal ? 'block' : 'none'"
+  *ngIf="showReviewModal"
+  (click)="closeReviewModal()"
+>
+  <div
+    class="modal-dialog modal-dialog-centered"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Avaliar {{ freelancer?.name }}</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeReviewModal()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="submitReview()">
+          <div class="mb-3">
+            <label class="form-label">Avaliação</label>
+            <div class="rating-input">
+              <div class="btn-group" role="group">
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="rating"
+                  id="star1"
+                  [(ngModel)]="reviewRating"
+                  [value]="1"
+                />
+                <label class="btn btn-outline-warning" for="star1">1★</label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="rating"
+                  id="star2"
+                  [(ngModel)]="reviewRating"
+                  [value]="2"
+                />
+                <label class="btn btn-outline-warning" for="star2">2★</label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="rating"
+                  id="star3"
+                  [(ngModel)]="reviewRating"
+                  [value]="3"
+                />
+                <label class="btn btn-outline-warning" for="star3">3★</label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="rating"
+                  id="star4"
+                  [(ngModel)]="reviewRating"
+                  [value]="4"
+                />
+                <label class="btn btn-outline-warning" for="star4">4★</label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="rating"
+                  id="star5"
+                  [(ngModel)]="reviewRating"
+                  [value]="5"
+                />
+                <label class="btn btn-outline-warning" for="star5">5★</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Comentário</label>
+            <textarea
+              class="form-control"
+              rows="4"
+              [(ngModel)]="reviewComment"
+              name="comment"
+              placeholder="Compartilhe sua experiência trabalhando com este freelancer..."
+              required
+            ></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeReviewModal()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="submitReview()"
+          [disabled]="!reviewComment.trim()"
+        >
+          Enviar Avaliação
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div
+  class="modal-backdrop fade"
+  [class.show]="showReviewModal"
+  *ngIf="showReviewModal"
+></div>

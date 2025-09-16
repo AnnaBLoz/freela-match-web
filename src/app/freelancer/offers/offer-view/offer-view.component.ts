@@ -38,7 +38,6 @@ interface Company {
 
 @Component({
   selector: 'app-offer-view',
-  standalone: false,
   templateUrl: './offer-view.component.html',
   styleUrls: ['./offer-view.component.css'],
 })
