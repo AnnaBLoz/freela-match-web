@@ -1,0 +1,260 @@
+/* Sticky positioning for filters */
+.sticky-top {
+  top: 1rem;
+}
+
+/* Card hover effects */
+.hover-card {
+  transition: all 0.15s ease-in-out;
+}
+
+.hover-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px);
+}
+
+/* Search icon positioning */
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #6c757d;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Profile image styling */
+.profile-img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 2px solid #e9ecef;
+}
+
+/* Custom form range styling */
+.form-range {
+  cursor: pointer;
+}
+
+.form-range::-webkit-slider-thumb {
+  background-color: #6f42c1;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.form-range::-moz-range-thumb {
+  background-color: #6f42c1;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Badge styling */
+.badge {
+  font-size: 0.75em;
+  font-weight: 500;
+}
+
+.skill-badge {
+  font-size: 0.7em;
+  border: 1px solid #dee2e6 !important;
+}
+
+/* Card improvements */
+.card {
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  border-bottom: 1px solid #e9ecef;
+  background-color: #fff;
+  padding: 1rem;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* Button improvements */
+.btn-primary {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: #5a32a3;
+  border-color: #5a32a3;
+  transform: translateY(-1px);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Navbar styling */
+.navbar-brand {
+  font-size: 1.25rem;
+}
+
+.navbar-nav .nav-link {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Loading spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .d-flex.justify-content-between.align-items-center.mb-4.flex-wrap {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  .d-flex.align-items-center.gap-2 {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .form-select[style*="width: 200px"] {
+    width: auto !important;
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .card-body {
+    padding: 0.75rem;
+  }
+
+  .card-header {
+    padding: 0.75rem;
+  }
+
+  .profile-img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Animation for filter collapse */
+.collapse {
+  transition: height 0.35s ease;
+}
+
+/* Star rating improvements */
+.bi-star-fill,
+.bi-star-half,
+.bi-star {
+  font-size: 0.875rem;
+}
+
+/* Empty state styling */
+.display-1 {
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+/* Form improvements */
+.form-control:focus,
+.form-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.form-label {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+/* Availability badge improvements */
+.bg-success {
+  background-color: #198754 !important;
+}
+
+.bg-warning {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+/* Compatibility badge */
+.bg-primary {
+  background-color: #6f42c1 !important;
+}
+
+/* Small text improvements */
+.small,
+small {
+  font-size: 0.875em;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* Card title improvements */
+.card-title {
+  color: #212529;
+  font-weight: 600;
+}
+
+/* Price display */
+.text-success {
+  color: #198754 !important;
+  font-weight: 600;
+}
+
+.btn-outline-primary {
+  color: #6f42c1;
+  border-color: #6f42c1;
+
+  &:hover {
+    background-color: #6f42c1;
+    color: #fff;
+  }
+}

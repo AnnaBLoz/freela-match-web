@@ -2,6 +2,10 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { NewOfferComponent } from './new-offer/new-offer.component';
+import { OffersComponent } from './offers/offers.component';
+import { OfferDetailsComponent } from './offer-details/offer-details.component';
+import { FreelancersComponent } from './freelancers/freelancers.component';
+import { FreelancerViewComponent } from './freelancers/freelancer-view/freelancer-view.component';
 
 const routes: Routes = [
   {
@@ -11,6 +15,22 @@ const routes: Routes = [
   {
     path: 'new-offer',
     component: NewOfferComponent,
+  },
+  {
+    path: 'offers',
+    component: OffersComponent,
+  },
+  {
+    path: 'offer/:id',
+    component: OfferDetailsComponent,
+  },
+  {
+    path: 'freelancers',
+    component: FreelancersComponent,
+  },
+  {
+    path: 'freelancer/:id',
+    component: FreelancerViewComponent,
   },
 ];
 

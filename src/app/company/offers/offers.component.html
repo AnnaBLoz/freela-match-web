@@ -1,1 +1,305 @@
-<p>offers works!</p>
+<!-- Loading State -->
+<div
+  *ngIf="isLoading"
+  class="min-vh-100 bg-light d-flex align-items-center justify-content-center"
+>
+  <div class="text-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+    <p class="mt-2">Carregando...</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div *ngIf="!isLoading" class="min-vh-100 bg-light">
+  <div class="container-fluid px-4 py-5" style="max-width: 1400px">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+      <div>
+        <h1 class="display-5 fw-bold text-dark mb-2">Minhas Propostas</h1>
+        <p class="text-muted">Gerencie seus projetos e candidaturas</p>
+      </div>
+      <button class="btn btn-primary" (click)="goToCreateProposal()">
+        <i class="fas fa-plus me-2"></i>
+        Nova Proposta
+      </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="card-title text-muted mb-0">Total de Propostas</h6>
+              <i class="fas fa-eye text-muted"></i>
+            </div>
+            <h2 class="fw-bold mb-0">{{ companyProposals.length }}</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="card-title text-muted mb-0">Propostas Ativas</h6>
+              <i class="fas fa-calendar text-muted"></i>
+            </div>
+            <h2 class="fw-bold mb-0">{{ activeProposals.length }}</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="card-title text-muted mb-0">Total de Candidaturas</h6>
+              <i class="fas fa-users text-muted"></i>
+            </div>
+            <h2 class="fw-bold mb-0">{{ getTotalApplications() }}</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="card-title text-muted mb-0">Projetos Concluídos</h6>
+              <i class="fas fa-check text-muted"></i>
+            </div>
+            <h2 class="fw-bold mb-0">{{ completedProposals.length }}</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proposals Tabs -->
+    <div class="mb-4">
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            [class.active]="activeTab === 'active'"
+            (click)="setActiveTab('active')"
+          >
+            Ativas ({{ activeProposals.length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            [class.active]="activeTab === 'completed'"
+            (click)="setActiveTab('completed')"
+          >
+            Concluídas ({{ completedProposals.length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            [class.active]="activeTab === 'all'"
+            (click)="setActiveTab('all')"
+          >
+            Todas ({{ companyProposals.length }})
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Proposals List -->
+    <div class="proposals-content">
+      <!-- Empty State -->
+      <div
+        *ngIf="getProposalsForTab().length === 0"
+        class="card border-0 shadow-sm"
+      >
+        <div class="card-body text-center py-5">
+          <div class="empty-state-icon mb-4">
+            <i class="fas fa-eye text-muted" style="font-size: 4rem"></i>
+          </div>
+          <h3 class="h5 fw-bold text-dark mb-3">Nenhuma proposta encontrada</h3>
+          <p class="text-muted mb-4">
+            Você ainda não criou nenhuma proposta nesta categoria.
+          </p>
+          <button class="btn btn-primary" (click)="goToCreateProposal()">
+            Criar Primeira Proposta
+          </button>
+        </div>
+      </div>
+
+      <!-- Proposals Cards -->
+      <div
+        *ngFor="let proposal of getProposalsForTab()"
+        class="card border-0 shadow-sm mb-4"
+      >
+        <!-- Card Header -->
+        <div class="card-header bg-white border-bottom">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <h5 class="card-title mb-2">{{ proposal.title }}</h5>
+              <p class="card-text text-muted">
+                {{ truncateDescription(proposal.description) }}
+              </p>
+            </div>
+            <span
+              class="badge ms-3"
+              [class]="getStatusBadgeClass(proposal.status)"
+            >
+              {{ getStatusText(proposal.status) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          <!-- Project Info -->
+          <div class="row text-center text-md-start mb-4">
+            <div class="col-md-4 mb-2 mb-md-0">
+              <div
+                class="d-flex align-items-center justify-content-center justify-content-md-start text-success"
+              >
+                <i class="fas fa-dollar-sign me-2"></i>
+                <span class="fw-bold">{{
+                  formatCurrency(proposal.budget)
+                }}</span>
+              </div>
+            </div>
+            <div class="col-md-4 mb-2 mb-md-0">
+              <div
+                class="d-flex align-items-center justify-content-center justify-content-md-start text-muted"
+              >
+                <i class="fas fa-calendar me-2"></i>
+                <span>Prazo: {{ formatDate(proposal.deadline) }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div
+                class="d-flex align-items-center justify-content-center justify-content-md-start text-primary"
+              >
+                <i class="fas fa-users me-2"></i>
+                <span>{{ proposal.applications.length }} candidatura(s)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Required Skills -->
+          <div class="mb-4">
+            <h6 class="text-muted mb-2">Habilidades:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <span
+                *ngFor="let skill of proposal.requiredSkills"
+                class="badge bg-light text-dark border"
+              >
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Applications -->
+          <div
+            *ngIf="
+              activeTab !== 'completed' && proposal.applications.length > 0
+            "
+            class="mb-4"
+          >
+            <h6 class="text-muted mb-3">Candidaturas:</h6>
+            <div class="applications-list">
+              <div
+                *ngFor="let application of proposal.applications.slice(0, 2)"
+                class="application-item bg-light rounded p-3 mb-3"
+              >
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <div class="avatar me-3">
+                      <div
+                        class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px"
+                      >
+                        <small class="fw-bold">
+                          {{
+                            getFreelancerInitials(
+                              getFreelancerById(application.freelancerId)
+                            )
+                          }}
+                        </small>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="fw-bold">
+                        {{
+                          getFreelancerById(application.freelancerId)?.name ||
+                            "Freelancer"
+                        }}
+                      </div>
+                      <div class="text-muted small d-flex align-items-center">
+                        <i class="fas fa-star text-warning me-1"></i>
+                        <span>
+                          {{
+                            getFreelancerById(application.freelancerId)
+                              ?.rating || "5.0"
+                          }}
+                          •
+                          {{ formatCurrency(application.proposedRate) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button
+                      class="btn btn-sm btn-outline-success"
+                      (click)="approveApplication(proposal.id, application.id)"
+                    >
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="rejectApplication(proposal.id, application.id)"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="proposal.applications.length > 2" class="text-center">
+                <small class="text-muted">
+                  +{{ proposal.applications.length - 2 }} candidatura(s)
+                  adicional(is)
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer bg-white border-top">
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+              Criado em {{ formatDate(proposal.createdAt) }}
+            </small>
+            <div class="d-flex gap-2">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                (click)="viewProposalDetails(proposal.id)"
+              >
+                <i class="fas fa-eye me-2"></i>
+                Ver Detalhes
+              </button>
+              <!-- <button
+                *ngIf="proposal.applications.length > 0"
+                class="btn btn-primary btn-sm"
+                (click)="viewApplications(proposal.id)"
+              >
+                Ver Candidaturas ({{ proposal.applications.length }})
+              </button> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

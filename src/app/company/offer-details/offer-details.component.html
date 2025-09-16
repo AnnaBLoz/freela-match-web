@@ -1,0 +1,323 @@
+<div class="min-vh-100 bg-light">
+  <!-- Loading State -->
+  <div
+    *ngIf="isLoading"
+    class="d-flex justify-content-center align-items-center"
+    style="height: 80vh"
+  >
+    <div class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <div class="mt-2">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- Proposal Not Found -->
+  <div *ngIf="!isLoading && !proposal" class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card text-center">
+          <div class="card-body py-5">
+            <h3 class="card-title mb-3">Proposta não encontrada</h3>
+            <p class="card-text text-muted mb-4">
+              A proposta que você está procurando não existe.
+            </p>
+            <button class="btn btn-primary" (click)="goBack()">
+              Voltar às Propostas
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && proposal" class="container py-4">
+    <!-- Back Button -->
+    <button class="btn btn-link ps-0 mb-4" (click)="goBack()">
+      <i class="bi bi-arrow-left me-2"></i>
+      Voltar às Propostas
+    </button>
+
+    <div class="row">
+      <!-- Main Content Column -->
+      <div class="col-lg-8 mb-4">
+        <!-- Proposal Header -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h1 class="h2 mb-2">{{ proposal.title }}</h1>
+                <div class="d-flex flex-wrap gap-3 text-muted small">
+                  <span>
+                    <i class="bi bi-calendar me-1"></i>
+                    Prazo: {{ formatDate(proposal.deadline) }}
+                  </span>
+                  <span>
+                    <i class="bi bi-clock me-1"></i>
+                    Publicado em {{ formatDate(proposal.createdAt) }}
+                  </span>
+                </div>
+              </div>
+              <span
+                class="badge"
+                [class]="
+                  proposal.status === 'open' ? 'bg-success' : 'bg-secondary'
+                "
+              >
+                {{ proposal.status === "open" ? "Aberta" : "Fechada" }}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Project Description -->
+            <div class="mb-4">
+              <h3 class="h5 fw-semibold mb-2">Descrição do Projeto</h3>
+              <p class="text-muted lh-lg">{{ proposal.description }}</p>
+            </div>
+
+            <!-- Required Skills -->
+            <div class="mb-4">
+              <h3 class="h5 fw-semibold mb-2">Habilidades Necessárias</h3>
+              <div class="d-flex flex-wrap gap-2">
+                <span
+                  *ngFor="let skill of proposal.requiredSkills"
+                  class="badge bg-light text-dark border"
+                >
+                  {{ skill }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Budget -->
+            <div
+              class="d-flex align-items-center justify-content-between p-4 bg-success-subtle rounded"
+            >
+              <div>
+                <p class="small text-muted mb-1">Orçamento do Projeto</p>
+                <p class="h2 fw-bold text-success mb-0">
+                  R$ {{ formatCurrency(proposal.budget) }}
+                </p>
+              </div>
+              <i
+                class="bi bi-currency-dollar text-success"
+                style="font-size: 2rem"
+              ></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Application Form -->
+        <div
+          *ngIf="
+            user?.type === 'freelancer' &&
+            proposal.status === 'open' &&
+            !hasApplied
+          "
+          class="card mb-4"
+        >
+          <div class="card-header">
+            <h3 class="h5 mb-1">Candidatar-se a esta Proposta</h3>
+            <p class="small text-muted mb-0">
+              Envie sua proposta e mostre por que você é o profissional ideal
+              para este projeto.
+            </p>
+          </div>
+          <div class="card-body">
+            <form (ngSubmit)="onSubmitApplication($event)">
+              <!-- Message -->
+              <div class="mb-3">
+                <label for="message" class="form-label"
+                  >Mensagem de Apresentação</label
+                >
+                <textarea
+                  id="message"
+                  class="form-control"
+                  rows="4"
+                  placeholder="Conte sobre sua experiência e como você pode ajudar com este projeto..."
+                  [(ngModel)]="applicationForm.message"
+                  name="message"
+                  required
+                >
+                </textarea>
+              </div>
+
+              <!-- Rate and Duration -->
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="proposedRate" class="form-label"
+                    >Sua Taxa Proposta (R$)</label
+                  >
+                  <input
+                    type="number"
+                    id="proposedRate"
+                    class="form-control"
+                    placeholder="5000"
+                    [(ngModel)]="applicationForm.proposedRate"
+                    name="proposedRate"
+                    required
+                  />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="estimatedDuration" class="form-label"
+                    >Prazo Estimado</label
+                  >
+                  <input
+                    type="text"
+                    id="estimatedDuration"
+                    class="form-control"
+                    placeholder="ex: 2 semanas"
+                    [(ngModel)]="applicationForm.estimatedDuration"
+                    name="estimatedDuration"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <button
+                type="submit"
+                class="btn btn-primary w-100"
+                [disabled]="isSubmitting"
+              >
+                <span
+                  *ngIf="isSubmitting"
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                ></span>
+                {{ isSubmitting ? "Enviando..." : "Enviar Candidatura" }}
+                <i *ngIf="!isSubmitting" class="bi bi-send ms-2"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div
+          *ngIf="hasApplied"
+          class="card border-success bg-success-subtle mb-4"
+        >
+          <div class="card-body text-center py-5">
+            <div
+              class="d-inline-flex align-items-center justify-content-center bg-success-subtle rounded-circle mb-3"
+              style="width: 60px; height: 60px"
+            >
+              <i class="bi bi-send text-success" style="font-size: 1.5rem"></i>
+            </div>
+            <h3 class="h5 text-success mb-2">Candidatura Enviada!</h3>
+            <p class="text-success-emphasis mb-0">
+              Sua candidatura foi enviada com sucesso. A empresa será notificada
+              e entrará em contato se houver interesse.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <!-- Company Info -->
+        <div *ngIf="company" class="card mb-4">
+          <div class="card-header">
+            <h3 class="h5 mb-0">
+              <i class="bi bi-building me-2"></i>
+              Sobre a Empresa
+            </h3>
+          </div>
+          <div class="card-body">
+            <!-- Company Header -->
+            <div class="d-flex align-items-center mb-3">
+              <div class="avatar-circle bg-primary text-white me-3">
+                <span *ngIf="!company.logoUrl">{{ getCompanyInitials() }}</span>
+                <img
+                  *ngIf="company.logoUrl"
+                  [src]="company.logoUrl"
+                  [alt]="company.companyName"
+                  class="avatar-img"
+                />
+              </div>
+              <div>
+                <p class="fw-semibold mb-0">{{ company.companyName }}</p>
+                <p class="small text-muted mb-0">{{ company.industry }}</p>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <p class="small text-muted mb-3">{{ company.description }}</p>
+
+            <!-- Rating -->
+            <div
+              class="d-flex justify-content-between align-items-center small mb-3"
+            >
+              <div>
+                <i class="bi bi-star-fill text-warning me-1"></i>
+                <span
+                  >{{ company.rating }} ({{
+                    company.totalProjects
+                  }}
+                  projetos)</span
+                >
+              </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="small text-muted">
+              <p class="mb-1">
+                <strong>Contato:</strong> {{ company.contactPerson }}
+              </p>
+              <p *ngIf="company.website" class="mb-0">
+                <strong>Website:</strong>
+                <a
+                  [href]="company.website"
+                  target="_blank"
+                  class="text-primary text-decoration-none ms-1"
+                >
+                  {{ company.website }}
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Stats -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="h5 mb-0">Estatísticas do Projeto</h3>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Candidaturas:</span>
+              <span class="fw-semibold">{{
+                proposal.applications.length
+              }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Orçamento:</span>
+              <span class="fw-semibold text-success"
+                >R$ {{ formatCurrency(proposal.budget) }}</span
+              >
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Prazo:</span>
+              <span class="fw-semibold">{{
+                formatDate(proposal.deadline)
+              }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Status:</span>
+              <span
+                class="badge"
+                [class]="
+                  proposal.status === 'open' ? 'bg-success' : 'bg-secondary'
+                "
+              >
+                {{ proposal.status === "open" ? "Aberta" : "Fechada" }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

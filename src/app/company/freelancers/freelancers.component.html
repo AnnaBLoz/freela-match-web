@@ -1,0 +1,391 @@
+<div class="min-vh-100 bg-light">
+  <!-- Loading State -->
+  <div
+    class="container-fluid d-flex justify-content-center align-items-center"
+    style="height: 50vh"
+    *ngIf="isLoading"
+  >
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-4" *ngIf="!isLoading">
+    <!-- Header -->
+    <div class="mb-4">
+      <h1 class="h2 fw-bold text-dark">
+        {{
+          user?.type === "company"
+            ? "Encontrar Freelancers"
+            : "Comunidade de Freelancers"
+        }}
+      </h1>
+      <p class="text-muted">
+        {{
+          user?.type === "company"
+            ? "Encontre os profissionais ideais para seus projetos"
+            : "Conecte-se com outros profissionais da comunidade"
+        }}
+      </p>
+    </div>
+
+    <div class="row">
+      <!-- Filters Sidebar -->
+      <div class="col-lg-3 mb-4">
+        <div class="card sticky-top">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-sliders me-2"></i>Filtros
+              </h5>
+              <button
+                class="btn btn-sm btn-outline-secondary d-lg-none"
+                type="button"
+                (click)="showFilters = !showFilters"
+              >
+                <i class="bi bi-funnel"></i>
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="card-body"
+            [ngClass]="{ 'd-none d-lg-block': !showFilters }"
+          >
+            <!-- Search -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Busca Geral</label>
+              <div class="position-relative">
+                <i class="bi bi-search search-icon"></i>
+                <input
+                  type="text"
+                  class="form-control ps-5"
+                  placeholder="Nome, habilidades..."
+                  [(ngModel)]="searchTerm"
+                  (input)="applyFilters()"
+                />
+              </div>
+            </div>
+
+            <!-- Skills Filter -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold"
+                >Habilidades Específicas</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                placeholder="React, Node.js, Python..."
+                [(ngModel)]="skillFilter"
+                (input)="applyFilters()"
+              />
+              <small
+                class="text-primary"
+                *ngIf="user?.type === 'company' && skillFilter"
+              >
+                Mostrando compatibilidade baseada nas habilidades
+              </small>
+            </div>
+
+            <!-- Availability -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold"
+                >Disponibilidade</label
+              >
+              <select
+                class="form-select"
+                [(ngModel)]="availabilityFilter"
+                (change)="applyFilters()"
+              >
+                <option value="all">Todos</option>
+                <option value="available">Disponível</option>
+                <option value="busy">Ocupado</option>
+                <option value="unavailable">Indisponível</option>
+              </select>
+            </div>
+
+            <!-- Rating Filter -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">
+                Avaliação Mínima: {{ ratingFilter }} estrelas
+              </label>
+              <input
+                type="range"
+                class="form-range"
+                min="0"
+                max="5"
+                step="0.5"
+                [(ngModel)]="ratingFilter"
+                (input)="applyFilters()"
+              />
+            </div>
+
+            <!-- Price Range -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">
+                Faixa de Preço: R$ {{ priceRange[0] }} - R$
+                {{ priceRange[1] }}/h
+              </label>
+              <div class="d-flex gap-2 mb-2">
+                <small class="text-muted">Min</small>
+                <input
+                  type="range"
+                  class="form-range"
+                  min="0"
+                  max="200"
+                  step="5"
+                  [(ngModel)]="priceRange[0]"
+                  (input)="applyFilters()"
+                />
+              </div>
+              <div class="d-flex gap-2">
+                <small class="text-muted">Max</small>
+                <input
+                  type="range"
+                  class="form-range"
+                  min="0"
+                  max="200"
+                  step="5"
+                  [(ngModel)]="priceRange[1]"
+                  (input)="applyFilters()"
+                />
+              </div>
+            </div>
+
+            <!-- Experience Level -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold"
+                >Nível de Experiência</label
+              >
+              <select
+                class="form-select"
+                [(ngModel)]="experienceFilter"
+                (change)="applyFilters()"
+              >
+                <option value="all">Todos os níveis</option>
+                <option value="junior">Júnior (0-9 projetos)</option>
+                <option value="mid">Pleno (10-24 projetos)</option>
+                <option value="senior">Sênior (25+ projetos)</option>
+              </select>
+            </div>
+
+            <!-- Saved Searches -->
+            <div class="mb-3" *ngIf="savedSearches.length > 0">
+              <label class="form-label small fw-semibold">Buscas Salvas</label>
+              <div class="d-flex flex-column gap-1">
+                <div
+                  class="d-flex justify-content-between align-items-center"
+                  *ngFor="let search of savedSearches; let i = index"
+                >
+                  <button
+                    class="btn btn-sm btn-outline-secondary text-start flex-grow-1 me-1"
+                    (click)="loadSavedSearch(search)"
+                  >
+                    {{ search }}
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeSavedSearch(i)"
+                  >
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+              <button
+                class="btn btn-outline-secondary btn-sm"
+                (click)="clearAllFilters()"
+              >
+                Limpar Filtros
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="col-lg-9">
+        <!-- Sort and Results Count -->
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 flex-wrap"
+        >
+          <p class="text-muted mb-0">
+            {{ filteredFreelancers.length }} freelancer{{
+              filteredFreelancers.length !== 1 ? "s" : ""
+            }}
+            encontrado{{ filteredFreelancers.length !== 1 ? "s" : "" }}
+          </p>
+
+          <div class="d-flex align-items-center gap-2">
+            <label class="form-label small mb-0">Ordenar por:</label>
+            <select
+              class="form-select form-select-sm"
+              style="width: 200px"
+              [(ngModel)]="sortBy"
+              (change)="applyFilters()"
+            >
+              <option value="rating">Melhor Avaliação</option>
+              <option value="price_low">Menor Preço</option>
+              <option value="price_high">Maior Preço</option>
+              <option value="experience">Mais Experiente</option>
+              <option
+                value="compatibility"
+                *ngIf="user?.type === 'company' && skillFilter"
+              >
+                Compatibilidade
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Freelancers Grid -->
+        <div class="row" *ngIf="filteredFreelancers.length > 0">
+          <div
+            class="col-md-6 mb-4"
+            *ngFor="let freelancer of filteredFreelancers"
+          >
+            <div class="card h-100 shadow-sm hover-card">
+              <div class="card-header border-0 bg-white">
+                <div class="d-flex align-items-start">
+                  <div class="position-relative me-3">
+                    <img
+                      [src]="
+                        freelancer.profileImage ||
+                        'https://via.placeholder.com/64'
+                      "
+                      [alt]="freelancer.name"
+                      class="rounded-circle profile-img"
+                    />
+                  </div>
+
+                  <div class="flex-grow-1">
+                    <div
+                      class="d-flex justify-content-between align-items-start"
+                    >
+                      <h5 class="card-title mb-1">{{ freelancer.name }}</h5>
+                      <span
+                        class="badge"
+                        [ngClass]="{
+                          'bg-success': freelancer.availability === 'available',
+                          'bg-warning': freelancer.availability === 'busy',
+                          'bg-secondary':
+                            freelancer.availability === 'unavailable'
+                        }"
+                      >
+                        {{ getAvailabilityText(freelancer.availability) }}
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-2">
+                      <div
+                        class="me-2"
+                        [innerHTML]="getStars(freelancer.rating).join('')"
+                      ></div>
+                      <small class="text-muted">
+                        {{ freelancer.rating }} ({{
+                          getReviewCount(freelancer.userId)
+                        }}
+                        avaliações)
+                      </small>
+                    </div>
+
+                    <div
+                      *ngIf="
+                        user?.type === 'company' &&
+                        freelancer.compatibility &&
+                        freelancer.compatibility > 0
+                      "
+                    >
+                      <span class="badge bg-primary">
+                        {{ freelancer.compatibility.toFixed(0) }}% compatível
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <p class="card-text text-muted small">
+                  {{
+                    freelancer.bio.length > 120
+                      ? freelancer.bio.substring(0, 120) + "..."
+                      : freelancer.bio
+                  }}
+                </p>
+
+                <!-- Skills -->
+                <div class="mb-3">
+                  <p class="small fw-semibold text-muted mb-2">
+                    Principais habilidades:
+                  </p>
+                  <div class="d-flex flex-wrap gap-1">
+                    <span
+                      class="badge bg-light text-dark border skill-badge"
+                      *ngFor="let skill of freelancer.skills.slice(0, 4)"
+                    >
+                      {{ skill }}
+                    </span>
+                    <span
+                      class="badge bg-light text-dark border skill-badge"
+                      *ngIf="freelancer.skills.length > 4"
+                    >
+                      +{{ freelancer.skills.length - 4 }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div
+                  class="d-flex justify-content-between align-items-center small mb-3"
+                >
+                  <div class="text-success fw-semibold">
+                    <i class="bi bi-currency-dollar"></i>
+                    R$ {{ freelancer.hourlyRate }}/h
+                  </div>
+                  <span class="text-muted"
+                    >{{ freelancer.completedProjects }} projetos
+                    concluídos</span
+                  >
+                </div>
+
+                <!-- Action Button -->
+                <button
+                  class="btn btn-primary w-100"
+                  (click)="viewProfile(freelancer.id)"
+                >
+                  <i class="bi bi-eye me-2"></i>
+                  Ver Perfil Completo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          class="card text-center py-5"
+          *ngIf="filteredFreelancers.length === 0"
+        >
+          <div class="card-body">
+            <div class="mb-4">
+              <i class="bi bi-search display-1 text-muted"></i>
+            </div>
+            <h3 class="h4 fw-semibold text-dark mb-2">
+              Nenhum freelancer encontrado
+            </h3>
+            <p class="text-muted mb-4">
+              Tente ajustar seus filtros para encontrar mais profissionais.
+            </p>
+            <button class="btn btn-outline-primary" (click)="clearAllFilters()">
+              Limpar Todos os Filtros
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

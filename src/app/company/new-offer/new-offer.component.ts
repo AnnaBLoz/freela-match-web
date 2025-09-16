@@ -145,7 +145,7 @@ export class NewOfferComponent {
   }
 
   goToDashboard(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/company/dashboard']);
   }
 
   goToMyProposals(): void {

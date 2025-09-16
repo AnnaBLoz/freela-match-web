@@ -12,9 +12,12 @@ import { AuthModule } from '../account/auth/auth.module';
 import { FreelancerRoutingModule } from './company.routing';
 import { OffersComponent } from './offers/offers.component';
 import { NewOfferComponent } from './new-offer/new-offer.component';
+import { OfferDetailsComponent } from './offer-details/offer-details.component';
+import { FreelancersComponent } from './freelancers/freelancers.component';
+import { FreelancerViewComponent } from './freelancers/freelancer-view/freelancer-view.component';
 
 @NgModule({
-  declarations: [DashboardComponent, OffersComponent, NewOfferComponent],
+  declarations: [DashboardComponent, OffersComponent, NewOfferComponent, OfferDetailsComponent, FreelancersComponent, FreelancerViewComponent],
   imports: [
     CommonModule,
     FreelancerRoutingModule,
