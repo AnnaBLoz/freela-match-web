@@ -1,0 +1,19 @@
+.review-card {
+  border-radius: 12px;
+}
+
+.review-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.review-card .badge {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.6rem;
+}
+
+.review-card .card-body {
+  padding: 1.25rem;
+}

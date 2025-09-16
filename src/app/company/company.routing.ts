@@ -6,6 +6,7 @@ import { OffersComponent } from './offers/offers.component';
 import { OfferDetailsComponent } from './offer-details/offer-details.component';
 import { FreelancersComponent } from './freelancers/freelancers.component';
 import { FreelancerViewComponent } from './freelancers/freelancer-view/freelancer-view.component';
+import { ReviewsComponent } from './freelancers/reviews/reviews.component';
 
 const routes: Routes = [
   {
@@ -31,6 +32,10 @@ const routes: Routes = [
   {
     path: 'freelancer/:id',
     component: FreelancerViewComponent,
+  },
+  {
+    path: 'reviews',
+    component: ReviewsComponent,
   },
 ];
 

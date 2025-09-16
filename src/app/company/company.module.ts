@@ -15,9 +15,22 @@ import { NewOfferComponent } from './new-offer/new-offer.component';
 import { OfferDetailsComponent } from './offer-details/offer-details.component';
 import { FreelancersComponent } from './freelancers/freelancers.component';
 import { FreelancerViewComponent } from './freelancers/freelancer-view/freelancer-view.component';
+import { ReviewsComponent } from './freelancers/reviews/reviews.component';
+import { ReviewsListComponent } from './freelancers/reviews/reviews-list/reviews-list.component';
+import { StarRatingComponent } from './freelancers/reviews/star-rating/star-rating.component';
 
 @NgModule({
-  declarations: [DashboardComponent, OffersComponent, NewOfferComponent, OfferDetailsComponent, FreelancersComponent, FreelancerViewComponent],
+  declarations: [
+    DashboardComponent,
+    OffersComponent,
+    NewOfferComponent,
+    OfferDetailsComponent,
+    FreelancersComponent,
+    FreelancerViewComponent,
+    ReviewsComponent,
+    ReviewsListComponent,
+    StarRatingComponent,
+  ],
   imports: [
     CommonModule,
     FreelancerRoutingModule,
