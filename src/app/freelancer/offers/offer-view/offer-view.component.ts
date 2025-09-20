@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -51,7 +52,11 @@ export class OfferViewComponent implements OnInit {
   isSubmitting = false;
   applicationForm!: FormGroup;
 
-  constructor(private fb: FormBuilder, private route: ActivatedRoute) {}
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private location: Location
+  ) {}
 
   ngOnInit(): void {
     this.loadMockData();
@@ -123,8 +128,7 @@ export class OfferViewComponent implements OnInit {
   }
 
   goBack(): void {
-    // Aqui você pode implementar navegação com Router
-    console.log('Voltar para a listagem de propostas');
+    this.location.back();
   }
 
   onSubmitApplication(): void {

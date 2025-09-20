@@ -147,7 +147,7 @@ export class NewOfferComponent {
   }
 
   goToMyProposals(): void {
-    this.router.navigate(['/my-proposals']);
+    this.router.navigate(['/company/offers']);
   }
 
   cancel(): void {

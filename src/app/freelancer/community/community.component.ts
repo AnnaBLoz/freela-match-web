@@ -112,6 +112,18 @@ export class CommunityComponent implements OnInit {
         completedProjects: 15,
         availability: 'available',
       },
+      {
+        id: '5',
+        userId: 'user5',
+        name: 'Anna Loz',
+        bio: 'Desenvolvedora Front-end especializada em Angular.',
+        skills: ['Angular', 'TypeScript', 'HTML', 'CSS'],
+        hourlyRate: 120,
+        rating: 4.5,
+        completedProjects: 15,
+        availability: 'available',
+        profileImage: 'https://via.placeholder.com/96',
+      },
     ];
 
     this.applyFilters();

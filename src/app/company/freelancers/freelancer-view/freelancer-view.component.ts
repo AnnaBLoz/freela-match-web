@@ -164,7 +164,7 @@ export class FreelancerViewComponent {
 
   // ---------------- ACTIONS ----------------
   navigateToFreelancers() {
-    this.router.navigate(['/freelancer/community']);
+    this.router.navigate(['/company/freelancers']);
   }
 
   navigateToProfile(freelancerId: string) {

@@ -92,6 +92,10 @@ export class DashboardComponent {
     this.router.navigate(['/company/new-offer']);
   }
 
+  navigateToFreelancers() {
+    this.router.navigate(['/company/freelancers']);
+  }
+
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
