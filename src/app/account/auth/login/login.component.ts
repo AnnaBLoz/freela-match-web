@@ -48,11 +48,7 @@ export class LoginComponent {
     },
   ];
 
-  constructor(private authService: AuthService, private router: Router) {
-    if (this.authService.currentUser) {
-      this.router.navigate(['freelancer/dashboard']);
-    }
-  }
+  constructor(private authService: AuthService, private router: Router) {}
 
   setActiveTab(tab: 'login' | 'register') {
     this.activeTab = tab;
@@ -73,16 +69,29 @@ export class LoginComponent {
       password: this.loginForm.password,
     };
 
-    try {
-      const success = await this.authService.login(user);
-      if (!success) {
+    this.authService.login(user).subscribe({
+      next: (currentUser) => {
+        // Salvar token e user no localStorage (boa prática)
+        localStorage.setItem('token', currentUser.token);
+        localStorage.setItem('user', JSON.stringify(currentUser));
+
+        // Redirecionar baseado no tipo
+        if (currentUser.type === 1 || currentUser.type === 1) {
+          this.router.navigate(['/freelancer/dashboard']);
+        } else if (currentUser.type === 2 || currentUser.type === 2) {
+          this.router.navigate(['/company/dashboard']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: () => {
         this.error = 'Email ou senha incorretos';
-      }
-    } catch (error: any) {
-      this.error = 'Erro ao fazer login. Tente novamente.';
-    } finally {
-      this.isLoading = false;
-    }
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
   }
 
   async handleRegister() {
@@ -122,7 +131,6 @@ export class LoginComponent {
 
       // Simulação para teste
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log('Registration data:', { userData, profileData });
     } catch (error: any) {
       this.error = 'Erro ao criar conta. Tente novamente.';
     } finally {

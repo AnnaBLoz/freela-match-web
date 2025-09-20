@@ -105,8 +105,6 @@ export class NewOfferComponent {
         applications: [],
       };
 
-      console.log('📌 Proposta mock criada:', newProposal);
-
       this.isCreated = true;
     } catch (error) {
       console.error('Erro ao criar proposta (mock):', error);
