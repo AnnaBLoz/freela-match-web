@@ -14,13 +14,13 @@ export class LoginComponent {
     email: '',
     password: '',
     type: 'freelancer' as 'freelancer' | 'company',
-    name: '',
-    companyName: '',
-    bio: '',
-    description: '',
-    skills: '',
-    industry: '',
-    contactPerson: '',
+    // name: '',
+    // companyName: '',
+    // bio: '',
+    // description: '',
+    // skills: '',
+    // industry: '',
+    // contactPerson: '',
   };
   error: string = '';
   isLoading: boolean = false;
@@ -76,9 +76,9 @@ export class LoginComponent {
         localStorage.setItem('user', JSON.stringify(currentUser));
 
         // Redirecionar baseado no tipo
-        if (currentUser.type === 1 || currentUser.type === 1) {
+        if (currentUser.type === 1) {
           this.router.navigate(['/freelancer/dashboard']);
-        } else if (currentUser.type === 2 || currentUser.type === 2) {
+        } else if (currentUser.type === 2) {
           this.router.navigate(['/company/dashboard']);
         } else {
           this.router.navigate(['/']);
@@ -101,41 +101,32 @@ export class LoginComponent {
     const userData = {
       email: this.registerForm.email,
       password: this.registerForm.password,
-      type: this.registerForm.type,
+      type: this.registerForm.type === 'freelancer' ? 1 : 2, // mapeando para o backend
     };
 
-    const profileData =
-      this.registerForm.type === 'freelancer'
-        ? {
-            name: this.registerForm.name,
-            bio: this.registerForm.bio,
-            skills: this.registerForm.skills.split(',').map((s) => s.trim()),
-            hourlyRate: 0,
-            portfolio: [],
-            experience: '',
-            availability: 'available' as const,
-          }
-        : {
-            companyName: this.registerForm.companyName,
-            description: this.registerForm.description,
-            industry: this.registerForm.industry,
-            contactPerson: this.registerForm.contactPerson,
-          };
+    this.authService.register(userData).subscribe({
+      next: (createdUser) => {
+        // Salvar token e user no localStorage
+        localStorage.setItem('token', createdUser.token);
+        localStorage.setItem('user', JSON.stringify(createdUser));
 
-    try {
-      // Descomente quando o serviço estiver implementado
-      // const success = await this.authService.register(userData, profileData);
-      // if (!success) {
-      //   this.error = 'Email já cadastrado';
-      // }
-
-      // Simulação para teste
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    } catch (error: any) {
-      this.error = 'Erro ao criar conta. Tente novamente.';
-    } finally {
-      this.isLoading = false;
-    }
+        // Redirecionar
+        if (createdUser.type === 1) {
+          this.router.navigate(['/freelancer/dashboard']);
+        } else if (createdUser.type === 2) {
+          this.router.navigate(['/company/dashboard']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Erro ao criar conta';
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
   }
 
   // Método para validação do formulário de login
@@ -157,20 +148,20 @@ export class LoginComponent {
 
     if (!baseValid) return false;
 
-    if (this.registerForm.type === 'freelancer') {
-      return (
-        this.registerForm.name.trim() !== '' &&
-        this.registerForm.bio.trim() !== '' &&
-        this.registerForm.skills.trim() !== ''
-      );
-    } else {
-      return (
-        this.registerForm.companyName.trim() !== '' &&
-        this.registerForm.description.trim() !== '' &&
-        this.registerForm.industry.trim() !== '' &&
-        this.registerForm.contactPerson.trim() !== ''
-      );
-    }
+    // if (this.registerForm.type === 'freelancer') {
+    //   return (
+    //     this.registerForm.name.trim() !== '' &&
+    //     this.registerForm.bio.trim() !== '' &&
+    //     this.registerForm.skills.trim() !== ''
+    //   );
+    // } else {
+    //   return (
+    //     this.registerForm.companyName.trim() !== '' &&
+    //     this.registerForm.description.trim() !== '' &&
+    //     this.registerForm.industry.trim() !== '' &&
+    //     this.registerForm.contactPerson.trim() !== ''
+    //   );
+    // }
   }
 
   // TrackBy function para melhor performance nas listas

@@ -65,7 +65,7 @@
                 Entrar
               </button>
             </li>
-            <!-- <li class="nav-item" role="presentation">
+            <li class="nav-item" role="presentation">
               <button
                 class="nav-link"
                 [class.active]="activeTab === 'register'"
@@ -74,7 +74,7 @@
               >
                 Cadastrar
               </button>
-            </li> -->
+            </li>
           </ul>
 
           <div class="tab-content">
@@ -127,16 +127,33 @@
                     required
                   />
                   <div class="invalid-feedback">Senha é obrigatória</div>
-                  <div class="alert alert-info mt-3 p-2 text-center small">
-                    <div>
-                      <i class="fas fa-user me-2"></i>
-                      <strong>Freelancer:</strong> joao&#64;freelancer.com /
-                      123456
+                  <div class="card mt-3">
+                    <div class="text-center">
+                      <button
+                        class="btn btn-sm w-100"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#cardContent"
+                        aria-expanded="false"
+                        aria-controls="cardContent"
+                      >
+                        Acessos
+                      </button>
                     </div>
-                    <div>
-                      <i class="fas fa-building me-2"></i>
-                      <strong>Empresa:</strong> techsolutions&#64;company.com /
-                      123456
+
+                    <div id="cardContent" class="collapse">
+                      <div class="alert alert-info p-2 text-center small mb-0">
+                        <div>
+                          <i class="fas fa-user me-2"></i>
+                          <strong>Freelancer:</strong> joao&#64;freelancer.com /
+                          123456
+                        </div>
+                        <div>
+                          <i class="fas fa-building me-2"></i>
+                          <strong>Empresa:</strong>
+                          techsolutions&#64;company.com / 123456
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -255,7 +272,7 @@
                 <div>
                   <!-- Freelancer Fields -->
                   <div *ngIf="registerForm.type === 'freelancer'">
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                       <label for="freelancerName" class="form-label"
                         >Nome completo</label
                       >
@@ -272,8 +289,8 @@
                         required
                       />
                       <div class="invalid-feedback">Nome é obrigatório</div>
-                    </div>
-                    <div class="mb-3">
+                    </div> -->
+                    <!-- <div class="mb-3">
                       <label for="freelancerBio" class="form-label">Bio</label>
                       <textarea
                         class="form-control"
@@ -288,8 +305,8 @@
                         required
                       ></textarea>
                       <div class="invalid-feedback">Bio é obrigatória</div>
-                    </div>
-                    <div class="mb-3">
+                    </div> -->
+                    <!-- <div class="mb-3">
                       <label for="freelancerSkills" class="form-label"
                         >Habilidades (separadas por vírgula)</label
                       >
@@ -308,11 +325,11 @@
                       <div class="invalid-feedback">
                         Habilidades são obrigatórias
                       </div>
-                    </div>
+                    </div> -->
                   </div>
 
                   <!-- Company Fields -->
-                  <div *ngIf="registerForm.type === 'company'">
+                  <!-- <div *ngIf="registerForm.type === 'company'">
                     <div class="mb-3">
                       <label for="companyName" class="form-label"
                         >Nome da empresa</label
@@ -394,7 +411,7 @@
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> -->
                 </div>
 
                 <div class="alert alert-danger" *ngIf="error">
