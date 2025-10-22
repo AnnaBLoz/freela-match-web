@@ -7,7 +7,7 @@ import { isBrowser } from '../utils/helpers';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'https://localhost:5000/api/Auth'; // 👈 sua API backend
+  private apiUrl = 'https://localhost:5000/api/Auth';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 

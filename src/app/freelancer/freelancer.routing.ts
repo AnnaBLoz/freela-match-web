@@ -6,6 +6,7 @@ import { OfferViewComponent } from './offers/offer-view/offer-view.component';
 import { ReviewsComponent } from './reviews/reviews.component';
 import { CommunityComponent } from './community/community.component';
 import { CommunityViewComponent } from './community/community-view/community-view.component';
+import { ProfileComponent } from './profile/profile.component';
 
 const routes: Routes = [
   {
@@ -20,6 +21,7 @@ const routes: Routes = [
   { path: 'reviews', component: ReviewsComponent },
   { path: 'community', component: CommunityComponent },
   { path: 'community/:id', component: CommunityViewComponent },
+  { path: 'profile', component: ProfileComponent },
 ];
 
 @NgModule({
