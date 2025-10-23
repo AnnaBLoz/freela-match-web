@@ -5,10 +5,10 @@ import { ProfileService } from 'src/app/core/services/profileService.service';
 
 interface EditForm {
   name?: string;
-  bio?: string;
+  biography?: string;
   userSkills?: string;
   pricePerHour?: number;
-  experience?: string;
+  experienceLevel?: string;
   availability?: string;
   companyName?: string;
   description?: string;
@@ -98,16 +98,6 @@ export class ProfileComponent implements OnInit {
         this.router.navigate(['/']);
       },
     });
-
-    // 🔹 Dados mockados:
-    // this.user = {
-    //   id: 1,
-    //   email: 'freelancer@exemplo.com',
-    //   type: 'freelancer', // altere para 'company' se quiser testar o outro tipo
-    // };
-
-    // this.loadProfile();
-    // this.loadReviews();
   }
 
   loadProfile(): void {
@@ -116,40 +106,9 @@ export class ProfileComponent implements OnInit {
       next: (profile) => {
         this.profile = profile;
         this.isLoading = false;
+        this.initializeEditForm();
       },
     });
-
-    // 🔹 Perfil mockado:
-    // if (!this.user) return;
-
-    // if (this.user.type === 'freelancer') {
-    //   this.profile = {
-    //     userId: this.user.id,
-    //     name: 'João Silva',
-    //     bio: 'Desenvolvedor full-stack apaixonado por tecnologia.',
-    //     skills: ['Angular', 'Node.js', 'MySQL'],
-    //     pricePerHour: 120,
-    //     experience: '5 anos',
-    //     availability: 'Disponível',
-    //     profileImage: 'https://via.placeholder.com/150',
-    //     portfolio: [
-    //       'https://meuport.com/projeto1',
-    //       'https://meuport.com/projeto2',
-    //     ],
-    //   };
-    // } else {
-    //   this.profile = {
-    //     userId: this.user.id,
-    //     companyName: 'Tech Solutions LTDA',
-    //     description: 'Empresa focada em desenvolvimento de soluções digitais.',
-    //     industry: 'Tecnologia da Informação',
-    //     contactPerson: 'Maria Oliveira',
-    //     website: 'https://techsolutions.com.br',
-    //     logoUrl: 'https://via.placeholder.com/150',
-    //   };
-    // }
-
-    // this.isLoading = false;
   }
 
   loadReviews(): void {
@@ -204,24 +163,17 @@ export class ProfileComponent implements OnInit {
   }
 
   initializeEditForm(): void {
-    if (this.user?.type === 1) {
-      this.editForm = {
-        name: this.profile?.name || '',
-        bio: this.profile?.bio || '',
-        userSkills: this.profile?.skills?.join(', ') || '',
-        pricePerHour: this.profile?.pricePerHour || 0,
-        experience: this.profile?.experience || '',
-        availability: this.profile?.availability || 'available',
-      };
-    } else {
-      this.editForm = {
-        companyName: this.profile?.companyName || '',
-        description: this.profile?.description || '',
-        industry: this.profile?.industry || '',
-        contactPerson: this.profile?.contactPerson || '',
-        website: this.profile?.website || '',
-      };
-    }
+    if (!this.profile) return;
+
+    this.editForm = {
+      // name: this.profile.name || '',
+      biography: this.profile.biography || '',
+      experienceLevel: this.profile.experienceLevel?.toString() || '',
+      pricePerHour: this.profile.pricePerHour || 0,
+      userSkills: this.profile.userSkills
+        ? this.profile.userSkills.map((us: any) => us.skill?.name).join(', ')
+        : '',
+    };
   }
 
   handleSave(): void {
@@ -234,19 +186,13 @@ export class ProfileComponent implements OnInit {
         .map((s) => s.trim());
     }
 
-    // this.userService.updateProfile(this.user.id, updatedProfile).subscribe({
-    //   next: () => {
-    //     this.profile = updatedProfile;
-    //     this.isEditing = false;
-    //     this.editForm = {};
-    //   }
-    // });
-
-    // 🔹 Mock: simula salvamento
-    this.profile = updatedProfile;
-    this.isEditing = false;
-    this.editForm = {};
-    console.log('Perfil atualizado (mock):', this.profile);
+    this.profileService.editProfile(this.user.id, updatedProfile).subscribe({
+      next: () => {
+        this.profile = updatedProfile;
+        this.isEditing = false;
+        this.editForm = {};
+      },
+    });
   }
 
   handleCancel(): void {

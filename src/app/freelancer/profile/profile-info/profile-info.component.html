@@ -29,37 +29,36 @@
         </ng-container>
 
         <ng-container *ngIf="isEditing">
-          <div class="mb-3">
+          <!-- <div class="mb-3">
             <label for="name" class="form-label">Nome</label>
             <input
               type="text"
               class="form-control"
               id="name"
-              [value]="editForm.name || ''"
-              (input)="onEditFormChange('name', $event.target.value)"
+              [(ngModel)]="editForm.name"
+              name="name"
             />
-          </div>
+          </div> -->
 
           <div class="mb-3">
             <label for="bio" class="form-label">Bio</label>
             <textarea
               class="form-control"
-              id="bio"
+              id="biography"
               rows="3"
-              [value]="editForm.biography || ''"
-              (input)="onEditFormChange('bio', $event.target.value)"
+              [(ngModel)]="editForm.biography"
+              name="biography"
             ></textarea>
           </div>
 
           <div class="mb-0">
             <label for="experience" class="form-label">Experiência</label>
-            <textarea
-              class="form-control"
-              id="experience"
-              rows="2"
-              [value]="editForm.experienceLevel || ''"
-              (input)="onEditFormChange('experience', $event.target.value)"
-            ></textarea>
+            <select class="form-select" [(ngModel)]="editForm.experienceLevel">
+              <option value="1">Júnior (0 – 2 anos)</option>
+              <option value="2">Pleno (2 – 5 anos)</option>
+              <option value="3">Sênior (5 – 10 anos)</option>
+              <option value="4">Especialista (10+ anos)</option>
+            </select>
           </div>
         </ng-container>
       </div>
