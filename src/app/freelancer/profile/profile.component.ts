@@ -170,21 +170,25 @@ export class ProfileComponent implements OnInit {
       biography: this.profile.biography || '',
       experienceLevel: this.profile.experienceLevel?.toString() || '',
       pricePerHour: this.profile.pricePerHour || 0,
-      userSkills: this.profile.userSkills
-        ? this.profile.userSkills.map((us: any) => us.skill?.name).join(', ')
-        : '',
+      // userSkills: this.profile.userSkills
+      //   ? this.profile.userSkills.map((us: any) => us.skill?.name).join(', ')
+      //   : '',
     };
   }
 
   handleSave(): void {
     if (!this.user || !this.profile) return;
 
-    const updatedProfile = { ...this.profile, ...this.editForm };
-    if (this.editForm.userSkills) {
-      updatedProfile.skills = this.editForm.userSkills
-        .split(',')
-        .map((s) => s.trim());
-    }
+    const updatedProfile = {
+      biography: this.editForm.biography,
+      experienceLevel: Number(this.editForm.experienceLevel), // ou string, conforme enum
+      pricePerHour: Number(this.editForm.pricePerHour),
+      userSkills: this.editForm.userSkills
+        ? this.editForm.userSkills.split(',').map((id: string) => ({
+            skillId: Number(id.trim()),
+          }))
+        : [],
+    };
 
     this.profileService.editProfile(this.user.id, updatedProfile).subscribe({
       next: () => {
