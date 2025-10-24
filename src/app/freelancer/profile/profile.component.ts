@@ -6,7 +6,7 @@ import { ProfileService } from 'src/app/core/services/profileService.service';
 interface EditForm {
   name?: string;
   biography?: string;
-  userSkills?: string;
+  userSkills?: { skillId: number; name?: string }[];
   pricePerHour?: number;
   experienceLevel?: string;
   availability?: string;
@@ -65,6 +65,7 @@ export class ProfileComponent implements OnInit {
   user: User | null = null;
   // profile: Profile | null = null;
   profile: any;
+  skills: any[] = [];
   isLoading = true;
   isEditing = false;
   editForm: EditForm = {};
@@ -80,6 +81,7 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProfileData();
+    this.getAllSkills();
     this.isLoading = false;
   }
 
@@ -105,6 +107,17 @@ export class ProfileComponent implements OnInit {
     this.profileService.getProfile(this.user.id).subscribe({
       next: (profile) => {
         this.profile = profile;
+        this.isLoading = false;
+        this.initializeEditForm();
+      },
+    });
+  }
+
+  getAllSkills(): void {
+    if (!this.user) return;
+    this.profileService.getSkills().subscribe({
+      next: (skills) => {
+        this.skills = skills;
         this.isLoading = false;
         this.initializeEditForm();
       },
@@ -181,18 +194,18 @@ export class ProfileComponent implements OnInit {
 
     const updatedProfile = {
       biography: this.editForm.biography,
-      experienceLevel: Number(this.editForm.experienceLevel), // ou string, conforme enum
+      experienceLevel: Number(this.editForm.experienceLevel),
       pricePerHour: Number(this.editForm.pricePerHour),
       userSkills: this.editForm.userSkills
-        ? this.editForm.userSkills.split(',').map((id: string) => ({
-            skillId: Number(id.trim()),
+        ? this.editForm.userSkills.map((skill: any) => ({
+            skillId: skill.skillId,
           }))
         : [],
     };
 
     this.profileService.editProfile(this.user.id, updatedProfile).subscribe({
       next: () => {
-        this.profile = updatedProfile;
+        this.profile = { ...this.profile, ...updatedProfile };
         this.isEditing = false;
         this.editForm = {};
       },

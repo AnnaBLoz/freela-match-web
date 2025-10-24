@@ -12,6 +12,10 @@ export class ProfileService {
     return this.http.get<any>(`${this.apiUrl}?userId=${userId}`);
   }
 
+  getSkills(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/skills`);
+  }
+
   editProfile(userId: number, updatedProfile: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${userId}`, updatedProfile);
   }

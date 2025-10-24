@@ -104,17 +104,34 @@
 
         <ng-container *ngIf="isEditing">
           <div class="mb-3">
-            <label for="skills" class="form-label">
-              Habilidades (separadas por vírgula)
-            </label>
-            <input
-              type="text"
-              class="form-control"
-              id="skills"
-              placeholder="Ex: JavaScript, React, TypeScript"
-              [value]="editForm.userSkills || ''"
-              (input)="onEditFormChange('skills', $event.target.value)"
-            />
+            <label class="form-label">Habilidades</label>
+
+            <div class="skills-input">
+              <div
+                class="skill-tag"
+                *ngFor="let skill of editForm.userSkills || []"
+              >
+                {{ skill.name }}
+                <span class="remove" (click)="removeSkill(skill)">×</span>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Digite para buscar..."
+                [(ngModel)]="skillSearch"
+                (input)="filterSkills()"
+                (keydown.enter)="addSkillFromInput()"
+              />
+            </div>
+
+            <ul class="suggestions" *ngIf="filteredSkills.length > 0">
+              <li
+                *ngFor="let skill of filteredSkills"
+                (click)="addSkill(skill)"
+              >
+                {{ skill.name }}
+              </li>
+            </ul>
           </div>
 
           <div class="mb-0">
