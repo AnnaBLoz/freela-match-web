@@ -179,13 +179,15 @@ export class ProfileComponent implements OnInit {
     if (!this.profile) return;
 
     this.editForm = {
-      // name: this.profile.name || '',
       biography: this.profile.biography || '',
       experienceLevel: this.profile.experienceLevel?.toString() || '',
       pricePerHour: this.profile.pricePerHour || 0,
-      // userSkills: this.profile.userSkills
-      //   ? this.profile.userSkills.map((us: any) => us.skill?.name).join(', ')
-      //   : '',
+      userSkills: this.profile.userSkills
+        ? this.profile.userSkills.map((us: any) => ({
+            skillId: us.skillId,
+            name: us.skill?.name || us.name,
+          }))
+        : [],
     };
   }
 
