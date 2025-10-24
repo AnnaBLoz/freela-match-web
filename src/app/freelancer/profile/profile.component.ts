@@ -201,6 +201,7 @@ export class ProfileComponent implements OnInit {
       userSkills: this.editForm.userSkills
         ? this.editForm.userSkills.map((skill: any) => ({
             skillId: skill.skillId,
+            skill: { name: skill.name },
           }))
         : [],
     };

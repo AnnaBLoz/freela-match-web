@@ -83,7 +83,7 @@
                   *ngFor="let skill of profile.userSkills"
                   class="skill-badge"
                 >
-                  {{ skill.skill.name }}
+                  {{ skill.skill?.name }}
                 </span>
               </ng-container>
               <ng-container
