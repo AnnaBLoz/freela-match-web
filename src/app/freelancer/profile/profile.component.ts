@@ -17,6 +17,11 @@ interface EditForm {
   website?: string;
 }
 
+interface EditUserForm {
+  name?: string;
+  isAvailable?: boolean;
+}
+
 interface Review {
   id: number;
   fromUserId: string;
@@ -69,6 +74,7 @@ export class ProfileComponent implements OnInit {
   isLoading = true;
   isEditing = false;
   editForm: EditForm = {};
+  editUserForm: EditUserForm = {};
   userReviews: Review[] = [];
   averageRating = 0;
   activeTab = 'info';
@@ -200,6 +206,11 @@ export class ProfileComponent implements OnInit {
           }))
         : [],
     };
+
+    this.editUserForm = {
+      name: this.user?.name || '',
+      isAvailable: this.user?.isAvailable || false,
+    };
   }
 
   handleSave(): void {
@@ -217,33 +228,24 @@ export class ProfileComponent implements OnInit {
         : [],
     };
 
-    this.profileService.editProfile(this.user.id, updatedProfile).subscribe({
-      next: () => {
-        this.profile = { ...this.profile, ...updatedProfile };
-        this.isEditing = false;
-        this.editForm = {};
-      },
-    });
-  }
-
-  saveProfile(): void {
-    const updatedProfile = {
-      biography: this.editForm.biography,
-      experienceLevel: Number(this.editForm.experienceLevel),
-      pricePerHour: Number(this.editForm.pricePerHour),
-      userSkills: this.editForm.userSkills
-        ? this.editForm.userSkills.map((skill: any) => ({
-            skillId: skill.skillId,
-            skill: { name: skill.name },
-          }))
-        : [],
+    const updatedUser = {
+      name: this.editUserForm.name,
+      isAvailable: this.editUserForm.isAvailable,
     };
 
+    // Atualiza o perfil
     this.profileService.editProfile(this.user.id, updatedProfile).subscribe({
       next: () => {
-        this.profile = { ...this.profile, ...updatedProfile };
-        this.isEditing = false;
-        this.editForm = {};
+        // Atualiza o usuário
+        this.userService.editUser(this.user!.id, updatedUser).subscribe({
+          next: () => {
+            this.user = { ...this.user, ...updatedUser };
+            this.profile = { ...this.profile, ...updatedProfile };
+            this.isEditing = false;
+            this.editForm = {};
+            this.editUserForm = {};
+          },
+        });
       },
     });
   }
