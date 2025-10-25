@@ -139,11 +139,13 @@
               >Taxa por Hora (R$)</label
             >
             <input
-              type="number"
+              type="text"
               class="form-control"
               id="pricePerHour"
-              min="0"
-              step="0.01"
+              mask="separator.2"
+              prefix="R$ "
+              thousandSeparator="."
+              decimalMarker=","
               [(ngModel)]="editForm.pricePerHour"
             />
           </div>

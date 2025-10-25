@@ -8,4 +8,5 @@ export class User {
   email: string;
   jwtToken: any;
   type: number; // 1 para freelancer, 2 para empresa
+  isAvailable?: boolean;
 }

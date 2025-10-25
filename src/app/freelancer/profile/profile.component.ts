@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
+import { UserService } from 'src/app/core/services/userService.service';
 
 interface EditForm {
   name?: string;
@@ -9,7 +10,6 @@ interface EditForm {
   userSkills?: { skillId: number; name?: string }[];
   pricePerHour?: number;
   experienceLevel?: string;
-  availability?: string;
   companyName?: string;
   description?: string;
   industry?: string;
@@ -36,6 +36,7 @@ interface User {
   email: string;
   jwtToken: any;
   type: number;
+  isAvailable?: boolean;
 }
 
 interface Profile {
@@ -45,7 +46,6 @@ interface Profile {
   skills?: string[];
   pricePerHour?: number;
   experience?: string;
-  availability?: string;
   profileImage?: string;
   companyName?: string;
   description?: string;
@@ -75,6 +75,7 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private userService: UserService,
     private profileService: ProfileService,
     private router: Router
   ) {}
@@ -93,6 +94,16 @@ export class ProfileComponent implements OnInit {
           this.router.navigate(['/']);
           return;
         }
+        this.userService.getUser(user.id).subscribe({
+          next: (user) => {
+            this.user = user;
+            if (!user) {
+              this.router.navigate(['/']);
+              return;
+            }
+          },
+        });
+
         this.loadProfile();
         this.loadReviews();
       },
@@ -194,6 +205,28 @@ export class ProfileComponent implements OnInit {
   handleSave(): void {
     if (!this.user || !this.profile) return;
 
+    const updatedProfile = {
+      biography: this.editForm.biography,
+      experienceLevel: Number(this.editForm.experienceLevel),
+      pricePerHour: Number(this.editForm.pricePerHour),
+      userSkills: this.editForm.userSkills
+        ? this.editForm.userSkills.map((skill: any) => ({
+            skillId: skill.skillId,
+            skill: { name: skill.name },
+          }))
+        : [],
+    };
+
+    this.profileService.editProfile(this.user.id, updatedProfile).subscribe({
+      next: () => {
+        this.profile = { ...this.profile, ...updatedProfile };
+        this.isEditing = false;
+        this.editForm = {};
+      },
+    });
+  }
+
+  saveProfile(): void {
     const updatedProfile = {
       biography: this.editForm.biography,
       experienceLevel: Number(this.editForm.experienceLevel),

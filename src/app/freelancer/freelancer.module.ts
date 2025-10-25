@@ -19,6 +19,7 @@ import { CommunityViewComponent } from './community/community-view/community-vie
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ProfileComponent } from './profile/profile.component';
 import { ProfileInfoComponent } from './profile/profile-info/profile-info.component';
+import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 
 @NgModule({
   declarations: [
@@ -46,6 +47,9 @@ import { ProfileInfoComponent } from './profile/profile-info/profile-info.compon
     MatBadgeModule,
     FormsModule,
     ReactiveFormsModule,
+    NgxMaskPipe,
+    NgxMaskDirective,
   ],
+  providers: [provideNgxMask()],
 })
 export class FreelancerModule {}

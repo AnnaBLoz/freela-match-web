@@ -86,16 +86,10 @@
                   <span
                     class="badge"
                     [ngClass]="
-                      profile.availability === 'available'
-                        ? 'bg-success'
-                        : 'bg-secondary'
+                      user.isAvailable === true ? 'bg-success' : 'bg-secondary'
                     "
                   >
-                    {{
-                      profile.availability === "available"
-                        ? "Disponível"
-                        : "Ocupado"
-                    }}
+                    {{ user.isAvailable === true ? "Disponível" : "Ocupado" }}
                   </span>
                 </ng-container>
               </div>
