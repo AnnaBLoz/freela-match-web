@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/authService.service';
+import { PortfolioService } from 'src/app/core/services/portfolioService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
@@ -58,7 +59,19 @@ interface Profile {
   contactPerson?: string;
   website?: string;
   logoUrl?: string;
-  portfolio?: string[];
+}
+
+interface Portfolio {
+  portfolioId: number;
+  url: string;
+  isActive: boolean;
+  userId?: number;
+}
+
+interface EditPortfolio {
+  portfolioId?: number;
+  URL?: string;
+  isActive?: boolean;
 }
 
 @Component({
@@ -70,11 +83,13 @@ export class ProfileComponent implements OnInit {
   user: User | null = null;
   // profile: Profile | null = null;
   profile: any;
+  portfolio: Portfolio[] = [];
   skills: any[] = [];
   isLoading = true;
   isEditing = false;
   editForm: EditForm = {};
   editUserForm: EditUserForm = {};
+  editPortfolioForm: EditPortfolio[] = [];
   userReviews: Review[] = [];
   averageRating = 0;
   activeTab = 'info';
@@ -82,6 +97,7 @@ export class ProfileComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private userService: UserService,
+    private portfolioService: PortfolioService,
     private profileService: ProfileService,
     private router: Router
   ) {}
@@ -89,6 +105,7 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.loadProfileData();
     this.getAllSkills();
+    this.getPortfolios();
     this.isLoading = false;
   }
 
@@ -135,6 +152,17 @@ export class ProfileComponent implements OnInit {
     this.profileService.getSkills().subscribe({
       next: (skills) => {
         this.skills = skills;
+        this.isLoading = false;
+        this.initializeEditForm();
+      },
+    });
+  }
+
+  getPortfolios(): void {
+    if (!this.user) return;
+    this.portfolioService.getPortfolios(this.user.id).subscribe({
+      next: (portfolio) => {
+        this.portfolio = portfolio;
         this.isLoading = false;
         this.initializeEditForm();
       },
@@ -211,6 +239,15 @@ export class ProfileComponent implements OnInit {
       name: this.user?.name || '',
       isAvailable: this.user?.isAvailable || false,
     };
+
+    this.editPortfolioForm = this.profile.portfolio
+      ? this.profile.portfolio.map((p: any) => ({
+          portfolioId: p.portfolioId,
+          URL: p.URL,
+          isActive: p.isActive,
+          userId: this.user?.id,
+        }))
+      : [];
   }
 
   handleSave(): void {
@@ -241,12 +278,41 @@ export class ProfileComponent implements OnInit {
           next: () => {
             this.user = { ...this.user, ...updatedUser };
             this.profile = { ...this.profile, ...updatedProfile };
+            this.handleSavePortfolio();
             this.isEditing = false;
             this.editForm = {};
             this.editUserForm = {};
           },
         });
       },
+    });
+  }
+
+  handleSavePortfolio(): void {
+    if (!this.profile.portfolio) this.profile.portfolio = [];
+
+    this.editPortfolioForm.forEach((item) => {
+      if (item.portfolioId) {
+        // Edição
+        this.portfolioService.editPortfolio(item.portfolioId, item).subscribe({
+          next: (updatedItem) => {
+            const index = this.profile.portfolio.findIndex(
+              (p: any) => p.portfolioId === item.portfolioId
+            );
+            if (index !== -1) this.profile.portfolio[index] = updatedItem;
+          },
+          error: (err) => console.error('Erro ao atualizar portfólio', err),
+        });
+      } else {
+        const newItem = { ...item, userId: this.user!.id };
+        this.portfolioService.createPortfolio(newItem).subscribe({
+          next: (createdItem) => {
+            this.profile.portfolio.push(createdItem);
+            item.portfolioId = createdItem.portfolioId;
+          },
+          error: (err) => console.error('Erro ao criar portfólio', err),
+        });
+      }
     });
   }
 
@@ -281,5 +347,28 @@ export class ProfileComponent implements OnInit {
   getReviewerType(reviewerId: string): 'freelancer' | 'company' {
     // Implementar lógica para obter o tipo de revisor
     return 'freelancer';
+  }
+
+  addPortfolioItem(): void {
+    this.editPortfolioForm.push({ URL: '', isActive: true });
+  }
+
+  removePortfolioItem(index: number): void {
+    const item = this.editPortfolioForm[index];
+
+    const portfolio = {
+      isActive: false,
+      URL: item.URL,
+      userId: this.user?.id,
+    };
+    if (item.portfolioId) {
+      this.portfolioService
+        .editPortfolio(portfolio.userId, portfolio)
+        .subscribe(() => {
+          this.editPortfolioForm.splice(index, 1);
+        });
+    } else {
+      this.editPortfolioForm.splice(index, 1);
+    }
   }
 }

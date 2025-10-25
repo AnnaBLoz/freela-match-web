@@ -185,36 +185,96 @@
             *ngIf="activeTab === 'portfolio' && user.type === 1"
           >
             <div class="card">
-              <div class="card-header bg-light">
-                <h5 class="card-title mb-0">Portfólio</h5>
-                <p class="card-text text-muted mb-0">
-                  Seus trabalhos e projetos
-                </p>
-              </div>
-              <div class="card-body">
-                <ng-container
-                  *ngIf="profile?.portfolio && profile.portfolio.length > 0"
+              <div
+                class="card-header bg-light d-flex justify-content-between align-items-center"
+              >
+                <div>
+                  <h5 class="card-title mb-0">Portfólio</h5>
+                  <p class="card-text text-muted mb-0">
+                    Seus trabalhos e projetos
+                  </p>
+                </div>
+                <button
+                  *ngIf="isEditing"
+                  class="btn btn-outline-primary btn-sm"
+                  (click)="addPortfolioItem()"
                 >
-                  <div class="space-y-3">
-                    <div
-                      *ngFor="let item of profile.portfolio"
-                      class="border rounded p-3"
-                    >
-                      <a
-                        [href]="item"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-primary text-decoration-none"
+                  <i class="bi bi-plus-lg"></i> Adicionar
+                </button>
+              </div>
+
+              <div class="card-body">
+                <!-- Visualização normal -->
+                <ng-container *ngIf="!isEditing">
+                  <ng-container *ngIf="portfolio?.length > 0; else noPortfolio">
+                    <ul class="list-group">
+                      <li
+                        *ngFor="let item of portfolio"
+                        class="list-group-item d-flex justify-content-between align-items-center"
                       >
-                        <i class="bi bi-link-45deg me-2"></i>{{ item }}
-                      </a>
+                        <a
+                          [href]="item.URL"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="text-primary text-decoration-none"
+                        >
+                          <i class="bi bi-link-45deg me-2"></i>{{ item.url }}
+                        </a>
+                        <!-- <span
+                          class="badge"
+                          [ngClass]="
+                            item.isActive ? 'bg-success' : 'bg-secondary'
+                          "
+                        >
+                          {{ item.isActive ? "Ativo" : "Inativo" }}
+                        </span> -->
+                      </li>
+                    </ul>
+                  </ng-container>
+                  <ng-template #noPortfolio>
+                    <p class="text-muted mb-0">
+                      Nenhum item no portfólio ainda.
+                    </p>
+                  </ng-template>
+                </ng-container>
+
+                <!-- Edição -->
+                <ng-container *ngIf="isEditing">
+                  <div
+                    *ngIf="editPortfolioForm.length === 0"
+                    class="text-muted"
+                  >
+                    Nenhum item no portfólio. Clique em “Adicionar”.
+                  </div>
+
+                  <div
+                    *ngFor="let item of editPortfolioForm; let i = index"
+                    class="mb-3"
+                  >
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        class="form-control"
+                        [(ngModel)]="item.URL"
+                        placeholder="URL do projeto"
+                      />
+                      <select
+                        class="form-select w-auto"
+                        [(ngModel)]="item.isActive"
+                        aria-label="Status"
+                      >
+                        <option [ngValue]="true">Ativo</option>
+                        <option [ngValue]="false">Inativo</option>
+                      </select>
+                      <button
+                        class="btn btn-outline-danger"
+                        type="button"
+                        (click)="removePortfolioItem(i)"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
                     </div>
                   </div>
-                </ng-container>
-                <ng-container
-                  *ngIf="!profile?.portfolio || profile.portfolio.length === 0"
-                >
-                  <p class="text-muted">Nenhum item no portfólio ainda.</p>
                 </ng-container>
               </div>
             </div>
