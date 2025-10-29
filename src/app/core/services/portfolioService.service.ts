@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class PortfolioService {
-  private apiUrl = 'https://localhost:5000/api/Portfolio';
+  private apiUrl = '/api/Portfolio';
 
   constructor(private http: HttpClient) {}
 

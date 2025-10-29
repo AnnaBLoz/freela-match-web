@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { GeneralService } from 'src/app/core/services/generalService.service';
+import { UserService } from 'src/app/core/services/userService.service';
 
 interface Freelancer {
   id: string;
@@ -40,93 +42,53 @@ export class CommunityComponent implements OnInit {
   sortBy = 'rating';
   showFilters = false;
   savedSearches: string[] = [];
+  freelancers: any[] = [];
 
   // Data
-  freelancers: Freelancer[] = [];
+  // freelancers: Freelancer[] = [];
   filteredFreelancers: Freelancer[] = [];
   mockReviews: any[] = [];
 
   ngOnInit() {
-    this.loadMockUser();
-    this.loadMockFreelancers();
+    this.loadFreelancers();
     this.loadMockReviews();
   }
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private userService: UserService,
+    private generalService: GeneralService
+  ) {}
 
-  // ---------------- MOCKED DATA ----------------
-  loadMockUser() {
-    // Usuário mockado do tipo empresa
-    this.user = {
-      id: 'company1',
-      type: 'company',
-      name: 'Empresa Exemplo',
-    };
+  loadFreelancers() {
+    this.generalService.getFreelancers().subscribe({
+      next: (freelancers) => {
+        // Transforma os dados vindos do backend no formato esperado pelo front
+        this.freelancers = freelancers.map((f: any) => ({
+          id: f.id?.toString() || f.userId?.toString() || '',
+          userId: f.userId?.toString() || f.id?.toString() || '',
+          name: f.name || 'Nome não informado',
+          bio: f.profile?.biography || 'Sem biografia disponível',
+          userSkills:
+            f.userSkills?.map(
+              (s: any) => s.skill?.name || `Habilidade ${s.skillId}`
+            ) || [],
+          hourlyRate: f.profile?.pricePerHour || f.pricePerHour || 0,
+          rating: f.rating || 0,
+          completedProjects: f.completedProjects || f.projectsCount || 0,
+          availability: f.isAvailable ? 'available' : 'unavailable',
+        }));
+
+        // Aplica filtros iniciais
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        // console.error('Erro ao carregar freelancers:', err);
+        this.isLoading = false;
+      },
+    });
     this.isLoading = false;
-  }
-
-  loadMockFreelancers() {
-    this.freelancers = [
-      {
-        id: '1',
-        userId: 'user1',
-        name: 'Ana Silva',
-        bio: 'Desenvolvedora Fullstack apaixonada por novas tecnologias.',
-        skills: ['Angular', 'Node.js', 'TypeScript', 'HTML', 'CSS'],
-        hourlyRate: 80,
-        rating: 4.5,
-        completedProjects: 12,
-        availability: 'available',
-        profileImage: 'https://via.placeholder.com/64',
-      },
-      {
-        id: '2',
-        userId: 'user2',
-        name: 'Bruno Souza',
-        bio: 'Designer UX/UI com foco em experiência do usuário.',
-        skills: ['Figma', 'Adobe XD', 'Photoshop', 'Illustrator'],
-        hourlyRate: 60,
-        rating: 5,
-        completedProjects: 20,
-        availability: 'busy',
-      },
-      {
-        id: '3',
-        userId: 'user3',
-        name: 'Carla Pereira',
-        bio: 'Especialista em Python e Machine Learning.',
-        skills: ['Python', 'TensorFlow', 'Pandas', 'Scikit-learn'],
-        hourlyRate: 100,
-        rating: 4.8,
-        completedProjects: 30,
-        availability: 'unavailable',
-      },
-      {
-        id: '4',
-        userId: 'user4',
-        name: 'Diego Martins',
-        bio: 'Desenvolvedor Frontend focado em React e Vue.js.',
-        skills: ['React', 'Vue.js', 'JavaScript', 'CSS', 'HTML'],
-        hourlyRate: 75,
-        rating: 4.2,
-        completedProjects: 15,
-        availability: 'available',
-      },
-      {
-        id: '5',
-        userId: 'user5',
-        name: 'Anna Loz',
-        bio: 'Desenvolvedora Front-end especializada em Angular.',
-        skills: ['Angular', 'TypeScript', 'HTML', 'CSS'],
-        hourlyRate: 120,
-        rating: 4.5,
-        completedProjects: 15,
-        availability: 'available',
-        profileImage: 'https://via.placeholder.com/96',
-      },
-    ];
-
-    this.applyFilters();
   }
 
   loadMockReviews() {
