@@ -7,6 +7,7 @@ import { OfferDetailsComponent } from './offer-details/offer-details.component';
 import { FreelancersComponent } from './freelancers/freelancers.component';
 import { FreelancerViewComponent } from './freelancers/freelancer-view/freelancer-view.component';
 import { ReviewsComponent } from './freelancers/reviews/reviews.component';
+import { ProfileComponent } from './profile/profile.component';
 
 const routes: Routes = [
   {
@@ -37,6 +38,7 @@ const routes: Routes = [
     path: 'reviews',
     component: ReviewsComponent,
   },
+  { path: 'profile', component: ProfileComponent },
 ];
 
 @NgModule({

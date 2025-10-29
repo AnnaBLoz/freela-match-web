@@ -18,6 +18,8 @@ import { FreelancerViewComponent } from './freelancers/freelancer-view/freelance
 import { ReviewsComponent } from './freelancers/reviews/reviews.component';
 import { ReviewsListComponent } from './freelancers/reviews/reviews-list/reviews-list.component';
 import { StarRatingComponent } from './freelancers/reviews/star-rating/star-rating.component';
+import { ProfileComponent } from './profile/profile.component';
+import { ProfileInfoComponent } from './profile/profile-info/profile-info.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +32,8 @@ import { StarRatingComponent } from './freelancers/reviews/star-rating/star-rati
     ReviewsComponent,
     ReviewsListComponent,
     StarRatingComponent,
+    ProfileComponent,
+    ProfileInfoComponent,
   ],
   imports: [
     CommonModule,

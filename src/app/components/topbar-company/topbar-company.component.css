@@ -69,3 +69,17 @@
 ::ng-deep .mat-typography h1 {
   font: 367 1.562rem / 4rem Roboto, sans-serif;
 }
+
+.nav-link-custom {
+  font-weight: 600;
+  color: #334155;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+.nav-link-custom:hover {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}

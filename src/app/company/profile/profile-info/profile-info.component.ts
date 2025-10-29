@@ -1,0 +1,67 @@
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { GeneralService } from 'src/app/core/services/generalService.service';
+
+interface Profile {
+  name?: string;
+  biography?: string;
+  website: any;
+  pricePerHour?: number;
+  sector?: any;
+}
+
+interface EditForm {
+  name?: string;
+  biography?: string;
+  website: any;
+  pricePerHour?: number;
+  sector?: Sector;
+}
+
+interface Sector {
+  sectorId: number;
+  name: string;
+}
+
+@Component({
+  selector: 'app-profile-info',
+  templateUrl: './profile-info.component.html',
+  styleUrl: './profile-info.component.css',
+})
+export class ProfileInfoComponent implements OnInit {
+  @Input() profile: Profile | null = null;
+  @Input() isEditing = false;
+  @Input() skills: any[] = [];
+  @Input() editForm: EditForm = {
+    website: undefined,
+  };
+  @Output() updateEditForm = new EventEmitter<EditForm>();
+
+  skillSearch = '';
+  sectors: any[] = [];
+
+  constructor(private generalService: GeneralService) {}
+
+  ngOnInit() {
+    this.getSectors();
+  }
+
+  getSectors(): void {
+    this.generalService.getSectors().subscribe({
+      next: (sectors) => {
+        this.sectors = sectors;
+
+        if (this.profile?.sector.sectorId) {
+          this.editForm.sector =
+            this.sectors.find(
+              (s) => s.sectorId === this.profile?.sector.sectorId
+            ) || null;
+        }
+      },
+    });
+  }
+
+  onEditFormChange(field: string, value: any): void {
+    const updated = { ...this.editForm, [field]: value };
+    this.updateEditForm.emit(updated);
+  }
+}

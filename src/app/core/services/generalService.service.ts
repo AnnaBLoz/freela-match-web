@@ -12,4 +12,8 @@ export class GeneralService {
   getFreelancers() {
     return this.http.get<any>(`${this.apiUrl}/General/Freelancers`);
   }
+
+  getSectors() {
+    return this.http.get<any>(`${this.apiUrl}/General/Sectors`);
+  }
 }
