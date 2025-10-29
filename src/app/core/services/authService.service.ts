@@ -4,10 +4,11 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { User } from '../models/auth.model';
 import { isBrowser } from '../utils/helpers';
+import { environment } from 'src/enviroments/enviroment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = '/api/Auth';
+  private apiUrl = environment.apiUrl;
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 
@@ -34,7 +35,7 @@ export class AuthService {
 
   // 🚀 Login real no backend
   login(user: { email: string; password: string }): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/login`, user).pipe(
+    return this.http.post<User>(`${this.apiUrl}/Auth/login`, user).pipe(
       tap((response) => {
         if (isBrowser()) {
           localStorage.setItem('currentUser', JSON.stringify(response));
@@ -46,7 +47,7 @@ export class AuthService {
 
   // 🚀 Registro real no backend
   register(dto: any): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/register`, dto).pipe(
+    return this.http.post<User>(`${this.apiUrl}/Auth/register`, dto).pipe(
       tap((response) => {
         if (isBrowser()) {
           localStorage.setItem('currentUser', JSON.stringify(response));
