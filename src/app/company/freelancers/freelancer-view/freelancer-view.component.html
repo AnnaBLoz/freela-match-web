@@ -52,11 +52,11 @@
             <div class="d-flex flex-column flex-md-row">
               <div class="text-center text-md-start me-md-4 mb-3 mb-md-0">
                 <img
-                  [src]="
-                    freelancer.profileImage || 'https://via.placeholder.com/96'
-                  "
-                  [alt]="freelancer.name"
-                  class="rounded-circle profile-image-large mb-2"
+                  src="assets/icons/user.png"
+                  alt="user"
+                  class="user-avatar"
+                  width="96"
+                  height="96"
                 />
                 <div class="d-md-none">
                   <h1 class="h3 fw-bold mb-1">{{ freelancer.name }}</h1>
@@ -243,14 +243,11 @@
                   <div class="d-flex">
                     <div class="me-3">
                       <img
-                        [src]="
-                          getCompanyInfo(review.fromUserId).logo ||
-                          'https://via.placeholder.com/40'
-                        "
-                        [alt]="getCompanyInfo(review.fromUserId).name"
-                        class="rounded-circle"
-                        width="40"
-                        height="40"
+                        src="assets/icons/user.png"
+                        alt="user"
+                        class="user-avatar"
+                        width="96"
+                        height="96"
                       />
                     </div>
 
@@ -295,7 +292,7 @@
       <!-- Sidebar -->
       <div class="col-lg-4">
         <!-- Quick Actions -->
-        <div class="card mb-4">
+        <!-- <div class="card mb-4">
           <div class="card-header">
             <h5 class="card-title mb-0">Ações</h5>
           </div>
@@ -327,7 +324,7 @@
               </button>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Stats -->
         <div class="card mb-4">
