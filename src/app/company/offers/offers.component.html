@@ -35,7 +35,7 @@
               <h6 class="card-title text-muted mb-0">Total de Propostas</h6>
               <i class="fas fa-eye text-muted"></i>
             </div>
-            <h2 class="fw-bold mb-0">{{ companyProposals.length }}</h2>
+            <!-- <h2 class="fw-bold mb-0">{{ companyProposals.length }}</h2> -->
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@
               <h6 class="card-title text-muted mb-0">Propostas Ativas</h6>
               <i class="fas fa-calendar text-muted"></i>
             </div>
-            <h2 class="fw-bold mb-0">{{ activeProposals.length }}</h2>
+            <!-- <h2 class="fw-bold mb-0">{{ activeProposals.length }}</h2> -->
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@
               <h6 class="card-title text-muted mb-0">Total de Candidaturas</h6>
               <i class="fas fa-users text-muted"></i>
             </div>
-            <h2 class="fw-bold mb-0">{{ getTotalApplications() }}</h2>
+            <!-- <h2 class="fw-bold mb-0">{{ getTotalApplications() }}</h2> -->
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@
               <h6 class="card-title text-muted mb-0">Projetos Concluídos</h6>
               <i class="fas fa-check text-muted"></i>
             </div>
-            <h2 class="fw-bold mb-0">{{ completedProposals.length }}</h2>
+            <!-- <h2 class="fw-bold mb-0">{{ completedProposals.length }}</h2> -->
           </div>
         </div>
       </div>
@@ -82,20 +82,22 @@
       <ul class="nav nav-pills">
         <li class="nav-item">
           <button
-            class="nav-link"
+            class="nav-link me-2"
             [class.active]="activeTab === 'active'"
             (click)="setActiveTab('active')"
           >
-            Ativas ({{ activeProposals.length }})
+            Ativas
+            <!-- ({{ activeProposals.length }}) -->
           </button>
         </li>
         <li class="nav-item">
           <button
-            class="nav-link"
+            class="nav-link me-2"
             [class.active]="activeTab === 'completed'"
             (click)="setActiveTab('completed')"
           >
-            Concluídas ({{ completedProposals.length }})
+            Concluídas
+            <!-- ({{ completedProposals.length }}) -->
           </button>
         </li>
         <li class="nav-item">
@@ -104,7 +106,8 @@
             [class.active]="activeTab === 'all'"
             (click)="setActiveTab('all')"
           >
-            Todas ({{ companyProposals.length }})
+            Todas
+            <!-- ({{ companyProposals.length }}) -->
           </button>
         </li>
       </ul>
@@ -113,10 +116,7 @@
     <!-- Proposals List -->
     <div class="proposals-content">
       <!-- Empty State -->
-      <div
-        *ngIf="getProposalsForTab().length === 0"
-        class="card border-0 shadow-sm"
-      >
+      <div *ngIf="proposals.length === 0" class="card border-0 shadow-sm">
         <div class="card-body text-center py-5">
           <div class="empty-state-icon mb-4">
             <i class="fas fa-eye text-muted" style="font-size: 4rem"></i>
@@ -133,7 +133,7 @@
 
       <!-- Proposals Cards -->
       <div
-        *ngFor="let proposal of getProposalsForTab()"
+        *ngFor="let proposal of proposals"
         class="card border-0 shadow-sm mb-4"
       >
         <!-- Card Header -->
@@ -142,14 +142,14 @@
             <div class="flex-grow-1">
               <h5 class="card-title mb-2">{{ proposal.title }}</h5>
               <p class="card-text text-muted">
-                {{ truncateDescription(proposal.description) }}
+                {{ proposal.description }}
               </p>
             </div>
             <span
               class="badge ms-3"
-              [class]="getStatusBadgeClass(proposal.status)"
+              [class]="getStatusBadgeClass(proposal.isAvailable)"
             >
-              {{ getStatusText(proposal.status) }}
+              {{ proposal.isAvailable === true ? "Disponível" : "Concluído" }}
             </span>
           </div>
         </div>
@@ -164,7 +164,7 @@
               >
                 <i class="fas fa-dollar-sign me-2"></i>
                 <span class="fw-bold">{{
-                  formatCurrency(proposal.budget)
+                  formatCurrency(proposal.price)
                 }}</span>
               </div>
             </div>
@@ -173,7 +173,7 @@
                 class="d-flex align-items-center justify-content-center justify-content-md-start text-muted"
               >
                 <i class="fas fa-calendar me-2"></i>
-                <span>Prazo: {{ formatDate(proposal.deadline) }}</span>
+                <span>Prazo: {{ formatDate(proposal.maxDate) }}</span>
               </div>
             </div>
             <div class="col-md-4">
@@ -181,35 +181,33 @@
                 class="d-flex align-items-center justify-content-center justify-content-md-start text-primary"
               >
                 <i class="fas fa-users me-2"></i>
-                <span>{{ proposal.applications.length }} candidatura(s)</span>
+                <span>{{ proposal.candidates.length }} candidatura(s)</span>
               </div>
             </div>
           </div>
 
           <!-- Required Skills -->
-          <div class="mb-4">
+          <div class="mb-1">
             <h6 class="text-muted mb-2">Habilidades:</h6>
             <div class="d-flex flex-wrap gap-2">
               <span
-                *ngFor="let skill of proposal.requiredSkills"
-                class="badge bg-light text-dark border"
+                *ngFor="let rs of proposal.requiredSkills"
+                class="badge bg-light text-dark border me-1"
               >
-                {{ skill }}
+                {{ rs.skill?.skill?.name }}
               </span>
             </div>
           </div>
 
           <!-- Applications -->
           <div
-            *ngIf="
-              activeTab !== 'completed' && proposal.applications.length > 0
-            "
+            *ngIf="activeTab !== 'completed' && proposal.candidates.length > 0"
             class="mb-4"
           >
             <h6 class="text-muted mb-3">Candidaturas:</h6>
             <div class="applications-list">
               <div
-                *ngFor="let application of proposal.applications.slice(0, 2)"
+                *ngFor="let application of proposal.candidates.slice(0, 2)"
                 class="application-item bg-light rounded p-3 mb-3"
               >
                 <div class="d-flex justify-content-between align-items-center">
@@ -279,7 +277,7 @@
         <div class="card-footer bg-white border-top">
           <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">
-              Criado em {{ formatDate(proposal.createdAt) }}
+              Criado em {{ formatDate(proposal.createdDate) }}
             </small>
             <div class="d-flex gap-2">
               <button
@@ -289,13 +287,13 @@
                 <i class="fas fa-eye me-2"></i>
                 Ver Detalhes
               </button>
-              <!-- <button
-                *ngIf="proposal.applications.length > 0"
+              <button
+                *ngIf="proposal.applications?.length > 0"
                 class="btn btn-primary btn-sm"
                 (click)="viewApplications(proposal.id)"
               >
-                Ver Candidaturas ({{ proposal.applications.length }})
-              </button> -->
+                Ver Candidaturas ({{ proposal.applications?.length }})
+              </button>
             </div>
           </div>
         </div>

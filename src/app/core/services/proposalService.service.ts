@@ -1,0 +1,37 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from 'src/enviroments/enviroment';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ProposalService {
+  private apiUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) {}
+
+  getProposalsByCompany(companyId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/Proposal/company/${companyId}`);
+  }
+
+  approveApplication(
+    proposalId: number,
+    applicationId: number
+  ): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/${proposalId}/applications/${applicationId}/approve`,
+      {}
+    );
+  }
+
+  rejectApplication(
+    proposalId: number,
+    applicationId: number
+  ): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/${proposalId}/applications/${applicationId}/reject`,
+      {}
+    );
+  }
+}
