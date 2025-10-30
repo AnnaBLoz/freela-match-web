@@ -20,6 +20,7 @@ import { ReviewsListComponent } from './freelancers/reviews/reviews-list/reviews
 import { StarRatingComponent } from './freelancers/reviews/star-rating/star-rating.component';
 import { ProfileComponent } from './profile/profile.component';
 import { ProfileInfoComponent } from './profile/profile-info/profile-info.component';
+import { OfferApplicationsComponent } from './offers/offer-applications/offer-applications.component';
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import { ProfileInfoComponent } from './profile/profile-info/profile-info.compon
     StarRatingComponent,
     ProfileComponent,
     ProfileInfoComponent,
+    OfferApplicationsComponent,
   ],
   imports: [
     CommonModule,

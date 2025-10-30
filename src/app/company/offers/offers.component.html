@@ -35,7 +35,7 @@
               <h6 class="card-title text-muted mb-0">Total de Propostas</h6>
               <i class="fas fa-eye text-muted"></i>
             </div>
-            <!-- <h2 class="fw-bold mb-0">{{ companyProposals.length }}</h2> -->
+            <h2 class="fw-bold mb-0">{{ proposals?.length }}</h2>
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@
               <h6 class="card-title text-muted mb-0">Propostas Ativas</h6>
               <i class="fas fa-calendar text-muted"></i>
             </div>
-            <!-- <h2 class="fw-bold mb-0">{{ activeProposals.length }}</h2> -->
+            <h2 class="fw-bold mb-0">{{ activeProposals?.length }}</h2>
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@
               <h6 class="card-title text-muted mb-0">Total de Candidaturas</h6>
               <i class="fas fa-users text-muted"></i>
             </div>
-            <!-- <h2 class="fw-bold mb-0">{{ getTotalApplications() }}</h2> -->
+            <h2 class="fw-bold mb-0">{{ getTotalApplications() }}</h2>
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@
               <h6 class="card-title text-muted mb-0">Projetos Concluídos</h6>
               <i class="fas fa-check text-muted"></i>
             </div>
-            <!-- <h2 class="fw-bold mb-0">{{ completedProposals.length }}</h2> -->
+            <h2 class="fw-bold mb-0">{{ completedProposals?.length }}</h2>
           </div>
         </div>
       </div>
@@ -86,8 +86,7 @@
             [class.active]="activeTab === 'active'"
             (click)="setActiveTab('active')"
           >
-            Ativas
-            <!-- ({{ activeProposals.length }}) -->
+            Ativas ({{ activeProposals?.length }})
           </button>
         </li>
         <li class="nav-item">
@@ -96,8 +95,7 @@
             [class.active]="activeTab === 'completed'"
             (click)="setActiveTab('completed')"
           >
-            Concluídas
-            <!-- ({{ completedProposals.length }}) -->
+            Concluídas ({{ completedProposals?.length }})
           </button>
         </li>
         <li class="nav-item">
@@ -106,8 +104,7 @@
             [class.active]="activeTab === 'all'"
             (click)="setActiveTab('all')"
           >
-            Todas
-            <!-- ({{ companyProposals.length }}) -->
+            Todas ({{ proposals?.length }})
           </button>
         </li>
       </ul>
@@ -116,7 +113,7 @@
     <!-- Proposals List -->
     <div class="proposals-content">
       <!-- Empty State -->
-      <div *ngIf="proposals.length === 0" class="card border-0 shadow-sm">
+      <div *ngIf="proposals?.length === 0" class="card border-0 shadow-sm">
         <div class="card-body text-center py-5">
           <div class="empty-state-icon mb-4">
             <i class="fas fa-eye text-muted" style="font-size: 4rem"></i>
@@ -181,7 +178,7 @@
                 class="d-flex align-items-center justify-content-center justify-content-md-start text-primary"
               >
                 <i class="fas fa-users me-2"></i>
-                <span>{{ proposal.candidates.length }} candidatura(s)</span>
+                <span>{{ proposal.candidates?.length }} candidatura(s)</span>
               </div>
             </div>
           </div>
@@ -201,37 +198,34 @@
 
           <!-- Applications -->
           <div
-            *ngIf="activeTab !== 'completed' && proposal.candidates.length > 0"
-            class="mb-4"
+            *ngIf="activeTab !== 'completed' && proposal.candidates?.length > 0"
+            class="mt-3"
           >
             <h6 class="text-muted mb-3">Candidaturas:</h6>
             <div class="applications-list">
               <div
                 *ngFor="let application of proposal.candidates.slice(0, 2)"
-                class="application-item bg-light rounded p-3 mb-3"
+                class="application-item bg-light rounded p-3 mb-1"
               >
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="d-flex align-items-center">
                     <div class="avatar me-3">
                       <div
-                        class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                        class="rounded-circle text-white d-flex align-items-center justify-content-center"
                         style="width: 40px; height: 40px"
                       >
-                        <small class="fw-bold">
-                          {{
-                            getFreelancerInitials(
-                              getFreelancerById(application.freelancerId)
-                            )
-                          }}
-                        </small>
+                        <img
+                          src="assets/icons/user.png"
+                          alt="user"
+                          class="user-avatar"
+                          width="45"
+                          height="45"
+                        />
                       </div>
                     </div>
                     <div>
                       <div class="fw-bold">
-                        {{
-                          getFreelancerById(application.freelancerId)?.name ||
-                            "Freelancer"
-                        }}
+                        {{ application.user.name }}
                       </div>
                       <div class="text-muted small d-flex align-items-center">
                         <i class="fas fa-star text-warning me-1"></i>
@@ -241,7 +235,7 @@
                               ?.rating || "5.0"
                           }}
                           •
-                          {{ formatCurrency(application.proposedRate) }}
+                          {{ formatCurrency(application.proposedPrice) }}
                         </span>
                       </div>
                     </div>
@@ -263,9 +257,9 @@
                 </div>
               </div>
 
-              <div *ngIf="proposal.applications.length > 2" class="text-center">
+              <div *ngIf="proposal.candidates?.length > 2" class="text-center">
                 <small class="text-muted">
-                  +{{ proposal.applications.length - 2 }} candidatura(s)
+                  +{{ proposal.candidates?.length - 2 }} candidatura(s)
                   adicional(is)
                 </small>
               </div>
@@ -281,18 +275,11 @@
             </small>
             <div class="d-flex gap-2">
               <button
-                class="btn btn-outline-primary btn-sm"
-                (click)="viewProposalDetails(proposal.id)"
-              >
-                <i class="fas fa-eye me-2"></i>
-                Ver Detalhes
-              </button>
-              <button
-                *ngIf="proposal.applications?.length > 0"
+                *ngIf="proposal.candidates?.length > 0"
                 class="btn btn-primary btn-sm"
-                (click)="viewApplications(proposal.id)"
+                (click)="viewApplications(proposal.proposalId)"
               >
-                Ver Candidaturas ({{ proposal.applications?.length }})
+                Ver Candidaturas ({{ proposal.candidates?.length }})
               </button>
             </div>
           </div>

@@ -15,6 +15,12 @@ export class ProposalService {
     return this.http.get<any[]>(`${this.apiUrl}/Proposal/company/${companyId}`);
   }
 
+  getProposalById(proposalId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Proposal/proposalId/${proposalId}`
+    );
+  }
+
   approveApplication(
     proposalId: number,
     applicationId: number

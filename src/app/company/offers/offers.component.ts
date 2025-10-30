@@ -26,7 +26,7 @@ interface Proposal {
   requiredSkills: string[];
   status: 'open' | 'completed' | 'closed';
   createdAt: Date;
-  applications: Application[];
+  candidates: Application[];
 }
 
 interface Freelancer {
@@ -49,6 +49,9 @@ export class OffersComponent implements OnInit, OnDestroy {
 
   proposals: Proposal[] = [];
   freelancers: Freelancer[] = [];
+
+  activeProposals: any[] = [];
+  completedProposals: any[] = [];
 
   activeTab: 'active' | 'completed' | 'all' = 'active';
 
@@ -90,6 +93,12 @@ export class OffersComponent implements OnInit, OnDestroy {
             next: ({ proposals, freelancers }) => {
               this.proposals = proposals || [];
               this.freelancers = freelancers || [];
+              this.activeProposals = proposals.filter(
+                (p) => p.isAvailable === true
+              );
+              this.completedProposals = proposals.filter(
+                (p) => p.isAvailable === false
+              );
               this.isLoading = false;
             },
             error: (err) => {
@@ -98,6 +107,10 @@ export class OffersComponent implements OnInit, OnDestroy {
             },
           });
       });
+  }
+
+  getTotalApplications(): number {
+    return this.proposals.reduce((total, p) => total + p.candidates.length, 0);
   }
 
   approveApplication(proposalId: number, applicationId: number): void {
@@ -140,7 +153,7 @@ export class OffersComponent implements OnInit, OnDestroy {
   }
 
   get totalApplications(): number {
-    return this.proposals.reduce((sum, p) => sum + p.applications.length, 0);
+    return this.proposals.reduce((sum, p) => sum + p.candidates.length, 0);
   }
 
   setActiveTab(tab: 'active' | 'completed' | 'all'): void {
@@ -207,6 +220,6 @@ export class OffersComponent implements OnInit, OnDestroy {
   }
 
   viewApplications(proposalId: string): void {
-    this.router.navigate(['/company/offer', proposalId, 'applications']);
+    this.router.navigate(['/company/offer', proposalId]);
   }
 }
