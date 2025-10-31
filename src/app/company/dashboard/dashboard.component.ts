@@ -145,7 +145,12 @@ export class DashboardComponent {
   }
 
   getTotalApplications(): number {
-    return this.proposals.reduce((total, p) => total + p.candidates.length, 0);
+    return this.proposals.reduce((total, p) => {
+      const approvedCount = p.candidates.filter(
+        (c: any) => c.status === 1
+      ).length;
+      return total + approvedCount;
+    }, 0);
   }
 
   getWelcomeMessage(): string {
