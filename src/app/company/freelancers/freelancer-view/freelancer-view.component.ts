@@ -16,6 +16,30 @@ interface Freelancer {
   profileImage?: string;
   experience: string;
   portfolio: string[];
+  profile?: Profile;
+}
+
+interface Profile {
+  userId: number;
+  name?: string;
+  bio?: string;
+  skills?: string[];
+  pricePerHour?: number;
+  experience?: string;
+  profileImage?: string;
+  companyName?: string;
+  description?: string;
+  industry?: string;
+  contactPerson?: string;
+  website?: string;
+  logoUrl?: string;
+}
+
+enum ExperienceLevel {
+  Junior = 1,
+  Pleno,
+  Senior,
+  Especialista,
 }
 
 interface Review {
@@ -32,6 +56,13 @@ interface User {
   type: 'company' | 'freelancer';
   name: string;
 }
+
+export const ExperienceYears: Record<ExperienceLevel, string> = {
+  [ExperienceLevel.Junior]: '0 – 2 anos',
+  [ExperienceLevel.Pleno]: '2 – 5 anos',
+  [ExperienceLevel.Senior]: '5 – 10 anos',
+  [ExperienceLevel.Especialista]: '10+ anos',
+};
 
 @Component({
   selector: 'app-freelancer-view',
@@ -59,6 +90,7 @@ export class FreelancerViewComponent implements OnInit {
   freelancerId: number = 0;
 
   portfolio: any[] = [];
+  ExperienceYears = ExperienceYears;
 
   constructor(
     private router: Router,
@@ -92,7 +124,7 @@ export class FreelancerViewComponent implements OnInit {
           completedProjects: f.completedProjects || 0,
           availability: f.isAvailable ? 'available' : 'unavailable',
           profileImage: 'assets/icons/user.png',
-          experience: f.profile?.experience || 'Experiência não informada',
+          experience: f.profile?.experienceLevel || 'Experiência não informada',
           portfolio: [],
         };
 
@@ -267,5 +299,11 @@ export class FreelancerViewComponent implements OnInit {
     this.reviewRating = 5;
     this.reviewComment = '';
     this.closeReviewModal();
+  }
+
+  getExperienceName(level?: ExperienceLevel) {
+    if (level === undefined || level === null)
+      return 'Nenhuma experiência adicionada.';
+    return ExperienceLevel[level];
   }
 }

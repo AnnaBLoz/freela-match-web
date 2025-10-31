@@ -92,8 +92,8 @@
                     averageRating.toFixed(1)
                   }}</span>
                   <span class="text-muted">
-                    ({{ reviews.length }} avaliação{{
-                      reviews.length !== 1 ? "ões" : ""
+                    ({{ reviews.length }} avaliaç{{
+                      reviews.length !== 1 ? "ões" : "ão"
                     }})
                   </span>
                 </div>
@@ -109,10 +109,10 @@
                       >R$ {{ freelancer.hourlyRate }}/h</span
                     >
                   </div>
-                  <span class="text-muted"
+                  <!-- <span class="text-muted"
                     >{{ freelancer.completedProjects }} projetos
                     concluídos</span
-                  >
+                  > -->
                 </div>
 
                 <!-- Mobile Badge -->
@@ -186,7 +186,16 @@
 
               <div>
                 <h6 class="fw-medium text-dark mb-2">Experiência</h6>
-                <p class="text-muted">{{ freelancer.experience }}</p>
+                <p class="text-muted">
+                  {{
+                    freelancer?.experience
+                      ? getExperienceName(freelancer?.experience) +
+                        " (" +
+                        ExperienceYears[freelancer?.experience] +
+                        ")"
+                      : "Nenhuma experiência adicionada."
+                  }}
+                </p>
               </div>
             </div>
 
@@ -332,12 +341,12 @@
             <h5 class="card-title mb-0">Estatísticas</h5>
           </div>
           <div class="card-body">
-            <div class="d-flex justify-content-between py-2">
+            <!-- <div class="d-flex justify-content-between py-2">
               <span class="text-muted">Projetos:</span>
               <span class="fw-semibold">{{
                 freelancer.completedProjects
               }}</span>
-            </div>
+            </div> -->
             <div class="d-flex justify-content-between py-2">
               <span class="text-muted">Avaliação:</span>
               <span class="fw-semibold">{{ averageRating.toFixed(1) }}/5</span>
