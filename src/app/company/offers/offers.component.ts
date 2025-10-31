@@ -240,4 +240,14 @@ export class OffersComponent implements OnInit, OnDestroy {
   viewApplications(proposalId: string): void {
     this.router.navigate(['/company/offer', proposalId]);
   }
+
+  getApprovedCandidate(proposal: Proposal): Application | null {
+    if (!proposal.candidates || proposal.candidates.length === 0) return null;
+
+    if (!proposal.isAvailable) {
+      return proposal.candidates.find((c) => c.status === 2) || null;
+    }
+
+    return null;
+  }
 }
