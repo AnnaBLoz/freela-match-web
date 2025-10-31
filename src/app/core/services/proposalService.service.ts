@@ -21,6 +21,13 @@ export class ProposalService {
     );
   }
 
+  createProposal(createdProposal: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/Proposal/create`,
+      createdProposal
+    );
+  }
+
   approveApplication(
     proposalId: number,
     applicationId: number

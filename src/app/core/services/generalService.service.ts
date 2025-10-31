@@ -16,4 +16,8 @@ export class GeneralService {
   getSectors() {
     return this.http.get<any>(`${this.apiUrl}/General/Sectors`);
   }
+
+  getSkills() {
+    return this.http.get<any>(`${this.apiUrl}/General/Skills`);
+  }
 }

@@ -155,17 +155,21 @@
         <div class="card-body">
           <!-- Project Info -->
           <div class="row text-center text-md-start mb-4">
-            <div class="col-md-4 mb-2 mb-md-0">
+            <div
+              class="d-flex align-items-center justify-content-center col-md-4 mb-2 mb-md-0"
+            >
               <div
                 class="d-flex align-items-center justify-content-center justify-content-md-start text-success"
               >
-                <i class="fas fa-dollar-sign me-2"></i>
+                <i class="fa-solid fa-comments-dollar me-2"></i>
                 <span class="fw-bold">{{
                   formatCurrency(proposal.price)
                 }}</span>
               </div>
             </div>
-            <div class="col-md-4 mb-2 mb-md-0">
+            <div
+              class="d-flex align-items-center justify-content-center col-md-4 mb-2 mb-md-0"
+            >
               <div
                 class="d-flex align-items-center justify-content-center justify-content-md-start text-muted"
               >
@@ -173,7 +177,9 @@
                 <span>Prazo: {{ formatDate(proposal.maxDate) }}</span>
               </div>
             </div>
-            <div class="col-md-4">
+            <div
+              class="d-flex align-items-center justify-content-center col-md-4"
+            >
               <div
                 class="d-flex align-items-center justify-content-center justify-content-md-start text-primary"
               >
@@ -191,7 +197,7 @@
                 *ngFor="let rs of proposal.requiredSkills"
                 class="badge bg-light text-dark border me-1"
               >
-                {{ rs.skill?.skill?.name }}
+                {{ rs?.skill.name }}
               </span>
             </div>
           </div>
