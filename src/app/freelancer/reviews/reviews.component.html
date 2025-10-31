@@ -15,16 +15,38 @@
     <div class="mb-5 text-center">
       <h1 class="display-5 fw-bold text-dark mb-3">Avaliações</h1>
       <p class="text-muted fs-5">
-        Veja o que outros usuários dizem sobre você e acompanhe suas próprias
-        avaliações
+        Veja o que outros usuários dizem sobre você ou avalie freelancers
       </p>
     </div>
 
-    <div class="row g-4">
+    <!-- Tabs: Avaliações | Avaliar -->
+    <ul class="nav nav-tabs justify-content-center mb-4" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          [class.active]="mainTab === 'avaliacoes'"
+          (click)="mainTab = 'avaliacoes'"
+        >
+          <i class="bi bi-star-half me-2"></i> Avaliações
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          [class.active]="mainTab === 'avaliar'"
+          (click)="mainTab = 'avaliar'"
+        >
+          <i class="bi bi-pencil-square me-2"></i> Avaliar
+        </button>
+      </li>
+    </ul>
+
+    <!-- ==================== ABA 1: AVALIAÇÕES ==================== -->
+    <div *ngIf="mainTab === 'avaliacoes'" class="row g-4">
       <!-- Sidebar -->
       <div class="col-lg-4">
         <div class="row g-4">
-          <!-- Overall Rating -->
+          <!-- Avaliação Geral -->
           <div class="col-12">
             <div class="card shadow-sm border-0 rounded-3">
               <div class="card-header bg-white border-0">
@@ -44,13 +66,13 @@
                   class="d-flex justify-content-center mb-3"
                 ></app-star-rating>
                 <p class="text-muted small mb-0">
-                  Baseado em {{ receivedReviews.length }} avaliação(ões)
+                  Baseado em {{ reviewsReceived.length }} avaliação(ões)
                 </p>
               </div>
             </div>
           </div>
 
-          <!-- Rating Distribution -->
+          <!-- Distribuição das Notas -->
           <div class="col-12">
             <div class="card shadow-sm border-0 rounded-3">
               <div class="card-header bg-white border-0">
@@ -74,21 +96,18 @@
                         class="progress-bar bg-warning"
                         role="progressbar"
                         [style.width.%]="item.percentage"
-                        [attr.aria-valuenow]="item.percentage"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
                       ></div>
                     </div>
                   </div>
-                  <span class="small text-muted" style="min-width: 24px">{{
-                    item.count
-                  }}</span>
+                  <span class="small text-muted" style="min-width: 24px">
+                    {{ item.count }}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Quick Stats -->
+          <!-- Estatísticas -->
           <div class="col-12">
             <div class="card shadow-sm border-0 rounded-3">
               <div class="card-header bg-white border-0">
@@ -102,7 +121,7 @@
                     <i class="bi bi-chat-square-text text-primary me-2"></i>
                     <span class="small">Recebidas</span>
                   </div>
-                  <span class="fw-semibold">{{ receivedReviews.length }}</span>
+                  <span class="fw-semibold">{{ reviewsReceived.length }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="d-flex align-items-center">
@@ -117,7 +136,7 @@
         </div>
       </div>
 
-      <!-- Reviews Content -->
+      <!-- Conteúdo Avaliações -->
       <div class="col-lg-8">
         <div class="card shadow-sm border-0 rounded-3">
           <div class="card-header bg-white border-0">
@@ -135,7 +154,7 @@
                   <i class="bi bi-inbox me-2"></i>
                   Recebidas
                   <span class="badge bg-light text-dark ms-2">{{
-                    receivedReviews.length
+                    reviewsReceived.length
                   }}</span>
                 </button>
               </li>
@@ -149,7 +168,7 @@
                   <i class="bi bi-send me-2"></i>
                   Enviadas
                   <span class="badge bg-light text-dark ms-2">{{
-                    sentReviews.length
+                    reviewsGiven?.length
                   }}</span>
                 </button>
               </li>
@@ -159,18 +178,126 @@
           <div class="card-body">
             <div *ngIf="activeTab === 'received'">
               <app-reviews-list
-                [reviews]="receivedReviews"
+                [reviews]="reviewsReceived"
                 [type]="'received'"
               ></app-reviews-list>
             </div>
 
             <div *ngIf="activeTab === 'sent'">
               <app-reviews-list
-                [reviews]="sentReviews"
+                [reviews]="reviewsGiven"
                 [type]="'sent'"
               ></app-reviews-list>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ABA 2: AVALIAR ==================== -->
+    <div *ngIf="mainTab === 'avaliar'">
+      <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-white border-0">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-person-check me-2 text-success"></i>
+            Avaliar Empresas
+          </h5>
+        </div>
+
+        <div class="card-body">
+          <p class="text-muted">
+            Escolha um freelancer de suas propostas concluídas para avaliar:
+          </p>
+
+          <div
+            *ngIf="freelancers && freelancers.length > 0; else noFreelancers"
+          >
+            <div
+              class="border-bottom py-3"
+              *ngFor="let freelancer of freelancers"
+            >
+              <!-- Cabeçalho do freelancer -->
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/icons/user.png"
+                    alt="user"
+                    class="review-avatar me-3"
+                    width="55"
+                    height="55"
+                  />
+                  <div>
+                    <h6 class="mb-0">{{ freelancer.user.name }}</h6>
+                    <small class="text-muted">{{
+                      freelancer.user.email
+                    }}</small>
+                  </div>
+                </div>
+
+                <button
+                  class="btn btn-outline-success btn-sm"
+                  (click)="toggleEvaluationForm(freelancer.id)"
+                >
+                  <i class="bi bi-star me-1"></i>
+                  {{
+                    selectedFreelancerId === freelancer.id
+                      ? "Cancelar"
+                      : "Avaliar"
+                  }}
+                </button>
+              </div>
+
+              <!-- Formulário de avaliação -->
+              <div
+                *ngIf="selectedFreelancerId === freelancer.id"
+                class="mt-3 ps-5"
+              >
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Nota:</label>
+                  <div class="d-flex align-items-center">
+                    <i
+                      *ngFor="let star of [1, 2, 3, 4, 5]"
+                      class="bi"
+                      [class.bi-star-fill]="newReview.rating >= star"
+                      [class.bi-star]="newReview.rating < star"
+                      [class.text-warning]="newReview.rating >= star"
+                      [class.text-muted]="newReview.rating < star"
+                      style="font-size: 1.5rem; cursor: pointer"
+                      (click)="setRating(star)"
+                    ></i>
+                    <span class="ms-2 text-muted small"
+                      >{{ newReview.rating }}/5</span
+                    >
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Comentário:</label>
+                  <textarea
+                    class="form-control"
+                    rows="3"
+                    [(ngModel)]="newReview.comment"
+                    placeholder="Escreva sua avaliação aqui..."
+                  ></textarea>
+                </div>
+
+                <button
+                  class="btn btn-success btn-sm"
+                  (click)="submitReview(freelancer)"
+                  [disabled]="!newReview.rating || !newReview.comment"
+                >
+                  <i class="bi bi-send me-1"></i> Enviar Avaliação
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noFreelancers>
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-info-circle fs-3 mb-2"></i>
+              <p>Nenhum freelancer disponível para avaliação no momento.</p>
+            </div>
+          </ng-template>
         </div>
       </div>
     </div>
