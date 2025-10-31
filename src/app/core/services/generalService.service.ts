@@ -20,4 +20,10 @@ export class GeneralService {
   getSkills() {
     return this.http.get<any>(`${this.apiUrl}/General/Skills`);
   }
+
+  completedProjects(userId: number) {
+    return this.http.get<any>(
+      `${this.apiUrl}/General/CompletedProjects?userId=${userId}`
+    );
+  }
 }

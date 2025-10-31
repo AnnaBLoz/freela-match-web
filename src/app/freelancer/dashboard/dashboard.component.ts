@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
+import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
 @Component({
@@ -17,13 +18,20 @@ export class DashboardComponent implements OnInit {
   proposals: any[] = [];
   freelancers: any[] = [];
 
+  userReviews: any;
+  averageRating: any;
+
+  completedProjects: any;
+
   constructor(
     private router: Router,
     private userService: UserService,
     // private proposalService: ProposalService,
     private freelancerService: GeneralService,
     private authService: AuthService,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private reviewsService: ReviewsService,
+    private generalService: GeneralService
   ) {}
 
   ngOnInit() {
@@ -42,7 +50,9 @@ export class DashboardComponent implements OnInit {
         this.userService.getUser(user.id).subscribe({
           next: (fullUser) => {
             this.user = fullUser;
+            this.loadData();
             this.loadProfile();
+            this.CompletedProjects();
             this.isLoading = false;
           },
           error: () => this.router.navigate(['/']),
@@ -135,5 +145,48 @@ export class DashboardComponent implements OnInit {
 
   getAvailabilityClass(availability: boolean): string {
     return availability === true ? 'bg-success' : 'bg-secondary';
+  }
+
+  private CompletedProjects() {
+    this.isLoading = true;
+    this.generalService.completedProjects(this.user.id).subscribe({
+      next: (response) => {
+        this.completedProjects = response.length;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar avaliações:', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  private loadData() {
+    this.isLoading = true;
+    this.reviewsService.getReviews(this.user.id).subscribe({
+      next: (response) => {
+        this.userReviews = response;
+        this.calculateAverageRating();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar avaliações:', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  calculateAverageRating(): void {
+    if (!this.userReviews || this.userReviews.length === 0) {
+      this.averageRating = 0;
+      return;
+    }
+
+    const sum = this.userReviews.reduce(
+      (acc, review) => acc + review.rating,
+      0
+    );
+
+    this.averageRating = sum / this.userReviews.length;
   }
 }
