@@ -82,21 +82,27 @@
             </div>
           </div>
 
-          <div class="d-flex gap-2" *ngIf="proposal.isAvailable == true">
+          <div
+            class="d-flex gap-2"
+            *ngIf="proposal.isAvailable == true && app.status == 1"
+          >
             <button
               class="btn btn-outline-success btn-sm"
-              (click)="approveApplication(app.id)"
+              (click)="approveApplication(app.candidateId)"
             >
               <i class="fas fa-check"></i>
             </button>
             <button
               class="btn btn-outline-danger btn-sm"
-              (click)="rejectApplication(app.id)"
+              (click)="disapproveApplication(app.candidateId)"
             >
               <i class="fas fa-times"></i>
             </button>
           </div>
-          <div class="d-flex gap-2" *ngIf="proposal.isAvailable == false">
+          <div
+            class="d-flex gap-2"
+            *ngIf="proposal.isAvailable == false || app.status != 1"
+          >
             <span class="badge bg-success" *ngIf="app.status == 2"
               >Candidatura Aceita</span
             >

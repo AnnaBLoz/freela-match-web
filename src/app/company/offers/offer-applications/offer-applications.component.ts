@@ -70,8 +70,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
 
   approveApplication(applicationId: number): void {
     var application = {
-      proposalId: this.proposal.id,
-      applicationId: applicationId,
+      proposalId: this.proposal.proposalId,
+      candidateId: applicationId,
     };
     this.proposalService
       .approveApplication(application)
@@ -82,9 +82,13 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       });
   }
 
-  rejectApplication(applicationId: number): void {
+  disapproveApplication(applicationId: number): void {
+    const application = {
+      proposalId: this.proposal.proposalId,
+      candidateId: applicationId,
+    };
     this.proposalService
-      .rejectApplication(this.proposal.id, applicationId)
+      .disapproveApplication(application)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => this.loadData(),

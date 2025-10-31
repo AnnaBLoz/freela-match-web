@@ -43,6 +43,10 @@ export class ProposalService {
     );
   }
 
+  disapproveApplication(application: any) {
+    return this.http.put(`${this.apiUrl}/proposal/disapprove`, application);
+  }
+
   // approveApplication(
   //   proposalId: number,
   //   applicationId: number
