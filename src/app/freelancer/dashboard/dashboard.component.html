@@ -22,7 +22,7 @@
       <!-- Header -->
       <div class="mb-5">
         <h1 class="display-6 fw-bold text-dark mb-2">
-          Bem-vindo, {{ user.name }}!
+          Bem-vindo, {{ user?.name }}!
         </h1>
         <p class="text-muted fs-5">
           {{ getWelcomeMessage() }}
@@ -139,18 +139,18 @@
               >
                 <div class="row align-items-center">
                   <div class="col-lg-8 col-md-7">
-                    <h6 class="fw-semibold mb-2">{{ proposal.title }}</h6>
+                    <h6 class="fw-semibold mb-2">{{ proposal?.title }}</h6>
                     <p class="text-muted mb-2 small">
-                      {{ truncateText(proposal.description, 120) }}
+                      {{ truncateText(proposal?.description, 120) }}
                     </p>
                     <div class="d-flex flex-wrap gap-3 mb-2 small text-muted">
                       <span>
                         <i class="bi bi-currency-dollar me-1"></i>
-                        {{ formatCurrency(proposal.budget) }}
+                        {{ formatCurrency(proposal?.price) }}
                       </span>
                       <span>
                         <i class="bi bi-calendar me-1"></i>
-                        Prazo: {{ formatDate(proposal.deadline) }}
+                        Prazo: {{ formatDate(proposal?.maxDate) }}
                       </span>
                     </div>
                     <div class="skills-container">
@@ -160,20 +160,20 @@
                         "
                         class="badge bg-light text-dark me-1 mb-1 small"
                       >
-                        {{ skill }}
+                        {{ skill?.skill?.name }}
                       </span>
                       <span
-                        *ngIf="proposal.requiredSkills?.length > 4"
+                        *ngIf="proposal?.requiredSkills?.length > 4"
                         class="badge bg-secondary me-1 mb-1 small"
                       >
-                        +{{ proposal.requiredSkills.length - 4 }}
+                        +{{ proposal?.requiredSkills?.length - 4 }}
                       </span>
                     </div>
                   </div>
                   <div class="col-lg-4 col-md-5 text-md-end mt-3 mt-md-0">
                     <button
-                      class="btn btn-primary w-100 w-md-auto"
-                      (click)="navigateToProposal(proposal.id)"
+                      class="btn btn-primary w-50 w-md-auto"
+                      (click)="navigateToProposal(proposal?.proposalId)"
                     >
                       Ver Detalhes
                     </button>

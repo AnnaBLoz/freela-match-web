@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
+import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
@@ -26,7 +27,7 @@ export class DashboardComponent implements OnInit {
   constructor(
     private router: Router,
     private userService: UserService,
-    // private proposalService: ProposalService,
+    private proposalService: ProposalService,
     private freelancerService: GeneralService,
     private authService: AuthService,
     private profileService: ProfileService,
@@ -37,6 +38,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.loadUserData();
     this.loadProfile();
+    this.loadProposals();
   }
 
   loadUserData(): void {
@@ -101,11 +103,11 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToProposal(proposalId: string) {
-    this.router.navigate(['/proposals', proposalId]);
+    this.router.navigate(['/freelancer/offers', proposalId]);
   }
 
   navigateToAllProposals() {
-    this.router.navigate(['/proposals']);
+    this.router.navigate(['/freelancer/offers']);
   }
 
   navigateToCreateProposal() {
@@ -151,7 +153,7 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
     this.generalService.completedProjects(this.user.id).subscribe({
       next: (response) => {
-        this.completedProjects = response.length;
+        this.completedProjects = response?.length;
         this.isLoading = false;
       },
       error: (err) => {
@@ -188,5 +190,14 @@ export class DashboardComponent implements OnInit {
     );
 
     this.averageRating = sum / this.userReviews.length;
+  }
+
+  loadProposals(): void {
+    this.proposalService.getProposals().subscribe({
+      next: (proposals) => {
+        this.proposals = proposals;
+      },
+    });
+    this.isLoading = false;
   }
 }
