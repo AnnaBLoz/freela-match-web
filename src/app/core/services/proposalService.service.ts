@@ -28,15 +28,22 @@ export class ProposalService {
     );
   }
 
-  approveApplication(
-    proposalId: number,
-    applicationId: number
-  ): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/${proposalId}/applications/${applicationId}/approve`,
-      {}
+  approveApplication(approvedCandidate: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/Proposal/approve`,
+      approvedCandidate
     );
   }
+
+  // approveApplication(
+  //   proposalId: number,
+  //   applicationId: number
+  // ): Observable<any> {
+  //   return this.http.post(
+  //     `${this.apiUrl}/${proposalId}/applications/${applicationId}/approve`,
+  //     {}
+  //   );
+  // }
 
   rejectApplication(
     proposalId: number,

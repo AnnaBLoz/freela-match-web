@@ -255,7 +255,12 @@
                   <div class="d-flex gap-2">
                     <button
                       class="btn btn-sm btn-outline-success"
-                      (click)="approveApplication(proposal.id, application.id)"
+                      (click)="
+                        approveApplication(
+                          proposal.proposalId,
+                          application.candidateId
+                        )
+                      "
                     >
                       <i class="fas fa-check"></i>
                     </button>

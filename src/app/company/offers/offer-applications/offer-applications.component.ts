@@ -69,8 +69,12 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   }
 
   approveApplication(applicationId: number): void {
+    var application = {
+      proposalId: this.proposal.id,
+      applicationId: applicationId,
+    };
     this.proposalService
-      .approveApplication(this.proposal.id, applicationId)
+      .approveApplication(application)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => this.loadData(),
