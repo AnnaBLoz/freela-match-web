@@ -130,7 +130,13 @@
 
       <!-- Proposals Cards -->
       <div
-        *ngFor="let proposal of proposals"
+        *ngFor="
+          let proposal of activeTab === 'active'
+            ? activeProposals
+            : activeTab === 'completed'
+            ? completedProposals
+            : proposals
+        "
         class="card border-0 shadow-sm mb-4"
       >
         <!-- Card Header -->
