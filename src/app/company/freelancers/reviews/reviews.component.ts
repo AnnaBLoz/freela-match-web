@@ -99,11 +99,20 @@ export class ReviewsComponent implements OnInit {
           },
         });
 
-        // this.loadData();
+        this.loadFreelancers();
         this.isLoading = false;
       },
       error: () => {
         this.router.navigate(['/']);
+      },
+    });
+  }
+
+  private loadFreelancers() {
+    this.reviewsService.getFreelancersToReview(this.user.id).subscribe({
+      next: (freelancers) => {
+        this.freelancers = freelancers;
+        this.isLoading = false;
       },
     });
   }

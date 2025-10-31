@@ -12,4 +12,10 @@ export class ReviewsService {
   getReviews(userId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/Reviews?userId=${userId}`);
   }
+
+  getFreelancersToReview(companyId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Reviews/freelancer?userId=${companyId}`
+    );
+  }
 }

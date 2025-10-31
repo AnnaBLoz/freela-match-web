@@ -195,7 +195,6 @@
     </div>
 
     <!-- ==================== ABA 2: AVALIAR ==================== -->
-    <!-- ==================== ABA 2: AVALIAR ==================== -->
     <div *ngIf="mainTab === 'avaliar'">
       <div class="card shadow-sm border-0 rounded-3">
         <div class="card-header bg-white border-0">
@@ -221,17 +220,17 @@
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                   <img
-                    [src]="
-                      freelancer.avatarUrl || 'assets/img/default-avatar.png'
-                    "
-                    class="rounded-circle me-3"
-                    width="50"
-                    height="50"
-                    alt="Freelancer Avatar"
+                    src="assets/icons/user.png"
+                    alt="user"
+                    class="review-avatar me-3"
+                    width="55"
+                    height="55"
                   />
                   <div>
-                    <h6 class="mb-0">{{ freelancer.name }}</h6>
-                    <small class="text-muted">{{ freelancer.email }}</small>
+                    <h6 class="mb-0">{{ freelancer.user.name }}</h6>
+                    <small class="text-muted">{{
+                      freelancer.user.email
+                    }}</small>
                   </div>
                 </div>
 
