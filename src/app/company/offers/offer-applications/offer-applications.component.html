@@ -55,7 +55,7 @@
     <!-- Lista de candidaturas -->
     <div *ngIf="proposal.candidates?.length > 0; else noApplications">
       <div
-        *ngFor="let app of proposal.candidates"
+        *ngFor="let app of sortedCandidates"
         class="card border-0 shadow-sm mb-3"
       >
         <div
