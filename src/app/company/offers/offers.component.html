@@ -216,7 +216,7 @@
             <h6 class="text-muted mb-3">Candidaturas:</h6>
             <div class="applications-list">
               <div
-                *ngFor="let application of proposal.candidates.slice(0, 2)"
+                *ngFor="let application of proposal.candidates"
                 class="application-item bg-light rounded p-3 mb-1"
               >
                 <div class="d-flex justify-content-between align-items-center">
@@ -236,9 +236,7 @@
                       </div>
                     </div>
                     <div>
-                      <div class="fw-bold">
-                        {{ application.user.name }}
-                      </div>
+                      <div class="fw-bold">{{ application.user.name }}</div>
                       <div class="text-muted small d-flex align-items-center">
                         <i class="fas fa-star text-warning me-1"></i>
                         <span>
@@ -246,30 +244,46 @@
                             getFreelancerById(application.freelancerId)
                               ?.rating || "5.0"
                           }}
-                          •
-                          {{ formatCurrency(application.proposedPrice) }}
+                          • {{ formatCurrency(application.proposedPrice) }}
                         </span>
                       </div>
                     </div>
                   </div>
                   <div class="d-flex gap-2">
-                    <button
-                      class="btn btn-sm btn-outline-success"
-                      (click)="
-                        approveApplication(
-                          proposal.proposalId,
-                          application.candidateId
-                        )
-                      "
+                    <span
+                      *ngIf="application.status === 'approved'"
+                      class="badge bg-success"
+                      >Aprovado</span
                     >
-                      <i class="fas fa-check"></i>
-                    </button>
-                    <button
-                      class="btn btn-sm btn-outline-danger"
-                      (click)="rejectApplication(proposal.id, application.id)"
+                    <span
+                      *ngIf="application.status === 'rejected'"
+                      class="badge bg-danger"
+                      >Rejeitado</span
                     >
-                      <i class="fas fa-times"></i>
-                    </button>
+                    <div *ngIf="application.status === 'pending'">
+                      <button
+                        class="btn btn-sm btn-outline-success"
+                        (click)="
+                          approveApplication(
+                            proposal.proposalId,
+                            application.candidateId
+                          )
+                        "
+                      >
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="
+                          rejectApplication(
+                            proposal.proposalId,
+                            application.candidateId
+                          )
+                        "
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

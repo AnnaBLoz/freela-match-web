@@ -14,6 +14,7 @@ interface Application {
   proposedRate: number;
   message: string;
   createdAt: Date;
+  status: any;
 }
 
 interface Proposal {
@@ -27,6 +28,7 @@ interface Proposal {
   status: 'open' | 'completed' | 'closed';
   createdAt: Date;
   candidates: Application[];
+  isAvailable: boolean;
 }
 
 interface Freelancer {
@@ -140,10 +142,21 @@ export class OffersComponent implements OnInit, OnDestroy {
 
   private reloadProposals(): void {
     if (!this.user) return;
+
     this.proposalService
       .getProposalsByCompany(this.user.id)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((res) => (this.proposals = res || []));
+      .subscribe((res) => {
+        this.proposals = res || [];
+
+        // Atualiza as propostas ativas e concluídas
+        this.activeProposals = this.proposals.filter(
+          (p) => p.isAvailable === true
+        );
+        this.completedProposals = this.proposals.filter(
+          (p) => p.isAvailable === false
+        );
+      });
   }
 
   get filteredProposals(): Proposal[] {

@@ -1,0 +1,9 @@
+.btn-link {
+  color: #6f42c1;
+  font-weight: 500;
+}
+
+.btn-link:hover {
+  color: #5a32a3;
+  text-decoration: underline !important;
+}

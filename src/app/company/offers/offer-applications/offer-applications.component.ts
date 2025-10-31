@@ -45,6 +45,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
           this.proposal = proposal;
           this.freelancers = freelancers;
           this.isLoading = false;
+          console.log(proposal);
         },
         error: (err) => {
           console.error('Erro ao carregar candidatura:', err);
