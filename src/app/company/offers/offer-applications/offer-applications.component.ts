@@ -112,4 +112,15 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   viewProfile(freelancerId: string) {
     this.router.navigate(['/company/freelancer', freelancerId]);
   }
+
+  getStatusBadgeClass(status: boolean): string {
+    switch (status) {
+      case false:
+        return 'bg-primary';
+      case true:
+        return 'bg-success';
+      default:
+        return 'bg-secondary';
+    }
+  }
 }

@@ -35,7 +35,7 @@
     <div class="card border-0 shadow-sm mb-4">
       <div class="card-body">
         <p class="text-muted mb-3">{{ proposal.description }}</p>
-        <div class="d-flex flex-wrap gap-4">
+        <div class="d-flex flex-wrap gap-4 justify-content-between">
           <span
             ><i class="fas fa-dollar-sign me-2 text-success"></i>
             {{ formatCurrency(proposal.price) }}</span
@@ -48,6 +48,12 @@
             ><i class="fas fa-users me-2 text-primary"></i>
             {{ proposal.candidates.length }} candidatura(s)</span
           >
+          <span
+            class="badge ms-3"
+            [class]="getStatusBadgeClass(proposal.isAvailable)"
+          >
+            {{ proposal.isAvailable === true ? "Disponível" : "Concluído" }}
+          </span>
         </div>
       </div>
     </div>
