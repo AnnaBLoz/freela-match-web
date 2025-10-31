@@ -15,6 +15,10 @@ export class ProposalService {
     return this.http.get<any[]>(`${this.apiUrl}/Proposal/company/${companyId}`);
   }
 
+  getProposals(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/Proposal/all`);
+  }
+
   getProposalById(proposalId: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiUrl}/Proposal/proposalId/${proposalId}`
@@ -26,6 +30,10 @@ export class ProposalService {
       `${this.apiUrl}/Proposal/create`,
       createdProposal
     );
+  }
+
+  candidate(candidate: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/Proposal/candidate`, candidate);
   }
 
   approveApplication(approvedCandidate: any): Observable<any> {

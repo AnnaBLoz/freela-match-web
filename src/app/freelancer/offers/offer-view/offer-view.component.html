@@ -51,12 +51,13 @@
                   <div class="d-flex flex-wrap gap-3 text-muted small">
                     <div class="d-flex align-items-center">
                       <i class="bi bi-calendar me-1"></i>
-                      <span>Prazo: {{ formatDate(proposal.deadline) }}</span>
+                      <span>Prazo: {{ formatDate(proposal.maxDate) }}</span>
                     </div>
                     <div class="d-flex align-items-center">
                       <i class="bi bi-clock me-1"></i>
                       <span
-                        >Publicado em {{ formatDate(proposal.createdAt) }}</span
+                        >Publicado em
+                        {{ formatDate(proposal.createdDate) }}</span
                       >
                     </div>
                   </div>
@@ -64,10 +65,12 @@
                 <span
                   class="badge"
                   [ngClass]="
-                    proposal.status === 'open' ? 'bg-success' : 'bg-secondary'
+                    proposal.isAvailable === true
+                      ? 'bg-success'
+                      : 'bg-secondary'
                   "
                 >
-                  {{ proposal.status === "open" ? "Aberta" : "Fechada" }}
+                  {{ proposal.isAvailable === true ? "Aberta" : "Fechada" }}
                 </span>
               </div>
             </div>
@@ -87,7 +90,7 @@
                     *ngFor="let skill of proposal.requiredSkills"
                     class="badge bg-light text-dark border"
                   >
-                    {{ skill }}
+                    {{ skill.skill.name }}
                   </span>
                 </div>
               </div>
@@ -103,7 +106,7 @@
                       Orçamento do Projeto
                     </h6>
                     <h2 class="card-title mb-0 fw-bold">
-                      R$ {{ formatCurrency(proposal.budget) }}
+                      {{ formatCurrency(proposal.price) }}
                     </h2>
                   </div>
                 </div>
@@ -114,9 +117,9 @@
           <!-- Application Form -->
           <div
             *ngIf="
-              user?.type === 'freelancer' &&
-              proposal.status === 'open' &&
-              !hasApplied
+              proposal.isAvailable &&
+              !hasApplied &&
+              !hasAppliedToProposal(proposal)
             "
             class="card shadow-sm mb-4"
           >
@@ -133,7 +136,7 @@
                 (ngSubmit)="onSubmitApplication()"
               >
                 <!-- Message -->
-                <div class="mb-3">
+                <!-- <div class="mb-3">
                   <label for="message" class="form-label"
                     >Mensagem de Apresentação</label
                   >
@@ -151,10 +154,9 @@
                   >
                     {{ getFieldError("message") }}
                   </div>
-                </div>
+                </div> -->
 
-                <div class="row g-3 mb-3">
-                  <!-- Proposed Rate -->
+                <!-- <div class="row g-3 mb-3">
                   <div class="col-md-6">
                     <label for="proposedRate" class="form-label"
                       >Sua Taxa Proposta (R$)</label
@@ -175,7 +177,6 @@
                     </div>
                   </div>
 
-                  <!-- Estimated Duration -->
                   <div class="col-md-6">
                     <label for="estimatedDuration" class="form-label"
                       >Prazo Estimado</label
@@ -195,12 +196,13 @@
                       {{ getFieldError("estimatedDuration") }}
                     </div>
                   </div>
-                </div>
+                </div> -->
 
                 <button
                   type="submit"
                   class="btn btn-primary w-100"
                   [disabled]="isSubmitting"
+                  (click)="onSubmitApplication()"
                 >
                   <span
                     *ngIf="isSubmitting"
@@ -216,12 +218,12 @@
 
           <!-- Success Message -->
           <div
-            *ngIf="hasApplied"
-            class="card border-success bg-success bg-opacity-10 shadow-sm"
+            *ngIf="hasApplied || hasAppliedToProposal(proposal)"
+            class="card border-success bg-opacity-10 shadow-sm"
           >
             <div class="card-body text-center py-4">
               <div
-                class="bg-success bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                class="bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
                 style="width: 48px; height: 48px"
               >
                 <i class="bi bi-send text-success fs-5"></i>
@@ -310,15 +312,15 @@
               >
                 <span class="text-muted small">Candidaturas:</span>
                 <span class="fw-semibold">{{
-                  proposal.applications.length
+                  proposal.applications?.length
                 }}</span>
               </div>
               <div
                 class="d-flex justify-content-between align-items-center mb-2"
               >
                 <span class="text-muted small">Orçamento:</span>
-                <span class="fw-semibold text-success"
-                  >R$ {{ formatCurrency(proposal.budget) }}</span
+                <span class="fw-semibold text-success">
+                  {{ formatCurrency(proposal.price) }}</span
                 >
               </div>
 
@@ -327,7 +329,7 @@
               >
                 <span class="text-muted small">Prazo:</span>
                 <span class="fw-semibold">{{
-                  formatDate(proposal.deadline)
+                  formatDate(proposal.maxDate)
                 }}</span>
               </div>
               <div class="d-flex justify-content-between align-items-center">
@@ -335,10 +337,12 @@
                 <span
                   class="badge"
                   [ngClass]="
-                    proposal.status === 'open' ? 'bg-success' : 'bg-secondary'
+                    proposal.isAvailable === true
+                      ? 'bg-success'
+                      : 'bg-secondary'
                   "
                 >
-                  {{ proposal.status === "open" ? "Aberta" : "Fechada" }}
+                  {{ proposal.isAvailable === true ? "Aberta" : "Fechada" }}
                 </span>
               </div>
             </div>

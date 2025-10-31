@@ -1,12 +1,10 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from 'src/app/core/services/authService.service';
+import { ProposalService } from 'src/app/core/services/proposalService.service';
 
 interface User {
   id: string;
@@ -43,8 +41,10 @@ interface Company {
   styleUrls: ['./offer-view.component.css'],
 })
 export class OfferViewComponent implements OnInit {
-  user: User | null = null;
-  proposal: Proposal | null = null;
+  private destroy$ = new Subject<void>();
+
+  user: any;
+  proposal: any;
   company: Company | null = null;
 
   isLoading = true;
@@ -55,64 +55,53 @@ export class OfferViewComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private location: Location
+    private location: Location,
+    private proposalService: ProposalService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.loadMockData();
+    this.getProposal();
+    this.loadUser();
 
     this.applicationForm = this.fb.group({
       message: ['', [Validators.required, Validators.minLength(10)]],
       proposedRate: ['', [Validators.required, Validators.min(100)]],
       estimatedDuration: ['', Validators.required],
     });
-
-    const proposalId = this.route.snapshot.paramMap.get('id');
-    if (proposalId) {
-      console.log('ID da proposta:', proposalId);
-      // Aqui você pode carregar os dados reais da proposta usando o ID
-    }
   }
 
-  loadMockData(): void {
-    // Simula usuário logado
-    this.user = {
-      id: '1',
-      type: 'freelancer',
-      name: 'João Silva',
-      email: 'joao@example.com',
-    };
+  getProposal(): void {
+    const proposalId = Number(this.route.snapshot.paramMap.get('id'));
 
-    // Simula proposta
-    this.proposal = {
-      id: '101',
-      title: 'Desenvolvimento de Landing Page',
-      description:
-        'Criar uma landing page moderna e responsiva para captação de leads.',
-      budget: 3500,
-      deadline: new Date('2025-09-30'),
-      requiredSkills: ['Angular', 'Bootstrap', 'TypeScript'],
-      status: 'open',
-      createdAt: new Date('2025-09-01'),
-      applications: [],
-    };
+    this.proposalService
+      .getProposalById(proposalId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (proposal) => {
+          this.proposal = proposal;
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Erro ao carregar proposta:', err);
+          this.isLoading = false;
+        },
+      });
+  }
 
-    // Simula empresa
-    this.company = {
-      companyName: 'Tech Solutions',
-      industry: 'Tecnologia',
-      description: 'Empresa especializada em soluções digitais para negócios.',
-      rating: 4.7,
-      totalProjects: 58,
-      contactPerson: 'Maria Oliveira',
-      website: 'https://techsolutions.com',
-    };
-
-    this.isLoading = false;
+  loadUser(): void {
+    this.authService.currentUser.subscribe({
+      next: (user) => {
+        this.user = user;
+      },
+    });
   }
 
   formatCurrency(value: number): string {
-    return value.toLocaleString('pt-BR');
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
   }
 
   formatDate(date: Date): string {
@@ -132,22 +121,39 @@ export class OfferViewComponent implements OnInit {
   }
 
   onSubmitApplication(): void {
-    if (this.applicationForm.invalid) return;
-
     this.isSubmitting = true;
 
-    setTimeout(() => {
-      this.hasApplied = true;
-      this.isSubmitting = false;
+    const candidateData = {
+      userId: Number(this.user.id),
+      proposalId: Number(this.proposal.proposalId),
+      appliedAt: new Date(),
+    };
 
-      // Adiciona candidatura à proposta mockada
-      this.proposal?.applications.push({
-        userId: this.user?.id,
-        ...this.applicationForm.value,
+    this.proposalService
+      .candidate(candidateData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.hasApplied = true;
+          this.isSubmitting = false;
+
+          if (!this.proposal.applications) {
+            this.proposal.applications = [];
+          }
+
+          this.proposal.applications.push({
+            userId: this.user.id,
+            ...this.applicationForm.value,
+            appliedAt: candidateData.appliedAt,
+          });
+
+          console.log('Candidatura enviada com sucesso:', res);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          console.error('Erro ao enviar candidatura:', err);
+        },
       });
-
-      console.log('Candidatura enviada:', this.applicationForm.value);
-    }, 1200);
   }
 
   isFieldInvalid(field: string): boolean {
@@ -165,5 +171,9 @@ export class OfferViewComponent implements OnInit {
     if (control.hasError('min')) return 'Valor abaixo do permitido.';
 
     return 'Valor inválido.';
+  }
+
+  hasAppliedToProposal(proposal: any): boolean {
+    return proposal.candidates.some((c) => c.userId === this.user.id);
   }
 }
