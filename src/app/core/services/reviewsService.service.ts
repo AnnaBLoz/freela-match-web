@@ -18,4 +18,8 @@ export class ReviewsService {
       `${this.apiUrl}/Reviews/freelancer?userId=${companyId}`
     );
   }
+
+  createReview(createdReview: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/Reviews/create`, createdReview);
+  }
 }

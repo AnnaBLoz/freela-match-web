@@ -168,8 +168,20 @@ export class ReviewsComponent implements OnInit {
     this.newReview.rating = star;
   }
 
-  // Envia avaliação (mock)
-  submitReview(freelancer: Freelancer) {}
+  async submitReview(freelancer: any): Promise<void> {
+    try {
+      const reviewCreate = {
+        reviewerId: this.user.id,
+        receiverId: freelancer.user.id,
+        reviewText: this.newReview.comment,
+        rating: this.newReview.rating,
+      };
+
+      await this.reviewsService.createReview(reviewCreate).toPromise();
+    } catch (error) {
+      console.error('Erro ao criar proposta:', error);
+    }
+  }
 
   get roundedAverage(): number {
     return Math.round(this.averageRating);
