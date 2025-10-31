@@ -68,9 +68,13 @@
               class="rounded-circle me-3"
               width="50"
               height="50"
+              (click)="viewProfile(app.user.id)"
+              style="cursor: pointer"
             />
             <div>
-              <h6 class="fw-bold mb-1">{{ app.user?.name || "Freelancer" }}</h6>
+              <h6 class="fw-bold mb-1">
+                {{ app.user?.name || "Freelancer" }}
+              </h6>
               <small class="text-muted">
                 {{ formatCurrency(app.proposedPrice) }} •
                 {{ formatDate(app.appliedAt) }}

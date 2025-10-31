@@ -104,4 +104,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       return 0;
     });
   }
+
+  viewProfile(freelancerId: string) {
+    this.router.navigate(['/company/freelancer', freelancerId]);
+  }
 }
