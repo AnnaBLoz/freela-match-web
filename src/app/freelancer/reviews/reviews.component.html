@@ -206,7 +206,7 @@
 
         <div class="card-body">
           <p class="text-muted">
-            Escolha um freelancer de suas propostas concluídas para avaliar:
+            Escolha uma Empresa de suas propostas concluídas para avaliar:
           </p>
 
           <div
@@ -227,20 +227,20 @@
                     height="55"
                   />
                   <div>
-                    <h6 class="mb-0">{{ freelancer.user.name }}</h6>
+                    <h6 class="mb-0">{{ freelancer.owner.name }}</h6>
                     <small class="text-muted">{{
-                      freelancer.user.email
+                      freelancer.owner.email
                     }}</small>
                   </div>
                 </div>
 
                 <button
                   class="btn btn-outline-success btn-sm"
-                  (click)="toggleEvaluationForm(freelancer.id)"
+                  (click)="toggleEvaluationForm(freelancer.owner.id)"
                 >
                   <i class="bi bi-star me-1"></i>
                   {{
-                    selectedFreelancerId === freelancer.id
+                    selectedFreelancerId === freelancer.owner.id
                       ? "Cancelar"
                       : "Avaliar"
                   }}
@@ -249,7 +249,7 @@
 
               <!-- Formulário de avaliação -->
               <div
-                *ngIf="selectedFreelancerId === freelancer.id"
+                *ngIf="selectedFreelancerId === freelancer.owner.id"
                 class="mt-3 ps-5"
               >
                 <div class="mb-3">

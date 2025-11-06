@@ -19,6 +19,12 @@ export class ReviewsService {
     );
   }
 
+  getCompaniesToReview(companyId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Reviews/company?userId=${companyId}`
+    );
+  }
+
   createReview(createdReview: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/Reviews/create`, createdReview);
   }

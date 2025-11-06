@@ -109,7 +109,7 @@ export class ReviewsComponent implements OnInit {
   }
 
   private loadFreelancers() {
-    this.reviewsService.getFreelancersToReview(this.user.id).subscribe({
+    this.reviewsService.getCompaniesToReview(this.user.id).subscribe({
       next: (freelancers) => {
         this.freelancers = freelancers;
         this.isLoading = false;
@@ -172,7 +172,7 @@ export class ReviewsComponent implements OnInit {
     try {
       const reviewCreate = {
         reviewerId: this.user.id,
-        receiverId: freelancer.user.id,
+        receiverId: freelancer.owner.id,
         reviewText: this.newReview.comment,
         rating: this.newReview.rating,
       };
