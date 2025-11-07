@@ -128,43 +128,40 @@
               <!-- Budget and Deadline -->
               <div class="row mb-4">
                 <div class="col-md-6 mb-3 mb-md-0">
-                  <label for="budget" class="form-label fw-semibold">
+                  <label for="price" class="form-label fw-semibold">
                     Orçamento (R$) <span class="text-danger">*</span>
                   </label>
                   <input
                     type="number"
                     class="form-control"
-                    [class.is-invalid]="isFieldInvalid('budget')"
-                    id="budget"
-                    formControlName="budget"
+                    [class.is-invalid]="isFieldInvalid('price')"
+                    id="price"
+                    formControlName="price"
                     placeholder="5000"
                     min="1"
                   />
-                  <div
-                    class="invalid-feedback"
-                    *ngIf="isFieldInvalid('budget')"
-                  >
-                    {{ getFieldErrorMessage("budget") }}
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('price')">
+                    {{ getFieldErrorMessage("price") }}
                   </div>
                 </div>
 
                 <div class="col-md-6">
-                  <label for="deadline" class="form-label fw-semibold">
+                  <label for="maxDate" class="form-label fw-semibold">
                     Prazo de Entrega <span class="text-danger">*</span>
                   </label>
                   <input
                     type="date"
                     class="form-control"
-                    [class.is-invalid]="isFieldInvalid('deadline')"
-                    id="deadline"
-                    formControlName="deadline"
+                    [class.is-invalid]="isFieldInvalid('maxDate')"
+                    id="maxDate"
+                    formControlName="maxDate"
                     [min]="getTodayDate()"
                   />
                   <div
                     class="invalid-feedback"
-                    *ngIf="isFieldInvalid('deadline')"
+                    *ngIf="isFieldInvalid('maxDate')"
                   >
-                    {{ getFieldErrorMessage("deadline") }}
+                    {{ getFieldErrorMessage("maxDate") }}
                   </div>
                 </div>
               </div>
@@ -176,14 +173,23 @@
                 </label>
 
                 <div class="input-group mb-3">
-                  <input
-                    type="text"
-                    class="form-control"
+                  <select
+                    class="form-select"
                     [(ngModel)]="skillInput"
                     [ngModelOptions]="{ standalone: true }"
-                    (keydown)="onSkillInputKeyPress($event)"
-                    placeholder="Digite uma habilidade e pressione Enter"
-                  />
+                    id="skillId"
+                  >
+                    <option value="" disabled selected>
+                      Selecione uma habilidade
+                    </option>
+                    <option
+                      *ngFor="let skill of availableSkills"
+                      [ngValue]="skill"
+                    >
+                      {{ skill.name }}
+                    </option>
+                  </select>
+
                   <button
                     class="btn btn-outline-secondary"
                     type="button"
@@ -200,7 +206,7 @@
                       *ngFor="let skill of requiredSkills"
                       class="badge bg-secondary d-flex align-items-center"
                     >
-                      {{ skill }}
+                      {{ skill.name }}
                       <button
                         type="button"
                         class="btn-close btn-close-white ms-2"

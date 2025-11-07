@@ -253,12 +253,11 @@
                 <div class="d-flex align-items-start">
                   <div class="position-relative me-3">
                     <img
-                      [src]="
-                        freelancer.profileImage ||
-                        'https://via.placeholder.com/64'
-                      "
-                      [alt]="freelancer.name"
-                      class="rounded-circle profile-img"
+                      src="assets/icons/user.png"
+                      alt="user"
+                      class="user-avatar"
+                      width="96"
+                      height="96"
                     />
                   </div>
 
@@ -280,7 +279,7 @@
                       </span>
                     </div>
 
-                    <div class="d-flex align-items-center mb-2">
+                    <!-- <div class="d-flex align-items-center mb-2">
                       <div
                         class="me-2"
                         [innerHTML]="getStars(freelancer.rating).join('')"
@@ -291,7 +290,7 @@
                         }}
                         avaliações)
                       </small>
-                    </div>
+                    </div> -->
 
                     <div
                       *ngIf="
@@ -309,37 +308,47 @@
               </div>
 
               <div class="card-body">
-                <p class="card-text text-muted small">
+                <!-- <p class="card-text text-muted small">
                   {{
                     freelancer.bio.length > 120
                       ? freelancer.bio.substring(0, 120) + "..."
                       : freelancer.bio
                   }}
-                </p>
+                </p> -->
 
                 <!-- Skills -->
-                <div class="mb-3">
+                <!-- <div class="mb-3">
                   <p class="small fw-semibold text-muted mb-2">
                     Principais habilidades:
                   </p>
-                  <div class="d-flex flex-wrap gap-1">
+                  <div
+                    *ngIf="freelancer.userSkills?.length; else noSkills"
+                    class="d-flex flex-wrap gap-1"
+                  >
                     <span
                       class="badge bg-light text-dark border skill-badge"
-                      *ngFor="let skill of freelancer.skills.slice(0, 4)"
+                      *ngFor="
+                        let skill of (freelancer.userSkills || []).slice(0, 4)
+                      "
                     >
                       {{ skill }}
                     </span>
                     <span
                       class="badge bg-light text-dark border skill-badge"
-                      *ngIf="freelancer.skills.length > 4"
+                      *ngIf="freelancer.userSkills?.length > 4"
                     >
-                      +{{ freelancer.skills.length - 4 }}
+                      +{{ freelancer.userSkills.length - 4 }}
                     </span>
                   </div>
-                </div>
+                  <ng-template #noSkills>
+                    <span class="text-muted small"
+                      >Nenhuma habilidade informada</span
+                    >
+                  </ng-template>
+                </div> -->
 
                 <!-- Stats -->
-                <div
+                <!-- <div
                   class="d-flex justify-content-between align-items-center small mb-3"
                 >
                   <div class="text-success fw-semibold">
@@ -350,7 +359,7 @@
                     >{{ freelancer.completedProjects }} projetos
                     concluídos</span
                   >
-                </div>
+                </div> -->
 
                 <!-- Action Button -->
                 <button

@@ -4,28 +4,21 @@
     *ngIf="isLoading"
     class="min-vh-100 bg-light d-flex align-items-center justify-content-center"
   >
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Carregando...</span>
+    <div class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-2 text-muted">Carregando propostas...</p>
     </div>
   </div>
 
   <!-- Main Content -->
-  <div *ngIf="!isLoading && user" class="container py-5">
+  <div *ngIf="!isLoading" class="container py-5">
     <!-- Header -->
-    <div class="mb-5">
-      <h1 class="display-5 fw-bold text-dark mb-3">
-        {{
-          user.type === "freelancer"
-            ? "Propostas Disponíveis"
-            : "Explorar Propostas"
-        }}
-      </h1>
+    <div class="mb-5 text-center">
+      <h1 class="display-5 fw-bold text-dark mb-3">Propostas Disponíveis</h1>
       <p class="text-muted fs-5">
-        {{
-          user.type === "freelancer"
-            ? "Encontre oportunidades que combinam com suas habilidades"
-            : "Veja as propostas ativas na plataforma"
-        }}
+        Encontre oportunidades que combinam com suas habilidades e interesses
       </p>
     </div>
 
@@ -33,8 +26,7 @@
     <div class="card mb-5 shadow-sm">
       <div class="card-header bg-white">
         <h5 class="card-title mb-0">
-          <i class="bi bi-funnel me-2"></i>
-          Filtros
+          <i class="bi bi-funnel me-2"></i>Filtros
         </h5>
       </div>
       <div class="card-body">
@@ -97,17 +89,27 @@
     <!-- Proposals Grid -->
     <div class="row g-4" *ngIf="filteredProposals.length > 0">
       <div class="col-lg-6" *ngFor="let proposal of filteredProposals">
-        <div class="card h-100 shadow-sm hover-shadow-lg transition-all">
+        <div
+          class="card h-100 shadow-sm hover-shadow-lg transition-all border-0"
+        >
           <div class="card-header bg-white border-bottom">
             <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
-                <h5 class="card-title mb-2">{{ proposal.title }}</h5>
-                <p class="card-text text-muted">
+                <h5 class="card-title mb-2 text-dark fw-semibold">
+                  {{ proposal.title }}
+                </h5>
+                <p class="card-text text-muted small">
                   {{ truncateDescription(proposal.description) }}
                 </p>
               </div>
-              <span class="badge bg-success ms-3">
-                {{ proposal.status === "open" ? "Aberta" : "Fechada" }}
+              <span
+                class="badge"
+                [ngClass]="{
+                  'bg-success': proposal.isAvailable,
+                  'bg-secondary': !proposal.isAvailable
+                }"
+              >
+                {{ proposal.isAvailable ? "Aberta" : "Fechada" }}
               </span>
             </div>
           </div>
@@ -116,11 +118,11 @@
             <!-- Budget and Deadline -->
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="text-success fw-bold">
-                R$ {{ formatCurrency(proposal.budget) }}
+                {{ formatCurrency(proposal.price) }}
               </div>
               <div class="text-muted small">
                 <i class="bi bi-calendar me-1"></i>
-                Prazo: {{ formatDate(proposal.deadline) }}
+                Prazo: {{ formatDate(proposal.maxDate) }}
               </div>
             </div>
 
@@ -129,10 +131,10 @@
               <h6 class="text-dark mb-2">Habilidades necessárias:</h6>
               <div class="d-flex flex-wrap gap-1">
                 <span
-                  *ngFor="let skill of proposal.requiredSkills"
+                  *ngFor="let skill of proposal?.requiredSkills"
                   class="badge bg-light text-dark border small"
                 >
-                  {{ skill }}
+                  {{ skill.name }}
                 </span>
               </div>
             </div>
@@ -140,14 +142,14 @@
             <!-- Posted Time -->
             <div class="text-muted small mb-3">
               <i class="bi bi-clock me-1"></i>
-              Publicado em {{ formatDate(proposal.createdAt) }}
+              Publicado em {{ formatDate(proposal.createdDate) }}
             </div>
 
             <!-- Action Button -->
             <button
               type="button"
               class="btn btn-primary w-100"
-              (click)="viewProposalDetails(proposal.id)"
+              (click)="viewProposalDetails(proposal.proposalId)"
             >
               Ver Detalhes e Candidatar-se
             </button>
@@ -158,7 +160,7 @@
 
     <!-- Empty State -->
     <div
-      *ngIf="filteredProposals.length === 0"
+      *ngIf="filteredProposals?.length === 0"
       class="card text-center py-5 shadow-sm"
     >
       <div class="card-body">

@@ -1,5 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ProposalService } from 'src/app/core/services/proposalService.service';
+import { AuthService } from 'src/app/core/services/authService.service';
+import { ProfileService } from 'src/app/core/services/profileService.service';
+import { GeneralService } from 'src/app/core/services/generalService.service';
+import { UserService } from 'src/app/core/services/userService.service';
 
 interface Application {
   id: string;
@@ -7,6 +14,7 @@ interface Application {
   proposedRate: number;
   message: string;
   createdAt: Date;
+  status: any;
 }
 
 interface Proposal {
@@ -19,7 +27,8 @@ interface Proposal {
   requiredSkills: string[];
   status: 'open' | 'completed' | 'closed';
   createdAt: Date;
-  applications: Application[];
+  candidates: Application[];
+  isAvailable: boolean;
 }
 
 interface Freelancer {
@@ -32,156 +41,174 @@ interface Freelancer {
 @Component({
   selector: 'app-offers',
   templateUrl: './offers.component.html',
-  styleUrl: './offers.component.css',
+  styleUrls: ['./offers.component.css'],
 })
-export class OffersComponent {
+export class OffersComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   user: any = null;
-  profile: any = null;
   isLoading = true;
 
-  companyProposals: Proposal[] = [];
-  activeProposals: Proposal[] = [];
-  completedProposals: Proposal[] = [];
+  proposals: Proposal[] = [];
   freelancers: Freelancer[] = [];
 
-  activeTab = 'active';
+  activeProposals: any[] = [];
+  completedProposals: any[] = [];
 
-  constructor(private router: Router) {}
+  activeTab: 'active' | 'completed' | 'all' = 'active';
 
-  async ngOnInit(): Promise<void> {
-    await this.loadUserData();
-    if (this.user && this.user.type === 'company') {
-      await this.loadProposals();
-      await this.loadFreelancers();
-    }
-    this.isLoading = false;
+  constructor(
+    private router: Router,
+    private proposalService: ProposalService,
+    private authService: AuthService,
+    private profileService: ProfileService,
+    private generalService: GeneralService,
+    private userService: UserService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadData();
   }
 
-  private async loadUserData(): Promise<void> {
-    try {
-      // 🔹 Mock do usuário logado
-      this.user = {
-        id: 'u1',
-        name: 'Empresa XPTO',
-        type: 'company',
-      };
-
-      // 🔹 Mock do perfil da empresa
-      this.profile = {
-        id: 'c1',
-        companyName: 'XPTO Soluções Tech',
-        email: 'contato@xpto.com',
-      };
-
-      if (!this.user || this.user.type !== 'company') {
-        this.router.navigate(['/dashboard']);
-        return;
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados do usuário (mock):', error);
-      this.router.navigate(['/dashboard']);
-    }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private async loadProposals(): Promise<void> {
-    try {
-      // 🔹 Mock de propostas
-      const proposals: Proposal[] = [
-        {
-          id: 'p1',
-          companyId: this.profile?.id || '1',
-          title: 'Website em Angular',
-          description:
-            'Precisamos de um desenvolvedor Angular para criar um portal corporativo.',
-          budget: 5000,
-          deadline: new Date('2025-10-01'),
-          requiredSkills: ['Angular', 'TypeScript', 'HTML', 'CSS'],
-          status: 'open',
-          createdAt: new Date(),
-          applications: [
-            {
-              id: 'a1',
-              freelancerId: 'f1',
-              proposedRate: 4800,
-              message: 'Tenho 5 anos de experiência em Angular.',
-              createdAt: new Date(),
+  private loadData(): void {
+    this.authService.currentUser
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user) => {
+        if (!user) {
+          this.router.navigate(['/']);
+          return;
+        }
+
+        this.user = user;
+
+        forkJoin({
+          proposals: this.proposalService.getProposalsByCompany(user.id),
+          freelancers: this.generalService.getFreelancers(),
+        })
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: ({ proposals, freelancers }) => {
+              this.proposals = proposals || [];
+              this.freelancers = freelancers || [];
+              this.activeProposals = proposals.filter(
+                (p) => p.isAvailable === true
+              );
+              this.completedProposals = proposals.filter(
+                (p) => p.isAvailable === false
+              );
+              this.isLoading = false;
             },
-            {
-              id: 'a2',
-              freelancerId: 'f2',
-              proposedRate: 4500,
-              message: 'Já fiz projetos similares, entrego em 15 dias.',
-              createdAt: new Date(),
+            error: (err) => {
+              console.error('Erro ao carregar dados:', err);
+              this.isLoading = false;
             },
-          ],
-        },
-        {
-          id: 'p2',
-          companyId: this.profile?.id || '1',
-          title: 'App Mobile Flutter',
-          description: 'Criação de um aplicativo multiplataforma.',
-          budget: 8000,
-          deadline: new Date('2025-11-15'),
-          requiredSkills: ['Flutter', 'Dart'],
-          status: 'completed',
-          createdAt: new Date('2025-07-20'),
-          applications: [],
-        },
-      ];
-
-      this.companyProposals = proposals;
-      this.activeProposals = proposals.filter((p) => p.status === 'open');
-      this.completedProposals = proposals.filter(
-        (p) => p.status === 'completed'
-      );
-    } catch (error) {
-      console.error('Erro ao carregar propostas (mock):', error);
-    }
-  }
-
-  private async loadFreelancers(): Promise<void> {
-    try {
-      // 🔹 Mock de freelancers
-      this.freelancers = [
-        {
-          id: 'f1',
-          name: 'João Silva',
-          rating: 4.8,
-          skills: ['Angular', 'TypeScript'],
-        },
-        {
-          id: 'f2',
-          name: 'Maria Souza',
-          rating: 4.9,
-          skills: ['Flutter', 'Dart'],
-        },
-      ];
-    } catch (error) {
-      console.error('Erro ao carregar freelancers (mock):', error);
-    }
-  }
-
-  setActiveTab(tab: string): void {
-    this.activeTab = tab;
-  }
-
-  getProposalsForTab(): Proposal[] {
-    switch (this.activeTab) {
-      case 'active':
-        return this.activeProposals;
-      case 'completed':
-        return this.completedProposals;
-      case 'all':
-        return this.companyProposals;
-      default:
-        return [];
-    }
+          });
+      });
   }
 
   getTotalApplications(): number {
-    return this.companyProposals.reduce(
-      (total, p) => total + p.applications.length,
-      0
+    return this.proposals.reduce((total, p) => total + p.candidates.length, 0);
+  }
+
+  approveApplication(proposalId: number, applicationId: number): void {
+    var application = {
+      candidateId: applicationId,
+      proposalId: proposalId,
+    };
+
+    this.proposalService
+      .approveApplication(application)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.reloadProposals(),
+        error: (err) => console.error('Erro ao aprovar candidatura:', err),
+      });
+  }
+
+  rejectApplication(proposalId: number, applicationId: number): void {
+    this.proposalService
+      .rejectApplication(proposalId, applicationId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.reloadProposals(),
+        error: (err) => console.error('Erro ao rejeitar candidatura:', err),
+      });
+  }
+
+  private reloadProposals(): void {
+    if (!this.user) return;
+
+    this.proposalService
+      .getProposalsByCompany(this.user.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((res) => {
+        this.proposals = res || [];
+
+        // Atualiza as propostas ativas e concluídas
+        this.activeProposals = this.proposals.filter(
+          (p) => p.isAvailable === true
+        );
+        this.completedProposals = this.proposals.filter(
+          (p) => p.isAvailable === false
+        );
+      });
+  }
+
+  get filteredProposals(): Proposal[] {
+    switch (this.activeTab) {
+      case 'active':
+        return this.proposals.filter((p) => p.status === 'open');
+      case 'completed':
+        return this.proposals.filter((p) => p.status === 'completed');
+      default:
+        return this.proposals;
+    }
+  }
+
+  get totalApplications(): number {
+    return this.proposals.reduce((sum, p) => sum + p.candidates.length, 0);
+  }
+
+  setActiveTab(tab: 'active' | 'completed' | 'all'): void {
+    this.activeTab = tab;
+  }
+
+  goToCreateProposal(): void {
+    this.router.navigate(['/company/new-offer']);
+  }
+
+  viewProposalDetails(id: string): void {
+    this.router.navigate(['/company/offer', id]);
+  }
+
+  // ---------- Utils ----------
+  formatDate(date: Date): string {
+    return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
+  }
+
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  }
+
+  truncate(text: string, limit = 200): string {
+    return text.length <= limit ? text : `${text.substring(0, limit)}...`;
+  }
+
+  getStatusClass(status: string): string {
+    return (
+      {
+        open: 'bg-primary',
+        completed: 'bg-success',
+        closed: 'bg-secondary',
+      }[status] || 'bg-secondary'
     );
   }
 
@@ -189,91 +216,38 @@ export class OffersComponent {
     return this.freelancers.find((f) => f.id === id);
   }
 
-  getFreelancerInitials(freelancer: Freelancer | undefined): string {
-    if (!freelancer) return 'FL';
-    return freelancer.name
-      .split(' ')
-      .map((n) => n[0])
-      .join('');
+  getFreelancerInitials(f: Freelancer | undefined): string {
+    return f?.name
+      ? f.name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()
+      : 'FL';
   }
 
-  truncateDescription(description: string, maxLength: number = 200): string {
-    if (description.length <= maxLength) return description;
-    return description.substring(0, maxLength) + '...';
-  }
-
-  getStatusBadgeClass(status: string): string {
+  getStatusBadgeClass(status: boolean): string {
     switch (status) {
-      case 'open':
+      case false:
         return 'bg-primary';
-      case 'completed':
+      case true:
         return 'bg-success';
       default:
         return 'bg-secondary';
     }
   }
 
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'open':
-        return 'Aberta';
-      case 'completed':
-        return 'Concluída';
-      default:
-        return 'Fechada';
-    }
-  }
-
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(amount);
-  }
-
-  formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
-  }
-
-  goToCreateProposal(): void {
-    this.router.navigate(['/company/new-offer']);
-  }
-
-  viewProposalDetails(proposalId: string): void {
+  viewApplications(proposalId: string): void {
     this.router.navigate(['/company/offer', proposalId]);
   }
 
-  viewApplications(proposalId: string): void {
-    this.router.navigate(['/company/offers', proposalId, 'applications']);
-  }
+  getApprovedCandidate(proposal: Proposal): Application | null {
+    if (!proposal.candidates || proposal.candidates.length === 0) return null;
 
-  async approveApplication(
-    proposalId: string,
-    applicationId: string
-  ): Promise<void> {
-    try {
-      console.log('✅ Aprovar candidatura (mock):', {
-        proposalId,
-        applicationId,
-      });
-      // aqui você poderia simular alteração do status
-    } catch (error) {
-      console.error('Erro ao aprovar candidatura (mock):', error);
+    if (!proposal.isAvailable) {
+      return proposal.candidates.find((c) => c.status === 2) || null;
     }
-  }
 
-  async rejectApplication(
-    proposalId: string,
-    applicationId: string
-  ): Promise<void> {
-    try {
-      console.log('❌ Rejeitar candidatura (mock):', {
-        proposalId,
-        applicationId,
-      });
-      // aqui você poderia simular remoção da aplicação
-    } catch (error) {
-      console.error('Erro ao rejeitar candidatura (mock):', error);
-    }
+    return null;
   }
 }

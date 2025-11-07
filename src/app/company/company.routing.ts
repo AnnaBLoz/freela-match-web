@@ -7,6 +7,8 @@ import { OfferDetailsComponent } from './offer-details/offer-details.component';
 import { FreelancersComponent } from './freelancers/freelancers.component';
 import { FreelancerViewComponent } from './freelancers/freelancer-view/freelancer-view.component';
 import { ReviewsComponent } from './freelancers/reviews/reviews.component';
+import { ProfileComponent } from './profile/profile.component';
+import { OfferApplicationsComponent } from './offers/offer-applications/offer-applications.component';
 
 const routes: Routes = [
   {
@@ -21,10 +23,10 @@ const routes: Routes = [
     path: 'offers',
     component: OffersComponent,
   },
-  {
-    path: 'offer/:id',
-    component: OfferDetailsComponent,
-  },
+  // {
+  //   path: 'offer/:id',
+  //   component: OfferDetailsComponent,
+  // },
   {
     path: 'freelancers',
     component: FreelancersComponent,
@@ -36,6 +38,11 @@ const routes: Routes = [
   {
     path: 'reviews',
     component: ReviewsComponent,
+  },
+  { path: 'profile', component: ProfileComponent },
+  {
+    path: 'offer/:id',
+    component: OfferApplicationsComponent,
   },
 ];
 

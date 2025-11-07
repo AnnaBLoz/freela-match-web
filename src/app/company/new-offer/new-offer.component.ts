@@ -1,74 +1,87 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from 'src/app/core/services/authService.service';
+import { GeneralService } from 'src/app/core/services/generalService.service';
+import { ProposalService } from 'src/app/core/services/proposalService.service';
+import { UserService } from 'src/app/core/services/userService.service';
 
 @Component({
   selector: 'app-new-offer',
   templateUrl: './new-offer.component.html',
   styleUrl: './new-offer.component.css',
 })
-export class NewOfferComponent {
+export class NewOfferComponent implements OnInit {
   proposalForm: FormGroup;
-  skillInput: string = '';
-  requiredSkills: string[] = [];
+  skillInput: any;
+  availableSkills: string[] = [];
+  requiredSkills: any[] = [];
   isSubmitting = false;
   isCreated = false;
   isLoading = true;
   user: any = null;
   profile: any = null;
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private proposalService: ProposalService,
+    private generalService: GeneralService,
+    private authService: AuthService,
+    private userService: UserService
+  ) {
     this.proposalForm = this.fb.group({
-      title: ['', [Validators.required]],
-      description: ['', [Validators.required]],
-      budget: ['', [Validators.required, Validators.min(1)]],
-      deadline: ['', [Validators.required]],
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      price: ['', Validators.required],
+      maxDate: ['', Validators.required],
+      skill: [''],
     });
   }
 
   ngOnInit(): void {
     this.loadUserData();
+    this.getSkills();
   }
 
   async loadUserData(): Promise<void> {
-    try {
-      // 🔹 Mock do usuário logado
-      this.user = {
-        id: 'u1',
-        name: 'Empresa XPTO',
-        type: 'company',
-      };
+    this.authService.currentUser.subscribe({
+      next: (user) => {
+        this.user = user;
+        if (!user) {
+          this.router.navigate(['/']);
+          return;
+        }
+      },
+      error: () => {
+        this.router.navigate(['/']);
+      },
+    });
+  }
 
-      // 🔹 Mock do perfil da empresa
-      this.profile = {
-        id: 'c1',
-        companyName: 'XPTO Soluções Tech',
-        email: 'contato@xpto.com',
-      };
-
-      if (!this.user || this.user.type !== 'company') {
-        this.router.navigate(['/dashboard']);
-        return;
-      }
-
-      this.isLoading = false;
-    } catch (error) {
-      console.error('Erro ao carregar dados do usuário (mock):', error);
-      this.router.navigate(['/dashboard']);
-    }
+  getSkills(): void {
+    this.generalService.getSkills().subscribe({
+      next: (skills) => {
+        this.availableSkills = skills;
+      },
+      error: (err) => console.error('Erro ao carregar habilidades:', err),
+    });
+    this.isLoading = false;
   }
 
   addSkill(): void {
-    const skill = this.skillInput.trim();
-    if (skill && !this.requiredSkills.includes(skill)) {
-      this.requiredSkills.push(skill);
+    if (
+      this.skillInput &&
+      !this.requiredSkills.some((s) => s.id === this.skillInput.skillId)
+    ) {
+      this.requiredSkills.push(this.skillInput);
       this.skillInput = '';
     }
   }
 
-  removeSkill(skillToRemove: string): void {
+  removeSkill(skillToRemove: any): void {
     this.requiredSkills = this.requiredSkills.filter(
-      (skill) => skill !== skillToRemove
+      (skill) => skill.id !== skillToRemove.id
     );
   }
 
@@ -88,26 +101,22 @@ export class NewOfferComponent {
     this.isSubmitting = true;
 
     try {
-      // 🔹 Simula atraso de API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // 🔹 Mock da nova proposta criada
-      const newProposal = {
-        id: Date.now().toString(),
-        companyId: this.profile?.id || '1',
+      const proposalCreate = {
         title: this.proposalForm.value.title,
         description: this.proposalForm.value.description,
-        budget: Number(this.proposalForm.value.budget),
-        deadline: new Date(this.proposalForm.value.deadline),
-        requiredSkills: this.requiredSkills,
-        status: 'open' as const,
-        createdAt: new Date(),
-        applications: [],
+        price: Number(this.proposalForm.value.price),
+        maxDate: this.proposalForm.value.maxDate,
+        ownerId: this.user.id,
+        requiredSkills: this.requiredSkills.map((skill: any) => ({
+          skillId: skill.id || skill.skillId,
+        })),
       };
+
+      await this.proposalService.createProposal(proposalCreate).toPromise();
 
       this.isCreated = true;
     } catch (error) {
-      console.error('Erro ao criar proposta (mock):', error);
+      console.error('Erro ao criar proposta:', error);
     } finally {
       this.isSubmitting = false;
     }
@@ -128,12 +137,8 @@ export class NewOfferComponent {
   getFieldErrorMessage(fieldName: string): string {
     const field = this.proposalForm.get(fieldName);
     if (field?.errors) {
-      if (field.errors['required']) {
-        return 'Este campo é obrigatório';
-      }
-      if (field.errors['min']) {
-        return 'O valor deve ser maior que zero';
-      }
+      if (field.errors['required']) return 'Este campo é obrigatório';
+      if (field.errors['min']) return 'O valor deve ser maior que zero';
     }
     return '';
   }

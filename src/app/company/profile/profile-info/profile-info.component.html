@@ -1,0 +1,90 @@
+<div class="row">
+  <!-- Card: Sobre -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Sobre</h5>
+      </div>
+      <div class="card-body">
+        <ng-container *ngIf="!isEditing">
+          <div class="info-section">
+            <label class="info-label">Bio</label>
+            <p class="info-value">
+              {{ profile?.biography || "Nenhuma bio adicionada." }}
+            </p>
+          </div>
+          <div class="info-section">
+            <label class="info-label">Setor</label>
+            <p class="info-value">
+              {{ profile?.sector.name }}
+            </p>
+          </div>
+          <div class="info-section">
+            <label class="info-label">Website</label>
+            <div class="info-value">
+              <ng-container
+                *ngIf="profile?.website && profile.website.length > 0"
+              >
+                <a
+                  [href]="
+                    profile.website.startsWith('http')
+                      ? profile.website
+                      : 'https://' + profile.website
+                  "
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary text-decoration-none"
+                >
+                  <i class="bi bi-link-45deg me-2"></i> {{ profile?.website }}
+                </a>
+              </ng-container>
+              <ng-container
+                *ngIf="!profile?.website || profile.website.length === 0"
+              >
+                <p class="text-muted">Nenhum website.</p>
+              </ng-container>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="isEditing">
+          <div class="info-section mb-3">
+            <label class="info-label" for="biography">Bio</label>
+            <textarea
+              class="form-control"
+              id="biography"
+              rows="3"
+              [(ngModel)]="editForm.biography"
+              name="biography"
+            ></textarea>
+          </div>
+
+          <div class="info-section mb-3">
+            <label class="info-label" for="website">Website</label>
+            <input
+              type="text"
+              class="form-control"
+              id="website"
+              [(ngModel)]="editForm.website"
+              name="website"
+              placeholder="Digite seu website"
+            />
+          </div>
+
+          <div class="info-section mb-0">
+            <label class="info-label" for="sector">Setor</label>
+            <select
+              class="form-select"
+              [(ngModel)]="editForm.sector"
+              id="sector"
+            >
+              <option *ngFor="let sector of sectors" [ngValue]="sector">
+                {{ sector.name }}
+              </option>
+            </select>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

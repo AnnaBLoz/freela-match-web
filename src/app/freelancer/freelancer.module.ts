@@ -17,6 +17,9 @@ import { ReviewsListComponent } from './reviews/reviews-list/reviews-list.compon
 import { CommunityComponent } from './community/community.component';
 import { CommunityViewComponent } from './community/community-view/community-view.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { ProfileComponent } from './profile/profile.component';
+import { ProfileInfoComponent } from './profile/profile-info/profile-info.component';
+import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 
 @NgModule({
   declarations: [
@@ -28,6 +31,8 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     ReviewsListComponent,
     CommunityComponent,
     CommunityViewComponent,
+    ProfileComponent,
+    ProfileInfoComponent,
   ],
   imports: [
     CommonModule,
@@ -42,6 +47,9 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     MatBadgeModule,
     FormsModule,
     ReactiveFormsModule,
+    NgxMaskPipe,
+    NgxMaskDirective,
   ],
+  providers: [provideNgxMask()],
 })
 export class FreelancerModule {}

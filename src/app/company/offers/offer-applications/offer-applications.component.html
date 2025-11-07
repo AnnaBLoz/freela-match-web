@@ -1,0 +1,133 @@
+<div class="container-fluid px-4 py-4" style="max-width: 1400px">
+  <!-- Loading -->
+  <div
+    *ngIf="isLoading"
+    class="min-vh-100 bg-light d-flex align-items-center justify-content-center"
+  >
+    <div class="text-center">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Carregando candidaturas...</p>
+    </div>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div
+    *ngIf="!isLoading && proposal"
+    class="container py-2"
+    style="max-width: 1000px"
+  >
+    <!-- Header -->
+    <div>
+      <button
+        class="btn btn-link text-decoration-none p-0 mb-4"
+        (click)="goBack()"
+      >
+        <i class="fas fa-arrow-left me-2"></i> Voltar
+      </button>
+    </div>
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="fw-bold m-0">{{ proposal.title }}</h2>
+      </div>
+    </div>
+
+    <!-- Info do projeto -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <p class="text-muted mb-3">{{ proposal.description }}</p>
+        <div class="d-flex flex-wrap gap-4 justify-content-between">
+          <span
+            ><i class="fas fa-dollar-sign me-2 text-success"></i>
+            {{ formatCurrency(proposal.price) }}</span
+          >
+          <span
+            ><i class="fas fa-calendar me-2 text-muted"></i> Prazo:
+            {{ formatDate(proposal.maxDate) }}</span
+          >
+          <span
+            ><i class="fas fa-users me-2 text-primary"></i>
+            {{ proposal.candidates.length }} candidatura(s)</span
+          >
+          <span
+            class="badge ms-3"
+            [class]="getStatusBadgeClass(proposal.isAvailable)"
+          >
+            {{ proposal.isAvailable === true ? "Disponível" : "Concluído" }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de candidaturas -->
+    <div *ngIf="proposal.candidates?.length > 0; else noApplications">
+      <div
+        *ngFor="let app of sortedCandidates"
+        class="card border-0 shadow-sm mb-3"
+      >
+        <div
+          class="card-body d-flex justify-content-between align-items-center"
+        >
+          <div class="d-flex align-items-center">
+            <img
+              src="assets/icons/user.png"
+              alt="user"
+              class="rounded-circle me-3"
+              width="50"
+              height="50"
+              (click)="viewProfile(app.user.id)"
+              style="cursor: pointer"
+            />
+            <div>
+              <h6 class="fw-bold mb-1">
+                {{ app.user?.name || "Freelancer" }}
+              </h6>
+              <small class="text-muted">
+                {{ formatCurrency(app.proposedPrice) }} •
+                {{ formatDate(app.appliedAt) }}
+              </small>
+            </div>
+          </div>
+
+          <div
+            class="d-flex gap-2"
+            *ngIf="proposal.isAvailable == true && app.status == 1"
+          >
+            <button
+              class="btn btn-outline-success btn-sm"
+              (click)="approveApplication(app.candidateId)"
+            >
+              <i class="fas fa-check"></i>
+            </button>
+            <button
+              class="btn btn-outline-danger btn-sm"
+              (click)="disapproveApplication(app.candidateId)"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div
+            class="d-flex gap-2"
+            *ngIf="proposal.isAvailable == false || app.status != 1"
+          >
+            <span class="badge bg-success" *ngIf="app.status == 2"
+              >Candidatura Aceita</span
+            >
+            <span class="badge bg-danger" *ngIf="app.status == 3"
+              >Candidatura Rejeitada</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noApplications>
+      <div class="text-center py-5">
+        <i
+          class="fas fa-user-slash text-muted mb-3"
+          style="font-size: 3rem"
+        ></i>
+        <p class="text-muted mb-0">Nenhuma candidatura recebida ainda.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

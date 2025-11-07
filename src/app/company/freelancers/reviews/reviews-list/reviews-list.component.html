@@ -11,22 +11,22 @@
     <div class="d-flex justify-content-between align-items-start">
       <div class="d-flex align-items-center">
         <img
-          src="https://i.pravatar.cc/150?img=12"
-          alt="avatar"
+          src="assets/icons/user.png"
+          alt="user"
           class="review-avatar me-3"
+          width="55"
+          height="55"
         />
         <div>
-          <h6 class="mb-0 fw-bold">
-            {{ type === "received" ? "TechCorp Solutions" : "Você" }}
-          </h6>
+          <h6 class="mb-0 fw-bold">{{ getName(review) }}</h6>
           <small class="text-muted">
             {{ type === "received" ? "Avaliou você" : "Você avaliou" }}
           </small>
         </div>
       </div>
-      <span class="badge rounded-pill bg-light text-dark border">
-        {{ type === "received" ? "Empresa" : "Freelancer" }}
-      </span>
+      <!-- <span class="badge rounded-pill bg-light text-dark border">
+        {{ getBadge(review) }}
+      </span> -->
     </div>
 
     <!-- Estrelas + Data -->
@@ -45,12 +45,12 @@
     </div>
 
     <!-- Projeto -->
-    <div class="p-3 bg-light rounded mb-3">
-      <p class="fw-semibold mb-1">Projeto: Desenvolvimento de E-commerce</p>
-      <small class="text-muted">R$ 5.000</small>
+    <div class="p-3 bg-light rounded mb-3" *ngIf="review.proposalName">
+      <p class="fw-semibold mb-1">Projeto: {{ getProjectName(review) }}</p>
+      <small class="text-muted">{{ getProjectValue(review) }}</small>
     </div>
 
     <!-- Comentário -->
-    <p class="mb-0 text-muted">{{ review.comment }}</p>
+    <p class="mb-0 text-muted">{{ review.reviewText }}</p>
   </div>
 </div>

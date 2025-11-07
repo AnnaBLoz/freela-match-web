@@ -1,6 +1,6 @@
 export class User {
   id: number;
-  username: string;
+  name: string;
   password: string;
   firstName?: string;
   lastName?: string;
@@ -8,4 +8,6 @@ export class User {
   email: string;
   jwtToken: any;
   type: number; // 1 para freelancer, 2 para empresa
+  isAvailable?: boolean;
+  reviewsReceived?: any[] = [];
 }

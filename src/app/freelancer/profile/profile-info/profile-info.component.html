@@ -1,0 +1,156 @@
+<div class="row">
+  <!-- Card: Sobre -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Sobre</h5>
+      </div>
+      <div class="card-body">
+        <ng-container *ngIf="!isEditing">
+          <div class="info-section">
+            <label class="info-label">Bio</label>
+            <p class="info-value">
+              {{ profile?.biography || "Nenhuma bio adicionada." }}
+            </p>
+          </div>
+          <div class="info-section">
+            <label class="info-label">Experiência</label>
+            <p class="info-value">
+              {{
+                profile?.experienceLevel
+                  ? getExperienceName(profile.experienceLevel) +
+                    " (" +
+                    ExperienceYears[profile.experienceLevel] +
+                    ")"
+                  : "Nenhuma experiência adicionada."
+              }}
+            </p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="isEditing">
+          <!-- <div class="mb-3">
+            <label for="name" class="form-label">Nome</label>
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              [(ngModel)]="editForm.name"
+              name="name"
+            />
+          </div> -->
+
+          <div class="mb-3">
+            <label for="bio" class="form-label">Bio</label>
+            <textarea
+              class="form-control"
+              id="biography"
+              rows="3"
+              [(ngModel)]="editForm.biography"
+              name="biography"
+            ></textarea>
+          </div>
+
+          <div class="mb-0">
+            <label for="experience" class="form-label">Experiência</label>
+            <select class="form-select" [(ngModel)]="editForm.experienceLevel">
+              <option value="1">Júnior (0 – 2 anos)</option>
+              <option value="2">Pleno (2 – 5 anos)</option>
+              <option value="3">Sênior (5 – 10 anos)</option>
+              <option value="4">Especialista (10+ anos)</option>
+            </select>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card: Habilidades & Preços -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Habilidades & Preços</h5>
+      </div>
+      <div class="card-body">
+        <ng-container *ngIf="!isEditing">
+          <div class="info-section">
+            <label class="info-label">Habilidades</label>
+            <div class="skills-container">
+              <ng-container
+                *ngIf="profile?.userSkills && profile.userSkills.length > 0"
+              >
+                <span
+                  *ngFor="let skill of profile.userSkills"
+                  class="skill-badge"
+                >
+                  {{ skill.skill?.name }}
+                </span>
+              </ng-container>
+              <ng-container
+                *ngIf="!profile?.userSkills || profile.userSkills.length === 0"
+              >
+                <p class="text-muted">Nenhuma habilidade adicionada.</p>
+              </ng-container>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <label class="info-label">Taxa por Hora</label>
+            <p class="price-display">
+              R$ {{ profile?.pricePerHour || 0 | number : "1.2-2" }}
+            </p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="isEditing">
+          <div class="mb-3">
+            <label class="form-label">Habilidades</label>
+
+            <div class="skills-input">
+              <div
+                class="skill-tag"
+                *ngFor="let skill of editForm.userSkills || []"
+              >
+                {{ skill.name }}
+                <span class="remove" (click)="removeSkill(skill)">×</span>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Digite para buscar..."
+                [(ngModel)]="skillSearch"
+                (input)="filterSkills()"
+                (keydown.enter)="addSkillFromInput()"
+              />
+            </div>
+
+            <ul class="suggestions" *ngIf="filteredSkills.length > 0">
+              <li
+                *ngFor="let skill of filteredSkills"
+                (click)="addSkill(skill)"
+              >
+                {{ skill.name }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="mb-0">
+            <label for="pricePerHour" class="form-label"
+              >Taxa por Hora (R$)</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="pricePerHour"
+              mask="separator.2"
+              prefix="R$ "
+              thousandSeparator="."
+              decimalMarker=","
+              [(ngModel)]="editForm.pricePerHour"
+            />
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

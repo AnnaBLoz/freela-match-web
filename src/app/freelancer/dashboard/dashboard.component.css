@@ -382,15 +382,14 @@ body {
 }
 
 .btn-primary {
-  background: var(--gradient-primary);
-  color: white;
-  box-shadow: var(--shadow);
+  background-color: #6f42c1;
+  border-color: #6f42c1;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  background: var(--gradient-primary);
+.btn-primary:hover:not(:disabled) {
+  background-color: #6f42c1;
+  border-color: #5a32a3;
+  transform: translateY(-1px);
 }
 
 .btn-outline-primary {

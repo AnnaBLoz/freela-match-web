@@ -22,7 +22,7 @@
       <!-- Header -->
       <div class="mb-5">
         <h1 class="display-6 fw-bold text-dark mb-2">
-          Bem-vindo, {{ getUserName() }}!
+          Bem-vindo, {{ user.name }}!
         </h1>
         <p class="text-muted fs-5">
           {{ getWelcomeMessage() }}
@@ -30,7 +30,7 @@
       </div>
 
       <!-- Company Dashboard -->
-      <div *ngIf="isCompany()">
+      <div>
         <!-- Stats Cards -->
         <div class="row g-4 mb-5">
           <div class="col-lg-3 col-md-6">
@@ -42,7 +42,7 @@
                       Projetos Ativos
                     </h6>
                     <h2 class="card-title mb-0 fw-bold">
-                      {{ profile?.activeProjects || 0 }}
+                      {{ activeProposals?.length }}
                     </h2>
                   </div>
                   <div
@@ -64,7 +64,7 @@
                       Total de Projetos
                     </h6>
                     <h2 class="card-title mb-0 fw-bold">
-                      {{ profile?.totalProjects || 0 }}
+                      {{ proposals?.length || 0 }}
                     </h2>
                   </div>
                   <div
@@ -86,7 +86,7 @@
                       Avaliação
                     </h6>
                     <h2 class="card-title mb-0 fw-bold">
-                      {{ profile?.rating || 0 }}/5
+                      {{ averageRating || 0 }}/5
                     </h2>
                   </div>
                   <div
@@ -108,7 +108,7 @@
                       Candidaturas
                     </h6>
                     <h2 class="card-title mb-0 fw-bold">
-                      {{ profile?.totalApplications || 0 }}
+                      {{ getTotalApplications() }}
                     </h2>
                   </div>
                   <div class="icon-wrapper bg-info bg-opacity-10 text-info">

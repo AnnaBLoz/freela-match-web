@@ -1,24 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-
-interface User {
-  id: string;
-  type: 'freelancer' | 'client';
-  name: string;
-  email: string;
-}
-
-interface Proposal {
-  id: string;
-  title: string;
-  description: string;
-  budget: number;
-  deadline: Date;
-  requiredSkills: string[];
-  status: 'open' | 'closed';
-  createdAt: Date;
-  clientId: string;
-}
+import { ProposalService } from 'src/app/core/services/proposalService.service';
 
 @Component({
   selector: 'app-offers',
@@ -26,71 +8,34 @@ interface Proposal {
   styleUrl: './offers.component.css',
 })
 export class OffersComponent implements OnInit {
-  user: User | null = null;
   isLoading = true;
   searchTerm = '';
   skillFilter = '';
   budgetFilter = 'all';
-  proposals: Proposal[] = [];
-  filteredProposals: Proposal[] = [];
+  proposals: any[] = [];
+  filteredProposals: any[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private proposalService: ProposalService
+  ) {}
 
   ngOnInit() {
-    this.loadMockData();
+    this.loadProposals();
   }
 
-  loadMockData() {
-    // Usuário fake
-    this.user = {
-      id: 'u1',
-      type: 'freelancer',
-      name: 'João Silva',
-      email: 'joao.silva@example.com',
-    };
-
-    // Propostas fake
-    this.proposals = [
-      {
-        id: 'p1',
-        title: 'Desenvolvimento de Landing Page',
-        description:
-          'Precisamos de um desenvolvedor frontend para criar uma landing page moderna e responsiva para lançamento de produto.',
-        budget: 1800,
-        deadline: new Date('2025-10-20'),
-        requiredSkills: ['HTML', 'CSS', 'Angular', 'Bootstrap'],
-        status: 'open',
-        createdAt: new Date('2025-09-05'),
-        clientId: 'c1',
+  loadProposals() {
+    this.proposalService.getProposals().subscribe({
+      next: (proposals) => {
+        this.proposals = proposals;
+        this.filteredProposals = proposals; // inicializa a lista
+        this.isLoading = false;
       },
-      {
-        id: 'p2',
-        title: 'API para Aplicativo Mobile',
-        description:
-          'Projeto backend em .NET para fornecer endpoints REST para aplicativo mobile. Deve incluir autenticação JWT.',
-        budget: 4500,
-        deadline: new Date('2025-11-01'),
-        requiredSkills: ['.NET 8', 'C#', 'SQL Server', 'JWT'],
-        status: 'open',
-        createdAt: new Date('2025-09-08'),
-        clientId: 'c2',
+      error: (err) => {
+        console.error('Erro ao carregar propostas:', err);
+        this.isLoading = false;
       },
-      {
-        id: 'p3',
-        title: 'Design de Identidade Visual',
-        description:
-          'Criação de logotipo, paleta de cores e tipografia para uma startup de tecnologia.',
-        budget: 6000,
-        deadline: new Date('2025-09-30'),
-        requiredSkills: ['Photoshop', 'Illustrator', 'UI/UX'],
-        status: 'closed',
-        createdAt: new Date('2025-09-01'),
-        clientId: 'c3',
-      },
-    ];
-
-    this.applyFilters();
-    this.isLoading = false;
+    });
   }
 
   onSearchChange() {
@@ -123,32 +68,30 @@ export class OffersComponent implements OnInit {
 
       const matchesSkill =
         this.skillFilter === '' ||
-        proposal.requiredSkills.some((skill) =>
+        proposal.requiredSkills?.some((skill: string) =>
           skill.toLowerCase().includes(this.skillFilter.toLowerCase())
         );
 
       const matchesBudget =
         this.budgetFilter === 'all' ||
-        (this.budgetFilter === 'low' && proposal.budget < 2000) ||
+        (this.budgetFilter === 'low' && proposal.price < 2000) ||
         (this.budgetFilter === 'medium' &&
-          proposal.budget >= 2000 &&
-          proposal.budget <= 5000) ||
-        (this.budgetFilter === 'high' && proposal.budget > 5000);
+          proposal.price >= 2000 &&
+          proposal.price <= 5000) ||
+        (this.budgetFilter === 'high' && proposal.price > 5000);
 
-      return (
-        matchesSearch &&
-        matchesSkill &&
-        matchesBudget &&
-        proposal.status === 'open'
-      );
+      return matchesSearch && matchesSkill && matchesBudget;
     });
   }
 
   formatCurrency(value: number): string {
-    return value.toLocaleString('pt-BR');
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
   }
 
-  formatDate(date: Date): string {
+  formatDate(date: string | Date): string {
     return new Date(date).toLocaleDateString('pt-BR');
   }
 
