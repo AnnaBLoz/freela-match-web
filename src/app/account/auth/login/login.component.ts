@@ -14,7 +14,7 @@ export class LoginComponent {
     email: '',
     password: '',
     type: 'freelancer' as 'freelancer' | 'company',
-    // name: '',
+    name: '',
     // companyName: '',
     // bio: '',
     // description: '',
@@ -100,6 +100,7 @@ export class LoginComponent {
 
     const userData = {
       email: this.registerForm.email,
+      name: this.registerForm.name,
       password: this.registerForm.password,
       type: this.registerForm.type === 'freelancer' ? 1 : 2, // mapeando para o backend
     };
