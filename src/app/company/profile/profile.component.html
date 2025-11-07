@@ -81,19 +81,6 @@
               </div>
 
               <div class="d-flex align-items-center gap-3 mt-3">
-                <div class="d-flex align-items-center gap-2">
-                  <!-- <div
-                    class="star-rating"
-                    [attr.data-rating]="Math.round(averageRating)"
-                  ></div> -->
-                  <strong>{{ averageRating.toFixed(1) }}</strong>
-                  <span class="text-muted">
-                    ({{ userReviews.length }} avaliação{{
-                      userReviews.length !== 1 ? "ões" : ""
-                    }})
-                  </span>
-                </div>
-
                 <!-- Disponibilidade editável -->
                 <ng-container *ngIf="user.type === 1">
                   <div *ngIf="!isEditing; else editAvailability">
@@ -152,16 +139,6 @@
                 type="button"
               >
                 Portfólio
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link"
-                [ngClass]="{ active: activeTab === 'reviews' }"
-                (click)="setActiveTab('reviews')"
-                type="button"
-              >
-                Avaliações ({{ userReviews.length }})
               </button>
             </li>
           </ul>
@@ -273,75 +250,6 @@
                         <i class="bi bi-trash"></i>
                       </button>
                     </div>
-                  </div>
-                </ng-container>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab Content: Avaliações -->
-          <div class="tab-content p-4" *ngIf="activeTab === 'reviews'">
-            <div class="card">
-              <div class="card-header bg-light">
-                <h5 class="card-title mb-0">
-                  <i class="bi bi-chat-square me-2"></i>Avaliações Recebidas
-                </h5>
-                <p class="card-text text-muted mb-0">
-                  O que outros usuários dizem sobre você
-                </p>
-              </div>
-              <div class="card-body">
-                <ng-container *ngIf="userReviews.length > 0">
-                  <div class="space-y-3">
-                    <div
-                      *ngFor="let review of userReviews"
-                      class="border rounded p-3"
-                    >
-                      <div class="d-flex gap-3">
-                        <img
-                          src="https://via.placeholder.com/48"
-                          alt="Reviewer"
-                          class="rounded-circle"
-                          width="48"
-                          height="48"
-                        />
-                        <div class="flex-grow-1">
-                          <div
-                            class="d-flex justify-content-between align-items-start mb-2"
-                          >
-                            <div>
-                              <p class="fw-medium mb-1">Revisor</p>
-                              <div class="d-flex align-items-center gap-2">
-                                <div
-                                  class="star-rating"
-                                  [attr.data-rating]="review.rating"
-                                ></div>
-                                <small class="text-muted">
-                                  {{ review.createdAt | date : "dd/MM/yyyy" }}
-                                </small>
-                              </div>
-                            </div>
-                            <span class="badge bg-light text-dark border">
-                              {{ review.fromUserId | slice : 0 : 1 }}
-                            </span>
-                          </div>
-                          <p class="text-muted mb-0">{{ review.comment }}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
-                <ng-container *ngIf="userReviews.length === 0">
-                  <div class="text-center py-5">
-                    <i
-                      class="bi bi-chat-square text-muted"
-                      style="font-size: 3rem"
-                    ></i>
-                    <p class="text-muted mt-3">Nenhuma avaliação ainda.</p>
-                    <small class="text-muted">
-                      Complete alguns projetos para receber suas primeiras
-                      avaliações.
-                    </small>
                   </div>
                 </ng-container>
               </div>
