@@ -158,42 +158,42 @@
 
                 <div class="row g-3 mb-3">
                   <div class="col-md-6">
-                    <label for="proposedRate" class="form-label"
+                    <label for="proposedPrice" class="form-label"
                       >Sua Taxa Proposta (R$)</label
                     >
                     <input
                       type="number"
                       class="form-control"
-                      [class.is-invalid]="isFieldInvalid('proposedRate')"
-                      id="proposedRate"
+                      [class.is-invalid]="isFieldInvalid('proposedPrice')"
+                      id="proposedPrice"
                       placeholder="5000"
-                      formControlName="proposedRate"
+                      formControlName="proposedPrice"
                     />
                     <div
-                      *ngIf="isFieldInvalid('proposedRate')"
+                      *ngIf="isFieldInvalid('proposedPrice')"
                       class="invalid-feedback"
                     >
-                      {{ getFieldError("proposedRate") }}
+                      {{ getFieldError("proposedPrice") }}
                     </div>
                   </div>
 
                   <div class="col-md-6">
-                    <label for="estimatedDuration" class="form-label"
+                    <label for="estimatedDate" class="form-label"
                       >Prazo Estimado</label
                     >
                     <input
                       type="text"
                       class="form-control"
-                      [class.is-invalid]="isFieldInvalid('estimatedDuration')"
-                      id="estimatedDuration"
+                      [class.is-invalid]="isFieldInvalid('estimatedDate')"
+                      id="estimatedDate"
                       placeholder="ex: 2 semanas"
-                      formControlName="estimatedDuration"
+                      formControlName="estimatedDate"
                     />
                     <div
-                      *ngIf="isFieldInvalid('estimatedDuration')"
+                      *ngIf="isFieldInvalid('estimatedDate')"
                       class="invalid-feedback"
                     >
-                      {{ getFieldError("estimatedDuration") }}
+                      {{ getFieldError("estimatedDate") }}
                     </div>
                   </div>
                 </div>

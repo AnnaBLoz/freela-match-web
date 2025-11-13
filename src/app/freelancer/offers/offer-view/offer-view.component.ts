@@ -66,8 +66,8 @@ export class OfferViewComponent implements OnInit {
 
     this.applicationForm = this.fb.group({
       message: ['', [Validators.required, Validators.minLength(10)]],
-      proposedRate: ['', [Validators.required, Validators.min(100)]],
-      estimatedDuration: ['', Validators.required],
+      proposedPrice: ['', [Validators.required, Validators.min(100)]],
+      estimatedDate: ['', Validators.required],
     });
   }
 
@@ -121,11 +121,19 @@ export class OfferViewComponent implements OnInit {
   }
 
   onSubmitApplication(): void {
+    if (this.applicationForm.invalid) {
+      this.applicationForm.markAllAsTouched();
+      return;
+    }
+
     this.isSubmitting = true;
 
     const candidateData = {
       userId: Number(this.user.id),
       proposalId: Number(this.proposal.proposalId),
+      message: this.applicationForm.value.message,
+      proposedPrice: Number(this.applicationForm.value.proposedPrice),
+      estimatedDate: this.applicationForm.value.estimatedDate,
       appliedAt: new Date(),
     };
 
@@ -141,13 +149,7 @@ export class OfferViewComponent implements OnInit {
             this.proposal.applications = [];
           }
 
-          this.proposal.applications.push({
-            userId: this.user.id,
-            ...this.applicationForm.value,
-            appliedAt: candidateData.appliedAt,
-          });
-
-          console.log('Candidatura enviada com sucesso:', res);
+          this.proposal.applications.push(candidateData);
         },
         error: (err) => {
           this.isSubmitting = false;
