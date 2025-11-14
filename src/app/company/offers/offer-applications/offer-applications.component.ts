@@ -4,6 +4,8 @@ import { forkJoin, Subject, takeUntil } from 'rxjs';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 
+declare var bootstrap: any;
+
 @Component({
   selector: 'app-offer-applications',
   templateUrl: './offer-applications.component.html',
@@ -16,6 +18,15 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   isLoading = true;
   proposal: any = null;
   freelancers: any[] = [];
+
+  selectedCandidateId: number | null = null;
+
+  counterProposal = {
+    price: null,
+    estimatedDate: '',
+    message: '',
+    candidateId: null,
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -122,5 +133,54 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       default:
         return 'bg-secondary';
     }
+  }
+
+  sendCounterProposal(candidateId: number): void {
+    this.selectedCandidateId = candidateId;
+
+    // Limpa campos
+    this.counterProposal = {
+      price: null,
+      estimatedDate: '',
+      message: '',
+      candidateId: null,
+    };
+
+    // Abre o modal
+    const modalEl = document.getElementById('counterProposalModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  }
+
+  confirmCounterProposal(): void {
+    if (!this.selectedCandidateId) return;
+
+    const payload = {
+      proposalId: this.proposal.proposalId,
+      candidateId: this.selectedCandidateId,
+      proposedPrice: this.counterProposal.price,
+      estimatedDate: this.counterProposal.estimatedDate,
+      message: this.counterProposal.message,
+      freelancerId: this.proposal.candidates.find(
+        (c) => c.candidateId === this.selectedCandidateId
+      )?.user.id,
+    };
+
+    this.proposalService
+      .sendCounterProposal(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          // fecha modal
+          const modalEl = document.getElementById('counterProposalModal');
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          modal.hide();
+
+          this.loadData();
+        },
+        error: (err) => {
+          console.error('Erro ao enviar contra proposta:', err);
+        },
+      });
   }
 }

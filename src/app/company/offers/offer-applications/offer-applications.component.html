@@ -64,57 +64,84 @@
         *ngFor="let app of sortedCandidates"
         class="card border-0 shadow-sm mb-3"
       >
-        <div
-          class="card-body d-flex justify-content-between align-items-center"
-        >
-          <div class="d-flex align-items-center">
-            <img
-              src="assets/icons/user.png"
-              alt="user"
-              class="rounded-circle me-3"
-              width="50"
-              height="50"
-              (click)="viewProfile(app.user.id)"
-              style="cursor: pointer"
-            />
-            <div>
-              <h6 class="fw-bold mb-1">
-                {{ app.user?.name || "Freelancer" }}
-              </h6>
-              <small class="text-muted">
-                {{ formatCurrency(app.proposedPrice) }} •
-                {{ formatDate(app.appliedAt) }}
-              </small>
+        <div class="card-body">
+          <!-- LINHA PRINCIPAL (foto + infos + botões) -->
+          <div class="d-flex justify-content-between align-items-center">
+            <!-- Foto + nome + infos -->
+            <div class="d-flex align-items-center">
+              <img
+                src="assets/icons/user.png"
+                alt="user"
+                class="rounded-circle me-3"
+                width="50"
+                height="50"
+                (click)="viewProfile(app.user.id)"
+                style="cursor: pointer"
+              />
+
+              <div>
+                <h6 class="fw-bold mb-1">
+                  {{ app.user?.name || "Freelancer" }}
+                </h6>
+
+                <small class="text-muted">
+                  {{ formatCurrency(app.proposedPrice) }} •
+                  {{ formatDate(app.appliedAt) }}
+                </small>
+              </div>
+            </div>
+
+            <!-- BOTÕES E STATUS -->
+            <div
+              class="d-flex gap-2"
+              *ngIf="proposal.isAvailable == true && app.status == 1"
+            >
+              <button
+                class="btn btn-warning btn-sm button-text"
+                (click)="sendCounterProposal(app.candidateId)"
+              >
+                Enviar Contra Proposta
+              </button>
+
+              <button
+                class="btn btn-outline-success btn-sm"
+                (click)="approveApplication(app.candidateId)"
+              >
+                <i class="fas fa-check"></i>
+              </button>
+
+              <button
+                class="btn btn-outline-danger btn-sm"
+                (click)="disapproveApplication(app.candidateId)"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div
+              class="d-flex gap-2"
+              *ngIf="proposal.isAvailable == false || app.status != 1"
+            >
+              <span class="badge bg-success" *ngIf="app.status == 2"
+                >Candidatura Aceita</span
+              >
+              <span class="badge bg-danger" *ngIf="app.status == 3"
+                >Candidatura Rejeitada</span
+              >
             </div>
           </div>
 
-          <div
-            class="d-flex gap-2"
-            *ngIf="proposal.isAvailable == true && app.status == 1"
-          >
-            <button
-              class="btn btn-outline-success btn-sm"
-              (click)="approveApplication(app.candidateId)"
-            >
-              <i class="fas fa-check"></i>
-            </button>
-            <button
-              class="btn btn-outline-danger btn-sm"
-              (click)="disapproveApplication(app.candidateId)"
-            >
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div
-            class="d-flex gap-2"
-            *ngIf="proposal.isAvailable == false || app.status != 1"
-          >
-            <span class="badge bg-success" *ngIf="app.status == 2"
-              >Candidatura Aceita</span
-            >
-            <span class="badge bg-danger" *ngIf="app.status == 3"
-              >Candidatura Rejeitada</span
-            >
+          <!-- MENSAGEM + ESTIMATED DATE (AGORA EMBAIXO) -->
+          <div class="mt-3 ps-1">
+            <div class="text-muted small d-block mt-1 mb-2">
+              <i class="fas fa-clock me-1"></i>
+              Entrega estimada: {{ app.estimatedDate || "Não informado" }}
+            </div>
+
+            <div class="text-muted small d-block">
+              <i class="fas fa-comment-dots me-1"></i>
+              {{ app.message || "Sem mensagem enviada" }}
+            </div>
           </div>
         </div>
       </div>
@@ -129,5 +156,84 @@
         <p class="text-muted mb-0">Nenhuma candidatura recebida ainda.</p>
       </div>
     </ng-template>
+  </div>
+</div>
+
+<!-- MODAL CONTRA PROPOSTA -->
+<div
+  class="modal fade"
+  id="counterProposalModal"
+  tabindex="-1"
+  aria-labelledby="counterProposalModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="counterProposalModalLabel">
+          Enviar Contra Proposta
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form>
+          <!-- Valor Proposto -->
+          <div class="mb-3">
+            <label class="form-label">Valor Proposto</label>
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="counterProposal.price"
+              name="price"
+              placeholder="Digite o novo valor"
+              required
+            />
+          </div>
+
+          <!-- Prazo Proposto -->
+          <div class="mb-3">
+            <label class="form-label">Prazo Proposto</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="counterProposal.estimatedDate"
+              name="estimatedDate"
+              required
+            />
+          </div>
+
+          <!-- Mensagem -->
+          <div class="mb-3">
+            <label class="form-label">Mensagem (opcional)</label>
+            <textarea
+              class="form-control"
+              rows="3"
+              [(ngModel)]="counterProposal.message"
+              name="message"
+              placeholder="Digite uma mensagem (opcional)"
+            ></textarea>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="confirmCounterProposal()"
+        >
+          Enviar
+        </button>
+      </div>
+    </div>
   </div>
 </div>

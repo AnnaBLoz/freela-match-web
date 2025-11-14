@@ -47,15 +47,9 @@ export class ProposalService {
     return this.http.put(`${this.apiUrl}/proposal/disapprove`, application);
   }
 
-  // approveApplication(
-  //   proposalId: number,
-  //   applicationId: number
-  // ): Observable<any> {
-  //   return this.http.post(
-  //     `${this.apiUrl}/${proposalId}/applications/${applicationId}/approve`,
-  //     {}
-  //   );
-  // }
+  sendCounterProposal(data: any) {
+    return this.http.post(`${this.apiUrl}/proposal/counterproposal`, data);
+  }
 
   rejectApplication(
     proposalId: number,
