@@ -27,6 +27,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     estimatedDate: '',
     message: '',
     candidateId: null,
+    isAccepted: null,
   };
 
   constructor(
@@ -146,6 +147,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       estimatedDate: '',
       message: '',
       candidateId: null,
+      isAccepted: null,
     };
 
     const modalEl = document.getElementById('counterProposalModal');
@@ -223,6 +225,14 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     if (list.length === 0) return true;
 
     const last = list[list.length - 1];
+    if (last.isAccepted === true) return true;
     return last.isSendedByCompany === true;
+  }
+
+  isLastCounterProposalFromFreelancers(candidateId: number): boolean {
+    const list = this.getCounterProposalsFor(candidateId);
+
+    const last = list[list.length - 1];
+    if (last.isAccepted === true) return false;
   }
 }
