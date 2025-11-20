@@ -107,20 +107,6 @@
               >
                 Enviar Contra Proposta
               </button>
-
-              <button
-                class="btn btn-outline-success btn-sm"
-                (click)="approveApplication(app.candidateId)"
-              >
-                <i class="fas fa-check"></i>
-              </button>
-
-              <button
-                class="btn btn-outline-danger btn-sm"
-                (click)="disapproveApplication(app.candidateId)"
-              >
-                <i class="fas fa-times"></i>
-              </button>
             </div>
 
             <!-- Status -->
@@ -163,11 +149,19 @@
               class="p-3 rounded border mb-2"
               *ngFor="let cp of getCounterProposalsFor(app.user.id)"
             >
-              <div *ngIf="cp.companyId == null" class="text-muted small mt-1">
+              <div
+                *ngIf="
+                  cp.isSendedByCompany == false && cp.candidateId == userId
+                "
+                class="text-muted small mt-1"
+              >
                 Você enviou
               </div>
-              <div *ngIf="cp.companyId != null" class="text-muted small mt-1">
-                {{ proposal.freelancer.name }} enviou
+              <div
+                *ngIf="cp.isSendedByCompany == true && cp.candidateId == userId"
+                class="text-muted small mt-1"
+              >
+                {{ cp.company.name }} enviou
               </div>
               <div class="d-flex justify-content-between">
                 <strong>{{ formatCurrency(cp.proposedPrice) }}</strong>

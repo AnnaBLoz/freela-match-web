@@ -7,11 +7,11 @@ import { ProposalService } from 'src/app/core/services/proposalService.service';
 declare var bootstrap: any;
 
 @Component({
-  selector: 'app-offer-applications',
-  templateUrl: './offer-applications.component.html',
-  styleUrl: './offer-applications.component.css',
+  selector: 'app-offer-candidate',
+  templateUrl: './offer-candidate.component.html',
+  styleUrl: './offer-candidate.component.css',
 })
-export class OfferApplicationsComponent implements OnInit, OnDestroy {
+export class OfferCandidateComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   proposalId!: number;
@@ -19,6 +19,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   isLoading = true;
   proposal: any = null;
   freelancers: any[] = [];
+
+  userId: number;
 
   selectedCandidateId: number | null = null;
 
@@ -37,6 +39,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.userId = history.state.userId;
     this.proposalId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadData();
     this.getCounterProposals();
@@ -57,6 +60,14 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
         next: ({ proposal, freelancers }) => {
           this.proposal = proposal;
           this.freelancers = freelancers;
+
+          // 🔥 GARANTE QUE O USUÁRIO SÓ VEJA SUA PRÓPRIA CANDIDATURA
+          if (this.proposal?.candidates?.length > 0) {
+            this.proposal.candidates = this.proposal.candidates.filter(
+              (c) => c.freelancerId === this.userId
+            );
+          }
+
           this.isLoading = false;
         },
         error: (err) => {
@@ -114,13 +125,10 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/company/offers']);
   }
 
+  // Agora não ordena — sempre haverá só 1 candidato
   get sortedCandidates() {
     if (!this.proposal?.candidates) return [];
-    return [...this.proposal.candidates].sort((a, b) => {
-      if (a.status === 2 && b.status !== 2) return -1;
-      if (a.status !== 2 && b.status === 2) return 1;
-      return 0;
-    });
+    return this.proposal.candidates;
   }
 
   viewProfile(freelancerId: string) {
@@ -166,7 +174,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
         (c) => c.candidateId === this.selectedCandidateId
       )?.user.id,
       companyId: this.proposal.ownerId,
-      isSendedByCompany: true,
+      isSendedByCompany: false,
     };
 
     this.proposalService
@@ -204,10 +212,6 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       });
   }
 
-  hasCounterProposal(candidateId: number): boolean {
-    return this.counterProposals.some((cp) => cp.freelancerId === candidateId);
-  }
-
   getCounterProposalsFor(candidateId: number) {
     return this.counterProposals
       .filter((cp) => cp.freelancerId === candidateId)
@@ -220,9 +224,9 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
 
   isLastCounterProposalFromFreelancer(candidateId: number): boolean {
     const list = this.getCounterProposalsFor(candidateId);
-    if (list.length === 0) return true;
+    if (list.length === 0) return false;
 
     const last = list[list.length - 1];
-    return last.isSendedByCompany === true;
+    return last.isSendedByCompany === false;
   }
 }

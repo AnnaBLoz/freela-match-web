@@ -7,6 +7,7 @@ import { ReviewsComponent } from './reviews/reviews.component';
 import { CommunityComponent } from './community/community.component';
 import { CommunityViewComponent } from './community/community-view/community-view.component';
 import { ProfileComponent } from './profile/profile.component';
+import { OfferCandidateComponent } from './offers/offer-candidate/offer-candidate.component';
 
 const routes: Routes = [
   {
@@ -18,6 +19,7 @@ const routes: Routes = [
     component: OffersComponent,
   },
   { path: 'offers/:id', component: OfferViewComponent },
+  { path: 'offers/candidate/:id', component: OfferCandidateComponent },
   { path: 'reviews', component: ReviewsComponent },
   { path: 'community', component: CommunityComponent },
   { path: 'community/:id', component: CommunityViewComponent },

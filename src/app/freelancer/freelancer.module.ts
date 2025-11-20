@@ -20,6 +20,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { ProfileComponent } from './profile/profile.component';
 import { ProfileInfoComponent } from './profile/profile-info/profile-info.component';
 import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
+import { OfferCandidateComponent } from './offers/offer-candidate/offer-candidate.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
     CommunityViewComponent,
     ProfileComponent,
     ProfileInfoComponent,
+    OfferCandidateComponent,
   ],
   imports: [
     CommonModule,

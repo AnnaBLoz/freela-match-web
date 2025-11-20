@@ -66,4 +66,10 @@ export class ProposalService {
       `${this.apiUrl}/Proposal/counterproposal/proposalId/${proposalId}`
     );
   }
+
+  getProposalsByUserId(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Proposal/candidate/userId/${userId}`
+    );
+  }
 }
