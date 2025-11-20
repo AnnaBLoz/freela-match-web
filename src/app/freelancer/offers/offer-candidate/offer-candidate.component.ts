@@ -122,7 +122,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/company/offers']);
+    this.router.navigate(['/freelancer/dashboard']);
   }
 
   // Agora não ordena — sempre haverá só 1 candidato
