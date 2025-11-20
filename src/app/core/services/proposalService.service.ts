@@ -25,6 +25,15 @@ export class ProposalService {
     );
   }
 
+  getProposalByIdAndCandidate(
+    proposalId: number,
+    candidateId: number
+  ): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Proposal/proposalId/${proposalId}/candidate/${candidateId}`
+    );
+  }
+
   createProposal(createdProposal: any): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/Proposal/create`,

@@ -43,10 +43,8 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.userId = history.state.userId;
     this.proposalId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadUserData();
-    this.getCounterProposals();
   }
 
   ngOnDestroy(): void {
@@ -56,7 +54,10 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
 
   private loadData(): void {
     forkJoin({
-      proposal: this.proposalService.getProposalById(this.proposalId),
+      proposal: this.proposalService.getProposalByIdAndCandidate(
+        this.proposalId,
+        this.userId
+      ),
       freelancers: this.generalService.getFreelancers(),
     })
       .pipe(takeUntil(this.destroy$))
@@ -64,13 +65,6 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
         next: ({ proposal, freelancers }) => {
           this.proposal = proposal;
           this.freelancers = freelancers;
-
-          // 🔥 GARANTE QUE O USUÁRIO SÓ VEJA SUA PRÓPRIA CANDIDATURA
-          if (this.proposal?.candidates?.length > 0) {
-            this.proposal.candidates = this.proposal.candidates.filter(
-              (c) => c.freelancerId === this.userId
-            );
-          }
 
           this.isLoading = false;
         },
@@ -246,6 +240,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
           next: (fullUser) => {
             this.userId = fullUser.id;
             this.loadData();
+            this.getCounterProposals();
             this.isLoading = false;
           },
           error: () => this.router.navigate(['/']),

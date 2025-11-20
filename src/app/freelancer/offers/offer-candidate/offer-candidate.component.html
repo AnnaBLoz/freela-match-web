@@ -47,11 +47,6 @@
             {{ formatDate(proposal.maxDate) }}
           </span>
 
-          <span>
-            <i class="fas fa-users me-2 text-primary"></i>
-            {{ proposal.candidates.length }} candidatura(s)
-          </span>
-
           <span
             class="badge ms-3"
             [class]="getStatusBadgeClass(proposal.isAvailable)"
