@@ -15,7 +15,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   proposalId!: number;
-  counterProposals: any;
+  counterProposals: any[] = [];
   isLoading = true;
   proposal: any = null;
   freelancers: any[] = [];
@@ -78,6 +78,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   }
 
   formatDate(date: string): string {
+    if (!date) return '-';
     return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
@@ -140,7 +141,6 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   sendCounterProposal(candidateId: number): void {
     this.selectedCandidateId = candidateId;
 
-    // Limpa campos
     this.counterProposal = {
       price: null,
       estimatedDate: '',
@@ -148,7 +148,6 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       candidateId: null,
     };
 
-    // Abre o modal
     const modalEl = document.getElementById('counterProposalModal');
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
@@ -173,12 +172,11 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          // fecha modal
           const modalEl = document.getElementById('counterProposalModal');
           const modal = bootstrap.Modal.getInstance(modalEl);
           modal.hide();
 
-          this.loadData();
+          this.getCounterProposals();
         },
         error: (err) => {
           console.error('Erro ao enviar contra proposta:', err);
@@ -193,8 +191,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       .getCounterProposalByProposalId(proposalId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (counterProposal) => {
-          this.counterProposals = counterProposal;
+        next: (data) => {
+          this.counterProposals = data || [];
           this.isLoading = false;
         },
         error: (err) => {
@@ -202,5 +200,19 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
           this.isLoading = false;
         },
       });
+  }
+
+  hasCounterProposal(candidateId: number): boolean {
+    return this.counterProposals.some((cp) => cp.freelancerId === candidateId);
+  }
+
+  getCounterProposalsFor(candidateId: number) {
+    return this.counterProposals
+      .filter((cp) => cp.freelancerId === candidateId)
+      .sort(
+        (a, b) =>
+          new Date(b.estimatedDate).getTime() -
+          new Date(a.estimatedDate).getTime()
+      );
   }
 }
