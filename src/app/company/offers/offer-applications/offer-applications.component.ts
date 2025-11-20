@@ -39,7 +39,6 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.proposalId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadData();
-    this.getCounterProposals();
   }
 
   ngOnDestroy(): void {
@@ -57,6 +56,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
         next: ({ proposal, freelancers }) => {
           this.proposal = proposal;
           this.freelancers = freelancers;
+          this.getCounterProposals();
           this.isLoading = false;
         },
         error: (err) => {
