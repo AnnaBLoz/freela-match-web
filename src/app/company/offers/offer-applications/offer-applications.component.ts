@@ -15,6 +15,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   proposalId!: number;
+  counterProposals: any;
   isLoading = true;
   proposal: any = null;
   freelancers: any[] = [];
@@ -38,6 +39,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.proposalId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadData();
+    this.getCounterProposals();
   }
 
   ngOnDestroy(): void {
@@ -180,6 +182,24 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Erro ao enviar contra proposta:', err);
+        },
+      });
+  }
+
+  getCounterProposals(): void {
+    const proposalId = Number(this.route.snapshot.paramMap.get('id'));
+
+    this.proposalService
+      .getCounterProposalByProposalId(proposalId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (counterProposal) => {
+          this.counterProposals = counterProposal;
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Erro ao carregar proposta:', err);
+          this.isLoading = false;
         },
       });
   }
