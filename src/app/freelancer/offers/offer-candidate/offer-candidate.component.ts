@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
+import { UserService } from 'src/app/core/services/userService.service';
 
 declare var bootstrap: any;
 
@@ -35,13 +37,15 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private proposalService: ProposalService,
-    private generalService: GeneralService
+    private generalService: GeneralService,
+    private authService: AuthService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
     this.userId = history.state.userId;
     this.proposalId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadData();
+    this.loadUserData();
     this.getCounterProposals();
   }
 
@@ -228,5 +232,26 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
 
     const last = list[list.length - 1];
     return last.isSendedByCompany === false;
+  }
+
+  loadUserData(): void {
+    this.authService.currentUser.subscribe({
+      next: (user) => {
+        if (!user) {
+          this.router.navigate(['/']);
+          return;
+        }
+
+        this.userService.getUser(user.id).subscribe({
+          next: (fullUser) => {
+            this.userId = fullUser.id;
+            this.loadData();
+            this.isLoading = false;
+          },
+          error: () => this.router.navigate(['/']),
+        });
+      },
+      error: () => this.router.navigate(['/']),
+    });
   }
 }

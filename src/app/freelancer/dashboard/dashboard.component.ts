@@ -104,10 +104,7 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToProposal(proposalId: string) {
-    var userId = this.user.id;
-    this.router.navigate(['/freelancer/offers/candidate', proposalId], {
-      state: { userId },
-    });
+    this.router.navigate(['/freelancer/offers/candidate/', proposalId]);
   }
 
   navigateToAllProposals() {
