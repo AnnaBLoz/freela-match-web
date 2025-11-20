@@ -163,9 +163,17 @@
                 <small>{{ formatDate(cp.estimatedDate) }}</small>
               </div>
 
-              <div class="text-muted small mt-1">
+              <div class="text-muted small mt-1" *ngIf="cp.message">
                 <i class="fas fa-comment me-1"></i>
-                {{ cp.message || "Sem mensagem" }}
+                {{ cp.message }}
+              </div>
+
+              <div class="text-muted small mt-1" *ngIf="cp.isAccepted">
+                <i class="fas fa-info-circle me-1"></i>
+                {{
+                  "Proposta aceita. Caso necessário, entre em contato com a empresa pelo email: " +
+                    cp.company.email
+                }}
               </div>
             </div>
           </div>
@@ -220,6 +228,7 @@
               name="price"
               placeholder="Digite o novo valor"
               required
+              [disabled]="counterProposal.isAccepted"
             />
           </div>
 
@@ -230,6 +239,7 @@
               type="date"
               class="form-control"
               [(ngModel)]="counterProposal.estimatedDate"
+              [disabled]="counterProposal.isAccepted"
               name="estimatedDate"
               required
             />
@@ -245,6 +255,21 @@
               name="message"
               placeholder="Digite uma mensagem (opcional)"
             ></textarea>
+          </div>
+
+          <!-- Proposta Aceita -->
+          <div class="mb-3">
+            <label class="form-label">A proposta está aceita?</label>
+            <select
+              class="form-control"
+              [(ngModel)]="counterProposal.isAccepted"
+              (ngModelChange)="onAcceptedChange()"
+              name="isAccepted"
+              required
+            >
+              <option [ngValue]="true">Sim</option>
+              <option [ngValue]="false">Não</option>
+            </select>
           </div>
         </form>
       </div>

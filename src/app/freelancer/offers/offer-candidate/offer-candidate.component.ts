@@ -24,6 +24,8 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
 
   userId: number;
 
+  lastCounterProposal: any = null;
+
   selectedCandidateId: number | null = null;
 
   counterProposal = {
@@ -31,6 +33,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     estimatedDate: '',
     message: '',
     candidateId: null,
+    isAccepted: null,
   };
 
   constructor(
@@ -152,6 +155,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
       estimatedDate: '',
       message: '',
       candidateId: null,
+      isAccepted: false,
     };
 
     const modalEl = document.getElementById('counterProposalModal');
@@ -173,6 +177,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
       )?.user.id,
       companyId: this.proposal.ownerId,
       isSendedByCompany: false,
+      isAccepted: this.counterProposal.isAccepted,
     };
 
     this.proposalService
@@ -201,6 +206,30 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.counterProposals = data || [];
+
+          // Agora ordena corretamente pelas mais recentes
+          const list = this.getCounterProposalsFor(this.userId);
+
+          if (list.length > 0) {
+            this.lastCounterProposal = list[list.length - 1];
+
+            const price = this.lastCounterProposal.proposedPrice ?? 0;
+
+            // 🔥 Converte "2025-12-31T00:00:00" → "2025-12-31"
+            let isoDate = '';
+            if (this.lastCounterProposal.estimatedDate) {
+              isoDate = this.lastCounterProposal.estimatedDate.split('T')[0];
+            }
+
+            if (this.lastCounterProposal.isAccepted === true) {
+              this.counterProposal.isAccepted = true;
+              this.counterProposal.price = price;
+              this.counterProposal.estimatedDate = isoDate; // << AGORA SETA CERTO NO INPUT
+            }
+          } else {
+            this.lastCounterProposal = null;
+          }
+
           this.isLoading = false;
         },
         error: (err) => {
@@ -211,13 +240,13 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
   }
 
   getCounterProposalsFor(candidateId: number) {
-    return this.counterProposals
-      .filter((cp) => cp.freelancerId === candidateId)
-      .sort(
-        (a, b) =>
-          new Date(b.estimatedDate).getTime() -
-          new Date(a.estimatedDate).getTime()
-      );
+    return (
+      this.counterProposals
+        .filter((cp) => cp.freelancerId === candidateId)
+
+        // ORDEM CORRETA AGORA → pela ordem criada
+        .sort((a, b) => a.counterProposalId - b.counterProposalId)
+    );
   }
 
   isLastCounterProposalFromFreelancer(candidateId: number): boolean {
@@ -248,5 +277,18 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
       },
       error: () => this.router.navigate(['/']),
     });
+  }
+
+  onAcceptedChange() {
+    if (this.counterProposal.isAccepted) {
+      this.counterProposal.price = this.lastCounterProposal?.proposedPrice ?? 0;
+
+      // 🔥 Converte corretamente para yyyy-MM-dd
+      const isoDate = this.lastCounterProposal?.estimatedDate
+        ? this.lastCounterProposal.estimatedDate.split('T')[0]
+        : '';
+
+      this.counterProposal.estimatedDate = isoDate;
+    }
   }
 }
