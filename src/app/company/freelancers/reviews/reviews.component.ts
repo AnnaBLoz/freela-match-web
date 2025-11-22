@@ -143,12 +143,16 @@ export class ReviewsComponent implements OnInit {
   }
 
   private calculateStats() {
-    if (this.reviewsReceived.length > 0) {
-      this.averageRating =
-        this.reviewsReceived.reduce((sum, r) => sum + r.rating, 0) /
-        this.reviewsReceived.length;
-    }
+    // Soma da nota total
+    const total = this.reviewsReceived.reduce((acc, review) => {
+      return acc + (review.rating || 0);
+    }, 0);
 
+    // Média
+    this.averageRating =
+      this.reviewsReceived.length > 0 ? total / this.reviewsReceived.length : 0;
+
+    // Distribuição das notas
     this.ratingDistribution = [5, 4, 3, 2, 1].map((rating) => {
       const count = this.reviewsReceived.filter(
         (r) => r.rating === rating
@@ -157,6 +161,7 @@ export class ReviewsComponent implements OnInit {
         this.reviewsReceived.length > 0
           ? (count / this.reviewsReceived.length) * 100
           : 0;
+
       return { rating, count, percentage };
     });
   }
