@@ -14,6 +14,8 @@ interface Review {
   receiverName?: string; // Nome do avaliado
   receiverAvatar?: string;
   receiverType?: 'freelancer' | 'client';
+  reviewer: any;
+  receiver: any;
 }
 
 @Component({
@@ -44,8 +46,8 @@ export class ReviewsListComponent {
 
   getName(review: Review): string {
     return this.type === 'received'
-      ? review.reviewerName || 'Avaliador'
-      : review.receiverName || 'Avaliado';
+      ? review.reviewer.name || 'Avaliador'
+      : review.receiver.name || 'Avaliado';
   }
 
   getBadge(review: Review): string {
