@@ -192,6 +192,11 @@ export class ReviewsComponent implements OnInit {
       };
 
       await this.reviewsService.createReview(reviewCreate).toPromise();
+
+      await this.loadProfileData();
+
+      this.selectedFreelancerId = null;
+      this.newReview = { rating: 0, comment: '' };
     } catch (error) {
       console.error('Erro ao criar proposta:', error);
     }
