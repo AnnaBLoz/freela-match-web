@@ -1,17 +1,20 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
-import { HttpClientModule } from '@angular/common/http';
+
 import { importProvidersFrom } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { AppRoutingModule } from './app/app-routing.module';
 
-// bootstrapApplication(AppComponent, appConfig)
-//   .catch((err) => console.error(err));
+// 👉 IMPORTANTE: importar o interceptor
+import { authInterceptor } from './app/core/interceptors/auth.interceptor';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(HttpClientModule, AppRoutingModule),
+    importProvidersFrom(AppRoutingModule),
     provideAnimationsAsync(),
+
+    provideHttpClient(withInterceptors([authInterceptor])),
   ],
 }).catch((err) => console.error(err));

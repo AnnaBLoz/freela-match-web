@@ -38,7 +38,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.loadUserData();
     this.loadProfile();
-    this.loadProposals();
+    // this.loadProposals();
   }
 
   loadUserData(): void {
@@ -54,6 +54,7 @@ export class DashboardComponent implements OnInit {
             this.user = fullUser;
             this.loadData();
             this.loadProfile();
+            this.loadProposals();
             this.CompletedProjects();
             this.isLoading = false;
           },
@@ -103,7 +104,7 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToProposal(proposalId: string) {
-    this.router.navigate(['/freelancer/offers', proposalId]);
+    this.router.navigate(['/freelancer/offers/candidate/', proposalId]);
   }
 
   navigateToAllProposals() {
@@ -193,7 +194,7 @@ export class DashboardComponent implements OnInit {
   }
 
   loadProposals(): void {
-    this.proposalService.getProposals().subscribe({
+    this.proposalService.getProposalsByUserId(this.user.id).subscribe({
       next: (proposals) => {
         this.proposals = proposals;
       },

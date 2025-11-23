@@ -1,17 +1,19 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
+import { UserService } from 'src/app/core/services/userService.service';
 
 declare var bootstrap: any;
 
 @Component({
-  selector: 'app-offer-applications',
-  templateUrl: './offer-applications.component.html',
-  styleUrl: './offer-applications.component.css',
+  selector: 'app-offer-candidate',
+  templateUrl: './offer-candidate.component.html',
+  styleUrl: './offer-candidate.component.css',
 })
-export class OfferApplicationsComponent implements OnInit, OnDestroy {
+export class OfferCandidateComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   proposalId!: number;
@@ -19,6 +21,10 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   isLoading = true;
   proposal: any = null;
   freelancers: any[] = [];
+
+  userId: number;
+
+  lastCounterProposal: any = null;
 
   selectedCandidateId: number | null = null;
 
@@ -34,12 +40,14 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private proposalService: ProposalService,
-    private generalService: GeneralService
+    private generalService: GeneralService,
+    private authService: AuthService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
     this.proposalId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadData();
+    this.loadUserData();
   }
 
   ngOnDestroy(): void {
@@ -49,7 +57,10 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
 
   private loadData(): void {
     forkJoin({
-      proposal: this.proposalService.getProposalById(this.proposalId),
+      proposal: this.proposalService.getProposalByIdAndCandidate(
+        this.proposalId,
+        this.userId
+      ),
       freelancers: this.generalService.getFreelancers(),
     })
       .pipe(takeUntil(this.destroy$))
@@ -57,7 +68,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
         next: ({ proposal, freelancers }) => {
           this.proposal = proposal;
           this.freelancers = freelancers;
-          this.getCounterProposals();
+
           this.isLoading = false;
         },
         error: (err) => {
@@ -112,16 +123,13 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/company/offers']);
+    this.router.navigate(['/freelancer/dashboard']);
   }
 
+  // Agora não ordena — sempre haverá só 1 candidato
   get sortedCandidates() {
     if (!this.proposal?.candidates) return [];
-    return [...this.proposal.candidates].sort((a, b) => {
-      if (a.status === 2 && b.status !== 2) return -1;
-      if (a.status !== 2 && b.status === 2) return 1;
-      return 0;
-    });
+    return this.proposal.candidates;
   }
 
   viewProfile(freelancerId: string) {
@@ -147,7 +155,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       estimatedDate: '',
       message: '',
       candidateId: null,
-      isAccepted: null,
+      isAccepted: false,
     };
 
     const modalEl = document.getElementById('counterProposalModal');
@@ -168,7 +176,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
         (c) => c.candidateId === this.selectedCandidateId
       )?.user.id,
       companyId: this.proposal.ownerId,
-      isSendedByCompany: true,
+      isSendedByCompany: false,
+      isAccepted: this.counterProposal.isAccepted,
     };
 
     this.proposalService
@@ -197,6 +206,30 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.counterProposals = data || [];
+
+          // Agora ordena corretamente pelas mais recentes
+          const list = this.getCounterProposalsFor(this.userId);
+
+          if (list.length > 0) {
+            this.lastCounterProposal = list[list.length - 1];
+
+            const price = this.lastCounterProposal.proposedPrice ?? 0;
+
+            // 🔥 Converte "2025-12-31T00:00:00" → "2025-12-31"
+            let isoDate = '';
+            if (this.lastCounterProposal.estimatedDate) {
+              isoDate = this.lastCounterProposal.estimatedDate.split('T')[0];
+            }
+
+            if (this.lastCounterProposal.isAccepted === true) {
+              this.counterProposal.isAccepted = true;
+              this.counterProposal.price = price;
+              this.counterProposal.estimatedDate = isoDate; // << AGORA SETA CERTO NO INPUT
+            }
+          } else {
+            this.lastCounterProposal = null;
+          }
+
           this.isLoading = false;
         },
         error: (err) => {
@@ -206,33 +239,56 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       });
   }
 
-  hasCounterProposal(candidateId: number): boolean {
-    return this.counterProposals.some((cp) => cp.freelancerId === candidateId);
-  }
-
   getCounterProposalsFor(candidateId: number) {
-    return this.counterProposals
-      .filter((cp) => cp.freelancerId === candidateId)
-      .sort(
-        (a, b) =>
-          new Date(b.estimatedDate).getTime() -
-          new Date(a.estimatedDate).getTime()
-      );
+    return (
+      this.counterProposals
+        .filter((cp) => cp.freelancerId === candidateId)
+
+        // ORDEM CORRETA AGORA → pela ordem criada
+        .sort((a, b) => a.counterProposalId - b.counterProposalId)
+    );
   }
 
   isLastCounterProposalFromFreelancer(candidateId: number): boolean {
     const list = this.getCounterProposalsFor(candidateId);
-    if (list.length === 0) return true;
+    if (list.length === 0) return false;
 
     const last = list[list.length - 1];
-    if (last.isAccepted === true) return true;
-    return last.isSendedByCompany === true;
+    return last.isSendedByCompany === false;
   }
 
-  isLastCounterProposalFromFreelancers(candidateId: number): boolean {
-    const list = this.getCounterProposalsFor(candidateId);
+  loadUserData(): void {
+    this.authService.currentUser.subscribe({
+      next: (user) => {
+        if (!user) {
+          this.router.navigate(['/']);
+          return;
+        }
 
-    const last = list[list.length - 1];
-    if (last.isAccepted === true) return false;
+        this.userService.getUser(user.id).subscribe({
+          next: (fullUser) => {
+            this.userId = fullUser.id;
+            this.loadData();
+            this.getCounterProposals();
+            this.isLoading = false;
+          },
+          error: () => this.router.navigate(['/']),
+        });
+      },
+      error: () => this.router.navigate(['/']),
+    });
+  }
+
+  onAcceptedChange() {
+    if (this.counterProposal.isAccepted) {
+      this.counterProposal.price = this.lastCounterProposal?.proposedPrice ?? 0;
+
+      // 🔥 Converte corretamente para yyyy-MM-dd
+      const isoDate = this.lastCounterProposal?.estimatedDate
+        ? this.lastCounterProposal.estimatedDate.split('T')[0]
+        : '';
+
+      this.counterProposal.estimatedDate = isoDate;
+    }
   }
 }

@@ -22,7 +22,7 @@
       <!-- Header -->
       <div class="mb-5">
         <h1 class="display-6 fw-bold text-dark mb-2">
-          Bem-vindo, {{ user?.name }}!
+          Bem-vindo(a), {{ user?.name }}!
         </h1>
         <p class="text-muted fs-5">
           {{ getWelcomeMessage() }}
@@ -126,9 +126,9 @@
         <!-- Recent Proposals -->
         <div class="card" *ngIf="proposals?.length > 0; else noProposals">
           <div class="card-header border-0 bg-white">
-            <h5 class="card-title mb-1">Propostas Recentes</h5>
+            <h5 class="card-title mb-1">Candidaturas</h5>
             <p class="card-text text-muted">
-              Oportunidades que podem interessar você
+              Oportunidades que você se candidatou
             </p>
           </div>
           <div class="card-body">
@@ -156,7 +156,7 @@
                     <div class="skills-container">
                       <span
                         *ngFor="
-                          let skill of proposal.requiredSkills?.slice(0, 4)
+                          let skill of proposal?.requiredSkills?.slice(0, 4)
                         "
                         class="badge bg-light text-dark me-1 mb-1 small"
                       >

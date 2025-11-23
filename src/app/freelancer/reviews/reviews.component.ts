@@ -92,8 +92,7 @@ export class ReviewsComponent implements OnInit {
         this.userService.getUser(user.id).subscribe({
           next: (user) => {
             this.user = user;
-            this.reviewsReceived = user.reviewsReceived || [];
-            this.reviewsGiven = user.reviewsGiven || [];
+            this.loadData();
 
             this.calculateStats();
           },
@@ -117,17 +116,31 @@ export class ReviewsComponent implements OnInit {
     });
   }
 
-  // private loadData() {
-  //   if (!this.user) return;
-  //   this.reviewsService.getReviews(this.user.id).subscribe({
-  //     next: (profile) => {
-  //       this.profile = profile;
-  //       this.isLoading = false;
-  //     },
-  //   });
-  //   this.calculateStats();
-  //   this.isLoading = false;
-  // }
+  private loadData() {
+    if (!this.user) return;
+
+    this.reviewsService.getReviews(this.user.id).subscribe({
+      next: (reviews) => {
+        this.reviewsReceived = reviews.filter(
+          (r) => r.receiverId === this.user.id
+        );
+
+        this.reviewsGiven = reviews.filter(
+          (r) => r.reviewerId === this.user.id
+        );
+
+        this.sentReviews = this.reviewsGiven;
+
+        this.calculateStats();
+
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar reviews:', err);
+        this.isLoading = false;
+      },
+    });
+  }
 
   private calculateStats() {
     if (this.reviewsReceived.length > 0) {
@@ -168,16 +181,22 @@ export class ReviewsComponent implements OnInit {
     this.newReview.rating = star;
   }
 
-  async submitReview(freelancer: any): Promise<void> {
+  async submitReview(freelancer: any, proposalId: number): Promise<void> {
     try {
       const reviewCreate = {
         reviewerId: this.user.id,
         receiverId: freelancer.owner.id,
         reviewText: this.newReview.comment,
         rating: this.newReview.rating,
+        proposalId: proposalId,
       };
 
       await this.reviewsService.createReview(reviewCreate).toPromise();
+
+      await this.loadProfileData();
+
+      this.selectedFreelancerId = null;
+      this.newReview = { rating: 0, comment: '' };
     } catch (error) {
       console.error('Erro ao criar proposta:', error);
     }

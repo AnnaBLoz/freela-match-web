@@ -222,6 +222,21 @@
 
                 <!-- Common Fields -->
                 <div class="row g-3 mb-3">
+                  <div class="col-md-12">
+                    <label for="registerName" class="form-label">Nome</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="registerName"
+                      [(ngModel)]="registerForm.name"
+                      name="name"
+                      placeholder="Digite seu nome"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Nome é obrigatório e deve ser válido
+                    </div>
+                  </div>
                   <div class="col-md-6">
                     <label for="registerEmail" class="form-label">Email</label>
                     <input

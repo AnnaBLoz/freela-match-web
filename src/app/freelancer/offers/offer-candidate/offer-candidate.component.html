@@ -47,11 +47,6 @@
             {{ formatDate(proposal.maxDate) }}
           </span>
 
-          <span>
-            <i class="fas fa-users me-2 text-primary"></i>
-            {{ proposal.candidates.length }} candidatura(s)
-          </span>
-
           <span
             class="badge ms-3"
             [class]="getStatusBadgeClass(proposal.isAvailable)"
@@ -107,22 +102,6 @@
               >
                 Enviar Contra Proposta
               </button>
-
-              <button
-                class="btn btn-outline-success btn-sm"
-                (click)="approveApplication(app.candidateId)"
-                [disabled]="isLastCounterProposalFromFreelancers(app.user.id)"
-              >
-                <i class="fas fa-check"></i>
-              </button>
-
-              <button
-                class="btn btn-outline-danger btn-sm"
-                (click)="disapproveApplication(app.candidateId)"
-                [disabled]="isLastCounterProposalFromFreelancers(app.user.id)"
-              >
-                <i class="fas fa-times"></i>
-              </button>
             </div>
 
             <!-- Status -->
@@ -166,34 +145,34 @@
               *ngFor="let cp of getCounterProposalsFor(app.user.id)"
             >
               <div
-                *ngIf="cp.isSendedByCompany == true"
+                *ngIf="
+                  cp.isSendedByCompany == false && cp.candidateId == userId
+                "
                 class="text-muted small mt-1"
               >
                 Você enviou
               </div>
               <div
-                *ngIf="cp.isSendedByCompany == false"
+                *ngIf="cp.isSendedByCompany == true && cp.candidateId == userId"
                 class="text-muted small mt-1"
               >
-                {{ cp.freelancer.name }} enviou
+                {{ cp.company.name }} enviou
               </div>
               <div class="d-flex justify-content-between">
                 <strong>{{ formatCurrency(cp.proposedPrice) }}</strong>
                 <small>{{ formatDate(cp.estimatedDate) }}</small>
               </div>
 
-              <div class="text-muted small mt-1">
+              <div class="text-muted small mt-1" *ngIf="cp.message">
                 <i class="fas fa-comment me-1"></i>
-                {{ cp.message || "Sem mensagem" }}
+                {{ cp.message }}
               </div>
 
               <div class="text-muted small mt-1" *ngIf="cp.isAccepted">
                 <i class="fas fa-info-circle me-1"></i>
                 {{
-                  "Proposta aceita. Caso necessário, entre em contato com " +
-                    cp.freelancer.name +
-                    " pelo email: " +
-                    cp.freelancer.email
+                  "Proposta aceita. Caso necessário, entre em contato com a empresa pelo email: " +
+                    cp.company.email
                 }}
               </div>
             </div>
@@ -249,6 +228,7 @@
               name="price"
               placeholder="Digite o novo valor"
               required
+              [disabled]="counterProposal.isAccepted"
             />
           </div>
 
@@ -259,6 +239,7 @@
               type="date"
               class="form-control"
               [(ngModel)]="counterProposal.estimatedDate"
+              [disabled]="counterProposal.isAccepted"
               name="estimatedDate"
               required
             />
@@ -274,6 +255,21 @@
               name="message"
               placeholder="Digite uma mensagem (opcional)"
             ></textarea>
+          </div>
+
+          <!-- Proposta Aceita -->
+          <div class="mb-3">
+            <label class="form-label">A proposta está aceita?</label>
+            <select
+              class="form-control"
+              [(ngModel)]="counterProposal.isAccepted"
+              (ngModelChange)="onAcceptedChange()"
+              name="isAccepted"
+              required
+            >
+              <option [ngValue]="true">Sim</option>
+              <option [ngValue]="false">Não</option>
+            </select>
           </div>
         </form>
       </div>

@@ -25,6 +25,15 @@ export class ProposalService {
     );
   }
 
+  getProposalByIdAndCandidate(
+    proposalId: number,
+    candidateId: number
+  ): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Proposal/proposalId/${proposalId}/candidate/${candidateId}`
+    );
+  }
+
   createProposal(createdProposal: any): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/Proposal/create`,
@@ -47,15 +56,9 @@ export class ProposalService {
     return this.http.put(`${this.apiUrl}/proposal/disapprove`, application);
   }
 
-  // approveApplication(
-  //   proposalId: number,
-  //   applicationId: number
-  // ): Observable<any> {
-  //   return this.http.post(
-  //     `${this.apiUrl}/${proposalId}/applications/${applicationId}/approve`,
-  //     {}
-  //   );
-  // }
+  sendCounterProposal(data: any) {
+    return this.http.post(`${this.apiUrl}/proposal/counterproposal`, data);
+  }
 
   rejectApplication(
     proposalId: number,
@@ -64,6 +67,18 @@ export class ProposalService {
     return this.http.post(
       `${this.apiUrl}/${proposalId}/applications/${applicationId}/reject`,
       {}
+    );
+  }
+
+  getCounterProposalByProposalId(proposalId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Proposal/counterproposal/proposalId/${proposalId}`
+    );
+  }
+
+  getProposalsByUserId(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/Proposal/candidate/userId/${userId}`
     );
   }
 }
