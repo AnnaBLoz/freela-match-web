@@ -2,116 +2,49 @@ name: Angular CI with Coverage
 
 on:
   push:
-    branches: ["master"]
+    branches: ["main"]
   pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-  pages: write
-  id-token: write
-
 jobs:
-  build-test-coverage:
+  angular-tests:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      # ---------------------------------------------------------
+      # CHECKOUT
+      # ---------------------------------------------------------
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # ---------------------------------------------------------
+      # NODE
+      # ---------------------------------------------------------
+      - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: 20
 
+      # ---------------------------------------------------------
+      # INSTALL
+      # ---------------------------------------------------------
       - name: Install dependencies
+        working-directory: ./freela-match-web
         run: npm ci
 
+      # ---------------------------------------------------------
+      # RUN TESTS + COVERAGE
+      # ---------------------------------------------------------
       - name: Run tests with coverage
-        run: |
-          npm run test -- --no-watch --code-coverage --browsers=ChromeHeadless || true
-          # Angular 17+ usa pasta "coverage/project-name"
-          if [ -d "coverage" ] && [ ! -d "coverage/lcov.info" ]; then
-            mv coverage/*/* coverage/
-          fi
+        working-directory: ./freela-match-web
+        run: npm run test -- --watch=false --code-coverage --browsers=ChromeHeadless
 
-      - name: Ensure coverage-summary.json exists
-        run: |
-          if [ ! -f "coverage/coverage-summary.json" ]; then
-            echo "coverage-summary.json não encontrado. Gerando via lcov..."
-            npm install -g lcov-summary
-            LCOV=$(find coverage -name "lcov.info" | head -1)
-            if [ -n "$LCOV" ]; then
-              lcov-summary "$LCOV" > coverage/coverage-summary.json
-            else
-              echo '{"total":{"lines":{"pct":0},"statements":{"pct":0},"functions":{"pct":0},"branches":{"pct":0}}}' > coverage/coverage-summary.json
-            fi
-          fi
-
-      - name: Find coverage summary file
-        id: find-coverage
-        run: |
-          FILE=$(find coverage -name "coverage-summary.json" | head -1)
-          echo "coverage_file=$FILE" >> $GITHUB_OUTPUT
-
-      - name: Extract Coverage Percentage
-        id: coverage
-        run: |
-          COVERAGE=$(jq '.total.lines.pct' "${{ steps.find-coverage.outputs.coverage_file }}")
-          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
-
-      - name: Add coverage to job summary
-        run: |
-          FILE="${{ steps.find-coverage.outputs.coverage_file }}"
-          echo "## 📊 Code Coverage Report" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lines | $(jq '.total.lines.pct' "$FILE")% |" >> $GITHUB_STEP_SUMMARY
-          echo "| Branches | $(jq '.total.branches.pct' "$FILE")% |" >> $GITHUB_STEP_SUMMARY
-          echo "| Functions | $(jq '.total.functions.pct' "$FILE")% |" >> $GITHUB_STEP_SUMMARY
-          echo "| Statements | $(jq '.total.statements.pct' "$FILE")% |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "[📈 View Full HTML Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/)" >> $GITHUB_STEP_SUMMARY
-
-      - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: coverage-report
-          recreate: true
-          message: |
-            ## 📊 Code Coverage Report
-
-            | Metric | Coverage |
-            |--------|----------|
-            | **Lines** | $(jq '.total.lines.pct' ${{ steps.find-coverage.outputs.coverage_file }})% |
-            | **Branches** | $(jq '.total.branches.pct' ${{ steps.find-coverage.outputs.coverage_file }})% |
-            | **Functions** | $(jq '.total.functions.pct' ${{ steps.find-coverage.outputs.coverage_file }})% |
-            | **Statements** | $(jq '.total.statements.pct' ${{ steps.find-coverage.outputs.coverage_file }})% |
-
-            **Overall Coverage: ${{ steps.coverage.outputs.coverage }}%**
-
-            [📈 View detailed HTML coverage](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/)
-
-      - name: Upload coverage report
+      # ---------------------------------------------------------
+      # UPLOAD COVERAGE AS ARTIFACT
+      # ---------------------------------------------------------
+      - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: ./coverage
-
-      # ---- DEPLOY AUTOMÁTICO DO COVERAGE NO GITHUB PAGES ----
-      - name: Setup Pages
-        if: github.ref == 'refs/heads/master'
-        uses: actions/configure-pages@v5
-
-      - name: Upload coverage folder to GitHub Pages
-        if: github.ref == 'refs/heads/master'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./coverage
-
-      - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master'
-        uses: actions/deploy-pages@v4
+          name: angular-coverage-report
+          path: freela-match-web/coverage/freela-match-web
