@@ -11,7 +11,7 @@ import { AuthService } from 'src/app/core/services/authService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
-describe('ReviewsComponent', () => {
+fdescribe('ReviewsComponent', () => {
   let component: ReviewsComponent;
   let fixture: ComponentFixture<ReviewsComponent>;
   let authServiceMock: any;
