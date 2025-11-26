@@ -25,36 +25,38 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "14"
+          node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
       - name: Run tests with coverage
-        run: npm run test:coverage
+        run: npm run test -- --no-watch --code-coverage --browsers=ChromeHeadless
 
-      - name: Generate Coverage Badge
+      - name: Extract Coverage Percentage
+        id: coverage
         run: |
-          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "Coverage: $COVERAGE%"
-        id: coverage
 
       - name: Add coverage to job summary
         run: |
           echo "## 📊 Code Coverage Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Line Coverage:** $(cat coverage/coverage-summary.json | jq '.total.lines.pct')%" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch Coverage:** $(cat coverage/coverage-summary.json | jq '.total.branches.pct')%" >> $GITHUB_STEP_SUMMARY
-          echo "**Function Coverage:** $(cat coverage/coverage-summary.json | jq '.total.functions.pct')%" >> $GITHUB_STEP_SUMMARY
-          echo "**Statement Coverage:** $(cat coverage/coverage-summary.json | jq '.total.statements.pct')%" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Lines** | $(jq '.total.lines.pct' coverage/coverage-summary.json)% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branches** | $(jq '.total.branches.pct' coverage/coverage-summary.json)% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Functions** | $(jq '.total.functions.pct' coverage/coverage-summary.json)% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Statements** | $(jq '.total.statements.pct' coverage/coverage-summary.json)% |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "[📈 View Full HTML Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/)" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment coverage on PR
         if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@773744900870520e1a6b08258c31f880b58aebe1 # v2.9.4
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: coverage-report
           recreate: true
@@ -63,12 +65,14 @@ jobs:
 
             | Metric | Coverage |
             |--------|----------|
-            | **Lines** | $(cat coverage/coverage-summary.json | jq '.total.lines.pct')% |
-            | **Branches** | $(cat coverage/coverage-summary.json | jq '.total.branches.pct')% |
-            | **Functions** | $(cat coverage/coverage-summary.json | jq '.total.functions.pct')% |
-            | **Statements** | $(cat coverage/coverage-summary.json | jq '.total.statements.pct')% |
+            | **Lines** | $(jq '.total.lines.pct' coverage/coverage-summary.json)% |
+            | **Branches** | $(jq '.total.branches.pct' coverage/coverage-summary.json)% |
+            | **Functions** | $(jq '.total.functions.pct' coverage/coverage-summary.json)% |
+            | **Statements** | $(jq '.total.statements.pct' coverage/coverage-summary.json)% |
 
             ---
+
+            **Overall Coverage: ${{ steps.coverage.outputs.coverage }}%**
 
             [📈 View detailed HTML report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/)
 
@@ -84,14 +88,14 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./coverage
+          publish_dir: ./coverage/lcov-report
           destination_dir: coverage
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
       - name: Coverage Check
         run: |
-          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
           THRESHOLD=80
 
           if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
