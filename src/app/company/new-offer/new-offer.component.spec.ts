@@ -18,7 +18,6 @@ fdescribe('NewOfferComponent', () => {
   let mockProposalService: any;
 
   beforeEach(async () => {
-    // simulando observable do currentUser
     mockAuthService = {
       currentUser: new Subject<any>(),
     };
@@ -68,7 +67,7 @@ fdescribe('NewOfferComponent', () => {
   });
 
   // -----------------------------------------------------
-  // Teste de comportamento quando user = null
+  // Teste comportamento quando user = null
   // -----------------------------------------------------
   it('should redirect to home when no user is logged', () => {
     mockAuthService.currentUser.next(null);
@@ -89,18 +88,18 @@ fdescribe('NewOfferComponent', () => {
   });
 
   // -----------------------------------------------------
-  // Teste: impedir adicionar skill duplicada
+  // Teste: impedir skill duplicada (CORRIGIDO)
   // -----------------------------------------------------
   it('should not add duplicate skills', () => {
     component.requiredSkills = [{ id: 1 }];
-    component.skillInput = { id: 1 };
+    component.skillInput = { skillId: 1 }; // <<< ALTERAÇÃO AQUI
 
     component.addSkill();
-    expect(component.requiredSkills.length).toBe(1); // não adiciona
+    expect(component.requiredSkills.length).toBe(1);
   });
 
   // -----------------------------------------------------
-  // Teste do formulário inválido
+  // Teste formulário inválido
   // -----------------------------------------------------
   it('should NOT submit when form is invalid', async () => {
     spyOn<any>(component, 'markFormGroupTouched').and.callThrough();
@@ -160,7 +159,7 @@ fdescribe('NewOfferComponent', () => {
   });
 
   // -----------------------------------------------------
-  // Teste de getTodayDate
+  // Teste getTodayDate
   // -----------------------------------------------------
   it('should return today date string (yyyy-mm-dd)', () => {
     const result = component.getTodayDate();
@@ -168,7 +167,7 @@ fdescribe('NewOfferComponent', () => {
   });
 
   // -----------------------------------------------------
-  // Teste de navegação
+  // Teste navegação
   // -----------------------------------------------------
   it('should navigate to dashboard', () => {
     component.goToDashboard();
