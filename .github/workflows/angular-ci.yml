@@ -7,36 +7,50 @@ on:
     branches: ["master"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
-  angular-ci:
+  build-test-coverage:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # --------------------------
-      # INSTALAR DEPENDÊNCIAS
-      # --------------------------
       - name: Install dependencies
         run: npm ci
 
-      # --------------------------
-      # RODAR TESTES COM COVERAGE
-      # --------------------------
       - name: Run tests with coverage
         run: npm run test -- --watch=false --code-coverage --browsers=ChromeHeadless
 
-      # --------------------------
-      # UPLOAD DO RELATÓRIO
-      # --------------------------
-      - name: Upload Coverage Report
+      - name: Upload Coverage Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: angular-coverage-report
+          name: coverage
           path: coverage
+
+      # ----------------------------------
+      # PUBLICAÇÃO DO COVERAGE NO GH PAGES
+      # ----------------------------------
+
+      - name: Configure GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: actions/configure-pages@v5
+
+      - name: Upload coverage folder to Pages
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: coverage
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: actions/deploy-pages@v4
