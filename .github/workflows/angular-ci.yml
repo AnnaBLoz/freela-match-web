@@ -8,43 +8,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  angular-tests:
+  angular-ci:
     runs-on: ubuntu-latest
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT
-      # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # NODE
-      # ---------------------------------------------------------
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # ---------------------------------------------------------
-      # INSTALL
-      # ---------------------------------------------------------
+      # --------------------------
+      # INSTALAR DEPENDÊNCIAS
+      # --------------------------
       - name: Install dependencies
-        working-directory: ./freela-match-web
         run: npm ci
 
-      # ---------------------------------------------------------
-      # RUN TESTS + COVERAGE
-      # ---------------------------------------------------------
+      # --------------------------
+      # RODAR TESTES COM COVERAGE
+      # --------------------------
       - name: Run tests with coverage
-        working-directory: ./freela-match-web
         run: npm run test -- --watch=false --code-coverage --browsers=ChromeHeadless
 
-      # ---------------------------------------------------------
-      # UPLOAD COVERAGE AS ARTIFACT
-      # ---------------------------------------------------------
+      # --------------------------
+      # UPLOAD DO RELATÓRIO
+      # --------------------------
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: angular-coverage-report
-          path: freela-match-web/coverage/freela-match-web
+          path: coverage
