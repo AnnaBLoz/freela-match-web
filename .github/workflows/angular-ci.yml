@@ -1,0 +1,102 @@
+name: Angular CI with Coverage
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-test-coverage:
+    name: Build, Test & Coverage Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "14"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Generate Coverage Badge
+        run: |
+          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE%"
+        id: coverage
+
+      - name: Add coverage to job summary
+        run: |
+          echo "## 📊 Code Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Line Coverage:** $(cat coverage/coverage-summary.json | jq '.total.lines.pct')%" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch Coverage:** $(cat coverage/coverage-summary.json | jq '.total.branches.pct')%" >> $GITHUB_STEP_SUMMARY
+          echo "**Function Coverage:** $(cat coverage/coverage-summary.json | jq '.total.functions.pct')%" >> $GITHUB_STEP_SUMMARY
+          echo "**Statement Coverage:** $(cat coverage/coverage-summary.json | jq '.total.statements.pct')%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[📈 View Full HTML Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coverage-report
+          recreate: true
+          message: |
+            ## 📊 Code Coverage Report
+
+            | Metric | Coverage |
+            |--------|----------|
+            | **Lines** | $(cat coverage/coverage-summary.json | jq '.total.lines.pct')% |
+            | **Branches** | $(cat coverage/coverage-summary.json | jq '.total.branches.pct')% |
+            | **Functions** | $(cat coverage/coverage-summary.json | jq '.total.functions.pct')% |
+            | **Statements** | $(cat coverage/coverage-summary.json | jq '.total.statements.pct')% |
+
+            ---
+
+            [📈 View detailed HTML report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/)
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage
+          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./coverage
+          destination_dir: coverage
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+
+      - name: Coverage Check
+        run: |
+          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          THRESHOLD=80
+
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️ Coverage ($COVERAGE%) is below threshold ($THRESHOLD%)"
+            exit 1
+          else
+            echo "✅ Coverage ($COVERAGE%) meets threshold ($THRESHOLD%)"
+          fi
