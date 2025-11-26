@@ -14,16 +14,16 @@ module.exports = function (config) {
       clearContext: false,
     },
     coverageReporter: {
-      dir: require("path").join(__dirname, "./coverage"),
+      dir: require("path").join(__dirname, "./coverage/freela-match-web"),
       subdir: ".",
       reporters: [
         { type: "html" },
         { type: "text-summary" },
         { type: "lcovonly" },
-        { type: "json-summary" },
+        { type: "json-summary" }, // Isso deve gerar coverage-summary.json
       ],
     },
-    reporters: ["progress", "kjhtml"],
+    reporters: ["progress", "kjhtml", "coverage"], // ← ADICIONE "coverage" aqui!
     browsers: ["Chrome"],
     restartOnFileChange: true,
   });
