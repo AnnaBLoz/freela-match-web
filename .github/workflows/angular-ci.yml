@@ -31,6 +31,36 @@ jobs:
       - name: Run tests with coverage
         run: npm run test -- --watch=false --code-coverage --browsers=ChromeHeadless
 
+      - name: Extract coverage summary
+        id: coverage
+        run: |
+          FILE=$(find coverage -name "coverage-summary.json" | head -1)
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+
+          LINES=$(jq '.total.lines.pct' "$FILE")
+          BRANCHES=$(jq '.total.branches.pct' "$FILE")
+          FUNCTIONS=$(jq '.total.functions.pct' "$FILE")
+          STATEMENTS=$(jq '.total.statements.pct' "$FILE")
+
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+          echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+          echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+
+      - name: Add Coverage Summary to Job Summary
+        run: |
+          echo "## 📊 Code Coverage Overview" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Lines** | ${{ steps.coverage.outputs.lines }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branches** | ${{ steps.coverage.outputs.branches }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Functions** | ${{ steps.coverage.outputs.functions }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Statements** | ${{ steps.coverage.outputs.statements }}% |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Acesse o relatório HTML completo aqui:**" >> $GITHUB_STEP_SUMMARY
+          echo "➡️ https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/" >> $GITHUB_STEP_SUMMARY
+
       - name: Upload Coverage Artifact
         uses: actions/upload-artifact@v4
         with:
