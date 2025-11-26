@@ -31,14 +31,6 @@ jobs:
       - name: Run tests with coverage
         run: npm run test -- --watch=false --code-coverage --browsers=ChromeHeadless
 
-      - name: Insert Coverage Card
-        run: |
-          FILE=$(find coverage -name "index.html" | head -1)
-          echo "Coverage file: $FILE"
-          COVERAGE=$(grep -oP '(?<=<span class=\"strong\">)\d+%' "$FILE" | head -1)
-          CARD="<div style='background:#4F46E5;color:white;padding:20px;font-size:28px;text-align:center;font-weight:bold;'>Coverage: $COVERAGE</div>"
-          sed -i "1s|^|$CARD\n|" "$FILE"
-
       - name: Extract coverage summary
         id: coverage
         run: |
