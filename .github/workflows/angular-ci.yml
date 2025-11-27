@@ -1,26 +1,118 @@
-deploy-azure-static-web-app:
-  runs-on: ubuntu-latest
-  needs: build-test-coverage
-  if: github.ref == 'refs/heads/master'
-  steps:
-    - uses: actions/checkout@v4
+name: Angular CI with Coverage and Azure Deploy
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+  workflow_dispatch:
 
-    - name: Install dependencies
-      run: npm ci
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
-    - name: Build Angular app
-      run: npm run build --prod
+jobs:
+  # ==========================
+  # Build, Test e Coverage
+  # ==========================
+  build-test-coverage:
+    runs-on: ubuntu-latest
 
-    - name: Deploy to Azure Static Web App
-      uses: Azure/static-web-apps-deploy@v1
-      with:
-        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        action: "upload"
-        app_location: "/" # raiz do projeto
-        output_location: "dist/freela-match-web" # pasta gerada pelo build do Angular
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test -- --watch=false --code-coverage --browsers=ChromeHeadless
+
+      - name: Extract coverage summary
+        id: coverage
+        run: |
+          FILE=$(find coverage -name "coverage-summary.json" | head -1)
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+
+          LINES=$(jq '.total.lines.pct' "$FILE")
+          BRANCHES=$(jq '.total.branches.pct' "$FILE")
+          FUNCTIONS=$(jq '.total.functions.pct' "$FILE")
+          STATEMENTS=$(jq '.total.statements.pct' "$FILE")
+
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+          echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+          echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+
+      - name: Add Coverage Summary to Job Summary
+        run: |
+          echo "## 📊 Code Coverage Overview" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Lines** | ${{ steps.coverage.outputs.lines }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branches** | ${{ steps.coverage.outputs.branches }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Functions** | ${{ steps.coverage.outputs.functions }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Statements** | ${{ steps.coverage.outputs.statements }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Acesse o relatório HTML completo aqui:**" >> $GITHUB_STEP_SUMMARY
+          echo "➡️ https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/index.html" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+
+      # -------------------------
+      # Publicação do Coverage no GH Pages
+      # -------------------------
+      - name: Setup Pages
+        if: github.ref == 'refs/heads/master'
+        uses: actions/configure-pages@v5
+
+      - name: Upload coverage folder to GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: coverage/freela-match-web
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: actions/deploy-pages@v4
+
+  # ==========================
+  # Deploy para Azure Static Web Apps
+  # ==========================
+  deploy-azure-static-web-app:
+    runs-on: ubuntu-latest
+    needs: build-test-coverage
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular app
+        run: npm run build --prod
+
+      - name: Deploy to Azure Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/"
+          output_location: "dist/freela-match-web"
