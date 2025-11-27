@@ -1,4 +1,10 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:5000/api', // Use a porta HTTPS correta da sua API
+
+  //DEV
+  //apiUrl: 'https://localhost:5000/api',
+
+  //Prod
+  apiUrl:
+    'https://freela-match-api-bgb3cdfgc0hpcrcn.canadacentral-01.azurewebsites.net',
 };
