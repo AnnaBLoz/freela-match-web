@@ -6,5 +6,5 @@ export const environment = {
 
   //Prod
   apiUrl:
-    'https://freela-match-api-bgb3cdfgc0hpcrcn.canadacentral-01.azurewebsites.net',
+    'https://freela-match-api-bgb3cdfgc0hpcrcn.canadacentral-01.azurewebsites.net/api',
 };
