@@ -182,7 +182,7 @@ fdescribe('DashboardComponent', () => {
 
       newComponent.loadProfileData();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
     });
 
     // ✅ CORRIGIDO: Resetar TestBed antes de fazer override
