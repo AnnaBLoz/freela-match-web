@@ -213,7 +213,7 @@ fdescribe('DashboardComponent', () => {
 
       newComponent.loadProfileData();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
     });
 
     it('deve definir isLoading como false após carregar', () => {
