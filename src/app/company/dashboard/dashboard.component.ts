@@ -66,7 +66,7 @@ export class DashboardComponent {
       next: (user) => {
         this.user = user;
         if (!user) {
-          this.router.navigate(['/']);
+          this.router.navigate(['/account/auth/login']);
           return;
         }
         this.userService.getUser(user.id).subscribe({
@@ -75,14 +75,14 @@ export class DashboardComponent {
             this.loadProposals();
             this.loadData();
             if (!user) {
-              this.router.navigate(['/']);
+              this.router.navigate(['/account/auth/login']);
               return;
             }
           },
         });
       },
       error: () => {
-        this.router.navigate(['/']);
+        this.router.navigate(['/account/auth/login']);
       },
     });
     this.isLoading = false;
