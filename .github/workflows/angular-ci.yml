@@ -34,6 +34,15 @@ jobs:
       - name: Run tests with coverage
         run: npm run test -- --watch=false --code-coverage --browsers=ChromeHeadless
 
+      # ===== NOVO: Enviar cobertura para DeepSource =====
+      - name: Report coverage to DeepSource
+        run: |
+          curl https://deepsource.io/cli | sh
+          ./bin/deepsource report --analyzer test-coverage --key javascript --value-file ./coverage/freela-match-web/lcov.info
+        env:
+          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+      # ==================================================
+
       - name: Extract coverage summary
         id: coverage
         run: |
