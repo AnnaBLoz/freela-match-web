@@ -212,14 +212,21 @@ fdescribe('ReviewsComponent', () => {
 
     spyOn(errorSubject, 'subscribe').and.callFake(
       (
-        observer: Partial<{
-          next: (value: User | null) => void;
-          error: (err: Error) => void;
-          complete: () => void;
-        }>
+        observerOrNext?:
+          | ((value: User | null) => void)
+          | Partial<{
+              next: (value: User | null) => void;
+              error: (err: Error) => void;
+              complete: () => void;
+            }>
       ) => {
-        if (observer.error) {
-          observer.error(new Error('Auth error'));
+        if (
+          observerOrNext &&
+          typeof observerOrNext === 'object' &&
+          'error' in observerOrNext &&
+          observerOrNext.error
+        ) {
+          observerOrNext.error(new Error('Auth error'));
         }
         return new Subscription();
       }
