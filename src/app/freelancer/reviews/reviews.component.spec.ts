@@ -61,6 +61,12 @@ interface RouterMock {
   navigate: jasmine.Spy<(commands: string[]) => Promise<boolean>>;
 }
 
+// Type-safe method names for private method spying
+type ReviewsComponentPrivateMethods =
+  | 'loadData'
+  | 'loadFreelancers'
+  | 'calculateStats';
+
 fdescribe('ReviewsComponent', () => {
   let component: ReviewsComponent;
   let fixture: ComponentFixture<ReviewsComponent>;
@@ -197,18 +203,57 @@ fdescribe('ReviewsComponent', () => {
   });
 
   it('should load profile data on ngOnInit', fakeAsync(() => {
-    spyOn<ReviewsComponent, any>(component, 'loadData');
-    spyOn<ReviewsComponent, any>(component, 'loadFreelancers');
-    spyOn<ReviewsComponent, any>(component, 'calculateStats');
+    spyOn(
+      component as unknown as Record<
+        ReviewsComponentPrivateMethods,
+        () => void
+      >,
+      'loadData'
+    );
+    spyOn(
+      component as unknown as Record<
+        ReviewsComponentPrivateMethods,
+        () => void
+      >,
+      'loadFreelancers'
+    );
+    spyOn(
+      component as unknown as Record<
+        ReviewsComponentPrivateMethods,
+        () => void
+      >,
+      'calculateStats'
+    );
 
     component.ngOnInit();
     tick();
 
     expect(userServiceMock.getUser).toHaveBeenCalledWith(mockUser.id);
     expect(component.user).toEqual(mockUser);
-    expect(component['loadData']).toHaveBeenCalled();
-    expect(component['calculateStats']).toHaveBeenCalled();
-    expect(component['loadFreelancers']).toHaveBeenCalled();
+    expect(
+      (
+        component as unknown as Record<
+          ReviewsComponentPrivateMethods,
+          jasmine.Spy
+        >
+      )['loadData']
+    ).toHaveBeenCalled();
+    expect(
+      (
+        component as unknown as Record<
+          ReviewsComponentPrivateMethods,
+          jasmine.Spy
+        >
+      )['calculateStats']
+    ).toHaveBeenCalled();
+    expect(
+      (
+        component as unknown as Record<
+          ReviewsComponentPrivateMethods,
+          jasmine.Spy
+        >
+      )['loadFreelancers']
+    ).toHaveBeenCalled();
     expect(component.isLoading).toBeFalse();
   }));
 
@@ -231,8 +276,14 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   it('should not load data if user is null after getUser', fakeAsync(() => {
-    userServiceMock.getUser.and.returnValue(of(null as any));
-    spyOn<ReviewsComponent, any>(component, 'loadData');
+    userServiceMock.getUser.and.returnValue(of(null as unknown as User));
+    spyOn(
+      component as unknown as Record<
+        ReviewsComponentPrivateMethods,
+        () => void
+      >,
+      'loadData'
+    );
 
     component.ngOnInit();
     tick();
@@ -256,9 +307,17 @@ fdescribe('ReviewsComponent', () => {
 
   it('should not load reviews if user is null', () => {
     component.user = null;
-    spyOn<ReviewsComponent, any>(component, 'loadData').and.callThrough();
+    const loadDataSpy = spyOn(
+      component as unknown as Record<
+        ReviewsComponentPrivateMethods,
+        () => void
+      >,
+      'loadData'
+    ).and.callThrough();
 
-    component['loadData']();
+    (
+      component as unknown as Record<ReviewsComponentPrivateMethods, () => void>
+    )['loadData']();
 
     expect(reviewsServiceMock.getReviews).not.toHaveBeenCalled();
   });
@@ -374,7 +433,9 @@ fdescribe('ReviewsComponent', () => {
 
   it('should handle zero reviews when calculating stats', () => {
     component.reviewsReceived = [];
-    component['calculateStats']();
+    (
+      component as unknown as Record<ReviewsComponentPrivateMethods, () => void>
+    )['calculateStats']();
 
     expect(component.averageRating).toBe(0);
     expect(component.ratingDistribution.length).toBe(5);
@@ -386,7 +447,9 @@ fdescribe('ReviewsComponent', () => {
 
   it('should calculate stats with single review', () => {
     component.reviewsReceived = [mockReviews[0]];
-    component['calculateStats']();
+    (
+      component as unknown as Record<ReviewsComponentPrivateMethods, () => void>
+    )['calculateStats']();
 
     expect(component.averageRating).toBe(5);
     const r5 = component.ratingDistribution.find((r) => r.rating === 5);
@@ -579,12 +642,25 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   it('should call calculateStats twice during full initialization', fakeAsync(() => {
-    spyOn<ReviewsComponent, any>(component, 'calculateStats');
+    spyOn(
+      component as unknown as Record<
+        ReviewsComponentPrivateMethods,
+        () => void
+      >,
+      'calculateStats'
+    );
 
     component.ngOnInit();
     tick();
 
     // Chamado uma vez em loadUserData e outra em loadData
-    expect(component['calculateStats']).toHaveBeenCalledTimes(2);
+    expect(
+      (
+        component as unknown as Record<
+          ReviewsComponentPrivateMethods,
+          jasmine.Spy
+        >
+      )['calculateStats']
+    ).toHaveBeenCalledTimes(2);
   }));
 });

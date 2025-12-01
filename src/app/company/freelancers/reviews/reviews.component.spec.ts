@@ -35,13 +35,38 @@ interface UserServiceMock {
   getUser: jasmine.Spy<(userId: number) => Observable<User>>;
 }
 
+interface ReviewCreate {
+  reviewerId: number;
+  receiverId: number;
+  reviewText: string;
+  rating: number;
+  proposalId: number;
+}
+
+interface ReviewResponse {
+  id: number;
+  message: string;
+}
+
 interface ReviewsServiceMock {
   getReviews: jasmine.Spy<(userId: number) => Observable<Review[]>>;
   getFreelancersToReview: jasmine.Spy<
     (userId: number) => Observable<FreelancerToReview[]>
   >;
-  createReview: jasmine.Spy<(review: any) => Observable<any>>;
+  createReview: jasmine.Spy<
+    (review: ReviewCreate) => Observable<ReviewResponse>
+  >;
 }
+
+// Type-safe helper for private method names
+type ReviewsComponentPrivateMethods =
+  | 'loadData'
+  | 'loadFreelancers'
+  | 'calculateStats';
+
+// Type-safe helper for component with private methods
+type ReviewsComponentWithPrivate = ReviewsComponent &
+  Record<ReviewsComponentPrivateMethods, () => void>;
 
 fdescribe('ReviewsComponent', () => {
   let component: ReviewsComponent;
@@ -212,23 +237,29 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   it('deve chamar loadData e calculateStats após carregar usuário', fakeAsync(() => {
-    spyOn<ReviewsComponent, any>(component, 'loadData');
-    spyOn<ReviewsComponent, any>(component, 'calculateStats');
+    spyOn(component as ReviewsComponentWithPrivate, 'loadData');
+    spyOn(component as ReviewsComponentWithPrivate, 'calculateStats');
 
     component.ngOnInit();
     tick();
 
-    expect(component['loadData']).toHaveBeenCalled();
-    expect(component['calculateStats']).toHaveBeenCalled();
+    expect(
+      (component as ReviewsComponentWithPrivate)['loadData']
+    ).toHaveBeenCalled();
+    expect(
+      (component as ReviewsComponentWithPrivate)['calculateStats']
+    ).toHaveBeenCalled();
   }));
 
   it('deve chamar loadFreelancers após carregar usuário', fakeAsync(() => {
-    spyOn<ReviewsComponent, any>(component, 'loadFreelancers');
+    spyOn(component as ReviewsComponentWithPrivate, 'loadFreelancers');
 
     component.ngOnInit();
     tick();
 
-    expect(component['loadFreelancers']).toHaveBeenCalled();
+    expect(
+      (component as ReviewsComponentWithPrivate)['loadFreelancers']
+    ).toHaveBeenCalled();
   }));
 
   // -----------------------------------------------------
@@ -236,7 +267,7 @@ fdescribe('ReviewsComponent', () => {
   // -----------------------------------------------------
   it('deve carregar freelancers para avaliar', fakeAsync(() => {
     component.user = mockUser;
-    component['loadFreelancers']();
+    (component as ReviewsComponentWithPrivate)['loadFreelancers']();
     tick();
 
     expect(reviewsServiceMock.getFreelancersToReview).toHaveBeenCalledWith(1);
@@ -248,7 +279,7 @@ fdescribe('ReviewsComponent', () => {
 
   it('não deve carregar freelancers se user for null', () => {
     component.user = null;
-    component['loadFreelancers']();
+    (component as ReviewsComponentWithPrivate)['loadFreelancers']();
 
     expect(reviewsServiceMock.getFreelancersToReview).not.toHaveBeenCalled();
   });
@@ -260,7 +291,7 @@ fdescribe('ReviewsComponent', () => {
     );
     spyOn(console, 'error');
 
-    component['loadFreelancers']();
+    (component as ReviewsComponentWithPrivate)['loadFreelancers']();
     tick();
 
     expect(console.error).toHaveBeenCalledWith(
@@ -275,7 +306,7 @@ fdescribe('ReviewsComponent', () => {
   // -----------------------------------------------------
   it('deve carregar reviews e filtrar recebidas e enviadas', fakeAsync(() => {
     component.user = mockUser;
-    component['loadData']();
+    (component as ReviewsComponentWithPrivate)['loadData']();
     tick();
 
     expect(reviewsServiceMock.getReviews).toHaveBeenCalledWith(1);
@@ -287,7 +318,7 @@ fdescribe('ReviewsComponent', () => {
 
   it('deve filtrar reviews recebidas corretamente', fakeAsync(() => {
     component.user = mockUser;
-    component['loadData']();
+    (component as ReviewsComponentWithPrivate)['loadData']();
     tick();
 
     expect(component.reviewsReceived.length).toBe(2);
@@ -302,7 +333,7 @@ fdescribe('ReviewsComponent', () => {
 
   it('deve filtrar reviews enviadas corretamente', fakeAsync(() => {
     component.user = mockUser;
-    component['loadData']();
+    (component as ReviewsComponentWithPrivate)['loadData']();
     tick();
 
     expect(component.reviewsGiven.length).toBe(1);
@@ -316,7 +347,7 @@ fdescribe('ReviewsComponent', () => {
 
   it('não deve carregar reviews se user for null', () => {
     component.user = null;
-    component['loadData']();
+    (component as ReviewsComponentWithPrivate)['loadData']();
 
     expect(reviewsServiceMock.getReviews).not.toHaveBeenCalled();
   });
@@ -328,7 +359,7 @@ fdescribe('ReviewsComponent', () => {
     );
     spyOn(console, 'error');
 
-    component['loadData']();
+    (component as ReviewsComponentWithPrivate)['loadData']();
     tick();
 
     expect(console.error).toHaveBeenCalledWith(
@@ -340,12 +371,14 @@ fdescribe('ReviewsComponent', () => {
 
   it('deve chamar calculateStats após carregar reviews', fakeAsync(() => {
     component.user = mockUser;
-    spyOn<ReviewsComponent, any>(component, 'calculateStats');
+    spyOn(component as ReviewsComponentWithPrivate, 'calculateStats');
 
-    component['loadData']();
+    (component as ReviewsComponentWithPrivate)['loadData']();
     tick();
 
-    expect(component['calculateStats']).toHaveBeenCalled();
+    expect(
+      (component as ReviewsComponentWithPrivate)['calculateStats']
+    ).toHaveBeenCalled();
   }));
 
   // -----------------------------------------------------
@@ -387,14 +420,14 @@ fdescribe('ReviewsComponent', () => {
 
   it('deve retornar média 0 quando não há reviews recebidas', () => {
     component.reviewsReceived = [];
-    component['calculateStats']();
+    (component as ReviewsComponentWithPrivate)['calculateStats']();
 
     expect(component.averageRating).toBe(0);
   });
 
   it('deve calcular distribuição com percentagem 0 quando não há reviews', () => {
     component.reviewsReceived = [];
-    component['calculateStats']();
+    (component as ReviewsComponentWithPrivate)['calculateStats']();
 
     expect(component.ratingDistribution.length).toBe(5);
     expect(
@@ -404,12 +437,17 @@ fdescribe('ReviewsComponent', () => {
   });
 
   it('deve ignorar ratings undefined ao calcular média', () => {
+    const reviewWithUndefinedRating: Review = {
+      ...mockReviews[1],
+      rating: undefined as unknown as number,
+    };
+
     component.reviewsReceived = [
       { ...mockReviews[0], rating: 5 },
-      { ...mockReviews[1], rating: undefined } as any,
+      reviewWithUndefinedRating,
       { ...mockReviews[2], rating: 3 },
     ];
-    component['calculateStats']();
+    (component as ReviewsComponentWithPrivate)['calculateStats']();
 
     // (5 + 0 + 3) / 3 = 2.67
     expect(component.averageRating).toBeCloseTo(2.67, 1);
@@ -542,15 +580,16 @@ fdescribe('ReviewsComponent', () => {
     component.user = mockUser;
     component.newReview = { rating: 4, comment: '' };
 
-    const freelancer: FreelancerToReview = {
+    const freelancerWithId: FreelancerToReview & { id?: number } = {
       id: 11,
+      userId: 11,
       name: 'Jane Developer',
       email: '',
     };
 
     spyOn(component, 'loadProfileData');
 
-    await component.submitReview(freelancer, 456);
+    await component.submitReview(freelancerWithId, 456);
 
     expect(reviewsServiceMock.createReview).toHaveBeenCalledWith({
       reviewerId: 1,
@@ -598,13 +637,15 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   it('deve chamar calculateStats duas vezes durante inicialização completa', fakeAsync(() => {
-    spyOn<ReviewsComponent, any>(component, 'calculateStats');
+    spyOn(component as ReviewsComponentWithPrivate, 'calculateStats');
 
     component.ngOnInit();
     tick();
 
     // Chamado em loadProfileData (após getUser) e em loadData
-    expect(component['calculateStats']).toHaveBeenCalledTimes(2);
+    expect(
+      (component as ReviewsComponentWithPrivate)['calculateStats']
+    ).toHaveBeenCalledTimes(2);
   }));
 
   it('deve processar fluxo completo de inicialização', fakeAsync(() => {
