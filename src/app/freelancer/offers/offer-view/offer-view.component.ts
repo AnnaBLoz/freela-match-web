@@ -34,6 +34,10 @@ interface Proposal {
   createdAt: Date | string;
   applications: Candidate[];
   candidates: Candidate[];
+  isAvailable: boolean;
+  maxDate: Date;
+  price: number;
+  createdDate: string | Date;
 }
 
 interface Company {
