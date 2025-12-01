@@ -5,19 +5,48 @@ import {
   tick,
 } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Observable } from 'rxjs';
 import { CommunityComponent } from './community.component';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
+interface BackendFreelancer {
+  id?: number;
+  userId?: number;
+  name?: string;
+  profile?: {
+    biography?: string;
+    pricePerHour?: number;
+  };
+  userSkills?: Array<{
+    skillId: number;
+    skill?: {
+      name: string;
+    };
+  }>;
+  pricePerHour?: number;
+  rating?: number;
+  completedProjects?: number;
+  projectsCount?: number;
+  isAvailable?: boolean;
+}
+
+interface MockGeneralService {
+  getFreelancers: jasmine.Spy<() => Observable<BackendFreelancer[]>>;
+}
+
+interface MockRouter {
+  navigate: jasmine.Spy;
+}
+
 fdescribe('CommunityComponent', () => {
   let component: CommunityComponent;
   let fixture: ComponentFixture<CommunityComponent>;
-  let generalServiceMock: any;
-  let userServiceMock: any;
-  let routerMock: any;
+  let generalServiceMock: MockGeneralService;
+  let userServiceMock: jasmine.SpyObj<UserService>;
+  let routerMock: MockRouter;
 
-  const mockFreelancersResponse = [
+  const mockFreelancersResponse: BackendFreelancer[] = [
     {
       id: 1,
       userId: 1,
@@ -74,14 +103,14 @@ fdescribe('CommunityComponent', () => {
   beforeEach(async () => {
     generalServiceMock = {
       getFreelancers: jasmine
-        .createSpy()
+        .createSpy('getFreelancers')
         .and.returnValue(of(mockFreelancersResponse)),
     };
 
-    userServiceMock = jasmine.createSpy();
+    userServiceMock = {} as jasmine.SpyObj<UserService>;
 
     routerMock = {
-      navigate: jasmine.createSpy(),
+      navigate: jasmine.createSpy('navigate'),
     };
 
     await TestBed.configureTestingModule({
@@ -152,12 +181,6 @@ fdescribe('CommunityComponent', () => {
     component.ngOnInit();
     tick();
 
-    // Ajusta manualmente os freelancers para ter a propriedade 'skills' que o componente espera
-    component.freelancers = component.freelancers.map((f) => ({
-      ...f,
-      skills: f.userSkills || [],
-    }));
-
     component.searchTerm = 'João';
     component.applyFilters();
 
@@ -169,12 +192,6 @@ fdescribe('CommunityComponent', () => {
     component.ngOnInit();
     tick();
 
-    // Ajusta manualmente os freelancers para ter a propriedade 'skills' que o componente espera
-    component.freelancers = component.freelancers.map((f) => ({
-      ...f,
-      skills: f.userSkills || [],
-    }));
-
     component.searchTerm = 'Designer';
     component.applyFilters();
 
@@ -185,12 +202,6 @@ fdescribe('CommunityComponent', () => {
   it('should filter by skill', fakeAsync(() => {
     component.ngOnInit();
     tick();
-
-    // Ajusta manualmente os freelancers para ter a propriedade 'skills' que o componente espera
-    component.freelancers = component.freelancers.map((f) => ({
-      ...f,
-      skills: f.userSkills || [],
-    }));
 
     component.skillFilter = 'Angular';
     component.applyFilters();
@@ -274,12 +285,6 @@ fdescribe('CommunityComponent', () => {
   it('should combine multiple filters', fakeAsync(() => {
     component.ngOnInit();
     tick();
-
-    // Ajusta manualmente os freelancers para ter a propriedade 'skills' que o componente espera
-    component.freelancers = component.freelancers.map((f) => ({
-      ...f,
-      skills: f.userSkills || [],
-    }));
 
     component.searchTerm = 'João';
     component.skillFilter = 'Angular';
@@ -374,12 +379,6 @@ fdescribe('CommunityComponent', () => {
   it('should calculate compatibility correctly', fakeAsync(() => {
     component.ngOnInit();
     tick();
-
-    // Ajusta manualmente os freelancers para ter a propriedade 'skills' que o componente espera
-    component.freelancers = component.freelancers.map((f) => ({
-      ...f,
-      skills: f.userSkills || [],
-    }));
 
     component.user = { id: '1', type: 'company', name: 'Tech Corp' };
     component.skillFilter = 'Angular,TypeScript';

@@ -15,12 +15,40 @@ interface Freelancer {
   availability: 'available' | 'busy' | 'unavailable';
   profileImage?: string;
   compatibility?: number;
+  userSkills?: string[];
 }
 
 interface User {
   id: string;
   type: 'company' | 'freelancer';
   name: string;
+}
+
+interface Review {
+  id: string;
+  toUserId: string;
+  rating: number;
+}
+
+interface BackendFreelancer {
+  id?: number;
+  userId?: number;
+  name?: string;
+  profile?: {
+    biography?: string;
+    pricePerHour?: number;
+  };
+  userSkills?: Array<{
+    skillId: number;
+    skill?: {
+      name: string;
+    };
+  }>;
+  pricePerHour?: number;
+  rating?: number;
+  completedProjects?: number;
+  projectsCount?: number;
+  isAvailable?: boolean;
 }
 
 @Component({
@@ -42,14 +70,13 @@ export class CommunityComponent implements OnInit {
   sortBy = 'rating';
   showFilters = false;
   savedSearches: string[] = [];
-  freelancers: any[] = [];
+  freelancers: Freelancer[] = [];
 
   // Data
-  // freelancers: Freelancer[] = [];
   filteredFreelancers: Freelancer[] = [];
-  mockReviews: any[] = [];
+  mockReviews: Review[] = [];
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadFreelancers();
     this.loadMockReviews();
   }
@@ -60,18 +87,22 @@ export class CommunityComponent implements OnInit {
     private generalService: GeneralService
   ) {}
 
-  loadFreelancers() {
+  loadFreelancers(): void {
     this.generalService.getFreelancers().subscribe({
-      next: (freelancers) => {
+      next: (freelancers: BackendFreelancer[]) => {
         // Transforma os dados vindos do backend no formato esperado pelo front
-        this.freelancers = freelancers.map((f: any) => ({
+        this.freelancers = freelancers.map((f: BackendFreelancer) => ({
           id: f.id?.toString() || f.userId?.toString() || '',
           userId: f.userId?.toString() || f.id?.toString() || '',
           name: f.name || 'Nome não informado',
           bio: f.profile?.biography || 'Sem biografia disponível',
+          skills:
+            f.userSkills?.map(
+              (s) => s.skill?.name || `Habilidade ${s.skillId}`
+            ) || [],
           userSkills:
             f.userSkills?.map(
-              (s: any) => s.skill?.name || `Habilidade ${s.skillId}`
+              (s) => s.skill?.name || `Habilidade ${s.skillId}`
             ) || [],
           hourlyRate: f.profile?.pricePerHour || f.pricePerHour || 0,
           rating: f.rating || 0,
@@ -83,15 +114,15 @@ export class CommunityComponent implements OnInit {
         this.applyFilters();
         this.isLoading = false;
       },
-      error: (err) => {
-        // console.error('Erro ao carregar freelancers:', err);
+      error: (err: Error) => {
+        console.error('Erro ao carregar freelancers:', err);
         this.isLoading = false;
       },
     });
     this.isLoading = false;
   }
 
-  loadMockReviews() {
+  loadMockReviews(): void {
     this.mockReviews = [
       { id: '1', toUserId: 'user1', rating: 5 },
       { id: '2', toUserId: 'user1', rating: 4 },
@@ -119,7 +150,7 @@ export class CommunityComponent implements OnInit {
     return (matches.length / searchSkills.length) * 100;
   }
 
-  applyFilters() {
+  applyFilters(): void {
     this.filteredFreelancers = this.freelancers
       .filter((freelancer) => {
         const matchesSearch =
@@ -190,7 +221,7 @@ export class CommunityComponent implements OnInit {
       });
   }
 
-  clearAllFilters() {
+  clearAllFilters(): void {
     this.searchTerm = '';
     this.skillFilter = '';
     this.availabilityFilter = 'all';
@@ -201,25 +232,25 @@ export class CommunityComponent implements OnInit {
     this.applyFilters();
   }
 
-  saveCurrentSearch() {
+  saveCurrentSearch(): void {
     const searchQuery = `${this.searchTerm} ${this.skillFilter}`.trim();
     if (searchQuery && !this.savedSearches.includes(searchQuery)) {
       this.savedSearches = [...this.savedSearches, searchQuery];
     }
   }
 
-  loadSavedSearch(search: string) {
+  loadSavedSearch(search: string): void {
     const [term, skill] = search.split(' ');
     this.searchTerm = term || '';
     this.skillFilter = skill || '';
     this.applyFilters();
   }
 
-  removeSavedSearch(index: number) {
+  removeSavedSearch(index: number): void {
     this.savedSearches = this.savedSearches.filter((_, i) => i !== index);
   }
 
-  viewProfile(freelancerId: string) {
+  viewProfile(freelancerId: string): void {
     this.router.navigate(['/freelancer/community', freelancerId]);
   }
 
@@ -233,7 +264,7 @@ export class CommunityComponent implements OnInit {
   }
 
   getStars(rating: number): string[] {
-    const stars = [];
+    const stars: string[] = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
 
