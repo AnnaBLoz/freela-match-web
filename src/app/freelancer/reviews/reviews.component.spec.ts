@@ -3,6 +3,7 @@ import {
   TestBed,
   fakeAsync,
   tick,
+  waitForAsync,
 } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError, BehaviorSubject } from 'rxjs';
@@ -19,7 +20,8 @@ interface Freelancer {
   email: string;
   avatarUrl?: string;
   owner: {
-    id: number;
+    id: string;
+    name: string;
   };
 }
 
@@ -44,47 +46,39 @@ fdescribe('ReviewsComponent', () => {
   const mockReviews = [
     {
       id: '1',
-      fromUserId: '2',
-      toUserId: '1',
+      reviewerId: 2,
+      receiverId: 1,
       proposalId: '100',
       rating: 5,
       comment: 'Excelente trabalho!',
       createdAt: new Date('2025-01-01'),
-      reviewerId: 2,
-      receiverId: 1,
     },
     {
       id: '2',
-      fromUserId: '3',
-      toUserId: '1',
+      reviewerId: 3,
+      receiverId: 1,
       proposalId: '101',
       rating: 4,
       comment: 'Muito bom',
       createdAt: new Date('2025-01-05'),
-      reviewerId: 3,
-      receiverId: 1,
     },
     {
       id: '3',
-      fromUserId: '1',
-      toUserId: '4',
+      reviewerId: 1,
+      receiverId: 4,
       proposalId: '102',
       rating: 5,
       comment: 'Cliente excelente',
       createdAt: new Date('2025-01-10'),
-      reviewerId: 1,
-      receiverId: 4,
     },
     {
       id: '4',
-      fromUserId: '5',
-      toUserId: '1',
+      reviewerId: 5,
+      receiverId: 1,
       proposalId: '103',
       rating: 3,
       comment: 'Bom, mas pode melhorar',
       createdAt: new Date('2025-01-15'),
-      reviewerId: 5,
-      receiverId: 1,
     },
   ];
 
@@ -94,13 +88,13 @@ fdescribe('ReviewsComponent', () => {
       name: 'Maria Santos',
       email: 'maria@example.com',
       avatarUrl: 'https://example.com/avatar1.jpg',
-      owner: { id: 10 },
+      owner: { id: '10', name: 'Maria Santos' },
     },
     {
       id: '11',
       name: 'Pedro Costa',
       email: 'pedro@example.com',
-      owner: { id: 11 },
+      owner: { id: '11', name: 'Pedro Costa' },
     },
   ];
 
@@ -112,19 +106,23 @@ fdescribe('ReviewsComponent', () => {
     };
 
     reviewsServiceMock = {
-      getReviews: jasmine.createSpy().and.returnValue(of(mockReviews)),
+      getReviews: jasmine
+        .createSpy('getReviews')
+        .and.returnValue(of(mockReviews)),
       getCompaniesToReview: jasmine
-        .createSpy()
+        .createSpy('getCompaniesToReview')
         .and.returnValue(of(mockFreelancers)),
-      createReview: jasmine.createSpy().and.returnValue(of({ success: true })),
+      createReview: jasmine
+        .createSpy('createReview')
+        .and.returnValue(of({ success: true })),
     };
 
     userServiceMock = {
-      getUser: jasmine.createSpy().and.returnValue(of(mockUser)),
+      getUser: jasmine.createSpy('getUser').and.returnValue(of(mockUser)),
     };
 
     routerMock = {
-      navigate: jasmine.createSpy(),
+      navigate: jasmine.createSpy('navigate'),
     };
 
     await TestBed.configureTestingModule({
@@ -140,7 +138,6 @@ fdescribe('ReviewsComponent', () => {
 
     fixture = TestBed.createComponent(ReviewsComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   // -----------------------------------------------------
@@ -156,6 +153,7 @@ fdescribe('ReviewsComponent', () => {
 
     expect(userServiceMock.getUser).toHaveBeenCalledWith(mockUser.id);
     expect(component.user).toEqual(mockUser);
+    expect(component.isLoading).toBeFalse();
   }));
 
   it('should redirect to home if user is not logged in', fakeAsync(() => {
@@ -168,7 +166,15 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   it('should handle error and redirect to home', fakeAsync(() => {
-    authServiceMock.currentUser = throwError(() => new Error('Auth error'));
+    // Recria o subject para emitir erro
+    const errorSubject = new BehaviorSubject<User>(mockUser);
+    authServiceMock.currentUser = errorSubject.asObservable();
+
+    // Força o erro no subscribe
+    spyOn(errorSubject, 'subscribe').and.callFake((observer: any) => {
+      observer.error(new Error('Auth error'));
+      return { unsubscribe: () => {} } as any;
+    });
 
     component.ngOnInit();
     tick();
@@ -205,10 +211,13 @@ fdescribe('ReviewsComponent', () => {
       throwError(() => new Error('Error loading reviews'))
     );
 
+    spyOn(console, 'error');
+
     component.ngOnInit();
     tick();
 
     expect(component.isLoading).toBeFalse();
+    expect(console.error).toHaveBeenCalled();
   }));
 
   // -----------------------------------------------------
@@ -218,6 +227,7 @@ fdescribe('ReviewsComponent', () => {
     component.ngOnInit();
     tick();
 
+    // 3 reviews recebidos: 5, 4, 3 = média 4
     expect(component.averageRating).toBeCloseTo(4, 1);
   }));
 
@@ -278,43 +288,56 @@ fdescribe('ReviewsComponent', () => {
 
     component.toggleEvaluationForm(freelancerId);
     expect(component.selectedFreelancerId).toBe(freelancerId);
+    expect(component.newReview).toEqual({ rating: 0, comment: '' });
 
     component.toggleEvaluationForm(freelancerId);
     expect(component.selectedFreelancerId).toBeNull();
+    expect(component.newReview).toEqual({ rating: 0, comment: '' });
   });
 
   it('should switch evaluation form to different freelancer', () => {
     component.toggleEvaluationForm('10');
+    expect(component.selectedFreelancerId).toBe('10');
+
     component.toggleEvaluationForm('11');
     expect(component.selectedFreelancerId).toBe('11');
+    expect(component.newReview).toEqual({ rating: 0, comment: '' });
   });
 
   it('should set rating correctly', () => {
     component.setRating(5);
     expect(component.newReview.rating).toBe(5);
+
+    component.setRating(3);
+    expect(component.newReview.rating).toBe(3);
   });
 
   // -----------------------------------------------------
   // Submissão de review
   // -----------------------------------------------------
-  it('should submit review successfully', fakeAsync(() => {
-    spyOn(component, 'loadProfileData');
-
+  it('should submit review successfully', waitForAsync(async () => {
     component.user = mockUser;
     component.newReview = { rating: 5, comment: 'Ótimo trabalho!' };
+    component.selectedFreelancerId = '10';
 
     const freelancer = mockFreelancers[0];
     const proposalId = 123;
 
-    component.submitReview(freelancer, proposalId);
-    tick();
+    await component.submitReview(freelancer, proposalId);
 
-    expect(reviewsServiceMock.createReview).toHaveBeenCalled();
-    expect(component.loadProfileData).toHaveBeenCalled();
+    expect(reviewsServiceMock.createReview).toHaveBeenCalledWith({
+      reviewerId: mockUser.id,
+      receiverId: freelancer.owner.id,
+      reviewText: 'Ótimo trabalho!',
+      rating: 5,
+      proposalId: proposalId,
+    });
+
     expect(component.selectedFreelancerId).toBeNull();
+    expect(component.newReview).toEqual({ rating: 0, comment: '' });
   }));
 
-  it('should handle error when submitting review', fakeAsync(() => {
+  it('should handle error when submitting review', waitForAsync(async () => {
     reviewsServiceMock.createReview.and.returnValue(
       throwError(() => new Error('Error creating review'))
     );
@@ -326,10 +349,12 @@ fdescribe('ReviewsComponent', () => {
 
     const freelancer = mockFreelancers[0];
 
-    component.submitReview(freelancer, 123);
-    tick();
+    await component.submitReview(freelancer, 123);
 
-    expect(console.error).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith(
+      'Erro ao criar proposta:',
+      jasmine.any(Error)
+    );
   }));
 
   // -----------------------------------------------------
@@ -340,6 +365,9 @@ fdescribe('ReviewsComponent', () => {
     expect(component.activeTab).toBe('received');
     expect(component.isLoading).toBeTrue();
     expect(component.newReview).toEqual({ rating: 0, comment: '' });
+    expect(component.selectedFreelancerId).toBeNull();
+    expect(component.reviewsReceived).toEqual([]);
+    expect(component.reviewsGiven).toEqual([]);
   });
 
   // -----------------------------------------------------
@@ -352,6 +380,7 @@ fdescribe('ReviewsComponent', () => {
     expect(
       component.reviewsReceived.every((r: any) => r.receiverId === mockUser.id)
     ).toBeTrue();
+    expect(component.reviewsReceived.length).toBe(3);
   }));
 
   it('should filter reviews given correctly', fakeAsync(() => {
@@ -361,6 +390,7 @@ fdescribe('ReviewsComponent', () => {
     expect(
       component.reviewsGiven.every((r: any) => r.reviewerId === mockUser.id)
     ).toBeTrue();
+    expect(component.reviewsGiven.length).toBe(1);
   }));
 
   it('should sync sentReviews with reviewsGiven', fakeAsync(() => {
@@ -368,5 +398,6 @@ fdescribe('ReviewsComponent', () => {
     tick();
 
     expect(component.sentReviews).toEqual(component.reviewsGiven);
+    expect(component.sentReviews.length).toBe(1);
   }));
 });
