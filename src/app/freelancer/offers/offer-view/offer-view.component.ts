@@ -1,28 +1,39 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  AbstractControl,
+} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 
-interface User {
-  id: string;
-  type: 'freelancer' | 'client';
-  name: string;
-  email: string;
+type ProposalStatus = 'open' | 'closed';
+
+interface Candidate {
+  userId: number;
+  proposalId: number;
+  message: string;
+  proposedPrice: number;
+  estimatedDate: string;
+  appliedAt: Date;
 }
 
 interface Proposal {
-  id: string;
+  proposalId: number;
   title: string;
   description: string;
   budget: number;
-  deadline: Date;
+  deadline: Date | string;
   requiredSkills: string[];
-  status: 'open' | 'closed';
-  createdAt: Date;
-  applications: any[];
+  status: ProposalStatus;
+  createdAt: Date | string;
+  applications: Candidate[];
+  candidates: Candidate[];
 }
 
 interface Company {
@@ -35,6 +46,18 @@ interface Company {
   website?: string;
 }
 
+interface ApplicationFormValue {
+  message: string;
+  proposedPrice: string;
+  estimatedDate: string;
+}
+
+interface CandidateResponse {
+  success: boolean;
+  candidateId?: number;
+  message?: string;
+}
+
 @Component({
   selector: 'app-offer-view',
   templateUrl: './offer-view.component.html',
@@ -43,8 +66,8 @@ interface Company {
 export class OfferViewComponent implements OnInit {
   private destroy$ = new Subject<void>();
 
-  user: any;
-  proposal: any;
+  user: User | null = null;
+  proposal: Proposal | null = null;
   company: Company | null = null;
 
   isLoading = true;
@@ -71,18 +94,36 @@ export class OfferViewComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   getProposal(): void {
-    const proposalId = Number(this.route.snapshot.paramMap.get('id'));
+    const proposalIdParam = this.route.snapshot.paramMap.get('id');
+    if (!proposalIdParam) {
+      console.error('ID da proposta não encontrado');
+      this.isLoading = false;
+      return;
+    }
+
+    const proposalId = Number(proposalIdParam);
 
     this.proposalService
       .getProposalById(proposalId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (proposal) => {
-          this.proposal = proposal;
+        next: (proposals: Proposal[]) => {
+          // A API retorna um array, então pegamos o primeiro elemento
+          if (proposals && proposals.length > 0) {
+            this.proposal = proposals[0];
+          } else {
+            console.error('Nenhuma proposta encontrada');
+            this.proposal = null;
+          }
           this.isLoading = false;
         },
-        error: (err) => {
+        error: (err: Error) => {
           console.error('Erro ao carregar proposta:', err);
           this.isLoading = false;
         },
@@ -90,8 +131,8 @@ export class OfferViewComponent implements OnInit {
   }
 
   loadUser(): void {
-    this.authService.currentUser.subscribe({
-      next: (user) => {
+    this.authService.currentUser.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (user: User | null) => {
         this.user = user;
       },
     });
@@ -104,7 +145,7 @@ export class OfferViewComponent implements OnInit {
     }).format(value);
   }
 
-  formatDate(date: Date): string {
+  formatDate(date: Date | string): string {
     return new Date(date).toLocaleDateString('pt-BR');
   }
 
@@ -126,36 +167,45 @@ export class OfferViewComponent implements OnInit {
       return;
     }
 
+    if (!this.user || !this.proposal) {
+      console.error('Usuário ou proposta não carregados');
+      return;
+    }
+
     this.isSubmitting = true;
 
-    const candidateData = {
-      userId: Number(this.user.id),
-      proposalId: Number(this.proposal.proposalId),
-      message: this.applicationForm.value.message,
-      proposedPrice: Number(this.applicationForm.value.proposedPrice),
-      estimatedDate: this.applicationForm.value.estimatedDate,
+    const formValue = this.applicationForm.value as ApplicationFormValue;
+
+    const candidateData: Candidate = {
+      userId: this.user.id,
+      proposalId: this.proposal.proposalId,
+      message: formValue.message,
+      proposedPrice: Number(formValue.proposedPrice),
+      estimatedDate: formValue.estimatedDate,
       appliedAt: new Date(),
     };
 
     this.proposalService
       .candidate(candidateData)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res: any) => {
+      .subscribe(
+        (res: CandidateResponse) => {
           this.hasApplied = true;
           this.isSubmitting = false;
 
-          if (!this.proposal.applications) {
-            this.proposal.applications = [];
-          }
+          if (this.proposal) {
+            if (!this.proposal.applications) {
+              this.proposal.applications = [];
+            }
 
-          this.proposal.applications.push(candidateData);
+            this.proposal.applications.push(candidateData);
+          }
         },
-        error: (err) => {
+        (err: Error) => {
           this.isSubmitting = false;
           console.error('Erro ao enviar candidatura:', err);
-        },
-      });
+        }
+      );
   }
 
   isFieldInvalid(field: string): boolean {
@@ -164,7 +214,7 @@ export class OfferViewComponent implements OnInit {
   }
 
   getFieldError(field: string): string {
-    const control = this.applicationForm.get(field);
+    const control: AbstractControl | null = this.applicationForm.get(field);
     if (!control) return '';
 
     if (control.hasError('required')) return 'Campo obrigatório.';
@@ -175,7 +225,12 @@ export class OfferViewComponent implements OnInit {
     return 'Valor inválido.';
   }
 
-  hasAppliedToProposal(proposal: any): boolean {
-    return proposal.candidates.some((c) => c.userId === this.user.id);
+  hasAppliedToProposal(proposal: Proposal): boolean {
+    if (!this.user || !proposal.candidates) {
+      return false;
+    }
+    return proposal.candidates.some(
+      (c: Candidate) => c.userId === this.user!.id
+    );
   }
 }

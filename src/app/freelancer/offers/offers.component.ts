@@ -2,6 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 
+type BudgetFilter = 'all' | 'low' | 'medium' | 'high';
+
+interface Proposal {
+  id: string;
+  title: string;
+  description: string;
+  requiredSkills?: string[];
+  price: number;
+  createdAt: string | Date;
+}
+
 @Component({
   selector: 'app-offers',
   templateUrl: './offers.component.html',
@@ -11,54 +22,54 @@ export class OffersComponent implements OnInit {
   isLoading = true;
   searchTerm = '';
   skillFilter = '';
-  budgetFilter = 'all';
-  proposals: any[] = [];
-  filteredProposals: any[] = [];
+  budgetFilter: BudgetFilter = 'all';
+  proposals: Proposal[] = [];
+  filteredProposals: Proposal[] = [];
 
   constructor(
     private router: Router,
     private proposalService: ProposalService
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadProposals();
   }
 
-  loadProposals() {
+  loadProposals(): void {
     this.proposalService.getProposals().subscribe({
-      next: (proposals) => {
+      next: (proposals: Proposal[]) => {
         this.proposals = proposals;
         this.filteredProposals = proposals; // inicializa a lista
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: Error) => {
         console.error('Erro ao carregar propostas:', err);
         this.isLoading = false;
       },
     });
   }
 
-  onSearchChange() {
+  onSearchChange(): void {
     this.applyFilters();
   }
 
-  onSkillFilterChange() {
+  onSkillFilterChange(): void {
     this.applyFilters();
   }
 
-  onBudgetFilterChange() {
+  onBudgetFilterChange(): void {
     this.applyFilters();
   }
 
-  clearFilters() {
+  clearFilters(): void {
     this.searchTerm = '';
     this.skillFilter = '';
     this.budgetFilter = 'all';
     this.applyFilters();
   }
 
-  applyFilters() {
-    this.filteredProposals = this.proposals.filter((proposal) => {
+  applyFilters(): void {
+    this.filteredProposals = this.proposals.filter((proposal: Proposal) => {
       const matchesSearch =
         this.searchTerm === '' ||
         proposal.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
@@ -70,7 +81,8 @@ export class OffersComponent implements OnInit {
         this.skillFilter === '' ||
         proposal.requiredSkills?.some((skill: string) =>
           skill.toLowerCase().includes(this.skillFilter.toLowerCase())
-        );
+        ) ||
+        false;
 
       const matchesBudget =
         this.budgetFilter === 'all' ||
@@ -101,7 +113,7 @@ export class OffersComponent implements OnInit {
       : description;
   }
 
-  viewProposalDetails(proposalId: string) {
+  viewProposalDetails(proposalId: string): void {
     this.router.navigate(['freelancer/offers', proposalId]);
   }
 }

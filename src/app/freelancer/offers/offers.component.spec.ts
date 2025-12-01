@@ -6,16 +6,44 @@ import {
 } from '@angular/core/testing';
 import { OffersComponent } from './offers.component';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Observable } from 'rxjs';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
+
+// Interface do componente (como deveria ser)
+interface ComponentProposal {
+  id: string;
+  title: string;
+  description: string;
+  requiredSkills?: string[];
+  price: number;
+  createdAt: string | Date;
+}
+
+// Interface dos mocks de teste
+interface MockProposal {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  requiredSkills: string[];
+  maxDate: string;
+}
+
+interface ProposalServiceMock {
+  getProposals: jasmine.Spy<() => Observable<ComponentProposal[]>>;
+}
+
+interface RouterMock {
+  navigate: jasmine.Spy<(commands: (string | number)[]) => Promise<boolean>>;
+}
 
 fdescribe('OffersComponent', () => {
   let component: OffersComponent;
   let fixture: ComponentFixture<OffersComponent>;
-  let proposalServiceMock: any;
-  let routerMock: any;
+  let proposalServiceMock: ProposalServiceMock;
+  let routerMock: RouterMock;
 
-  const mockProposals = [
+  const mockProposalsData: MockProposal[] = [
     {
       id: 1,
       title: 'Site profissional',
@@ -42,13 +70,27 @@ fdescribe('OffersComponent', () => {
     },
   ];
 
+  // Converte para o formato esperado pelo componente
+  const mockProposals: ComponentProposal[] = mockProposalsData.map((p) => ({
+    id: String(p.id),
+    title: p.title,
+    description: p.description,
+    price: p.price,
+    requiredSkills: p.requiredSkills,
+    createdAt: p.maxDate,
+  }));
+
   beforeEach(async () => {
     proposalServiceMock = {
-      getProposals: jasmine.createSpy().and.returnValue(of(mockProposals)),
+      getProposals: jasmine
+        .createSpy<ProposalServiceMock['getProposals']>('getProposals')
+        .and.returnValue(of(mockProposals)),
     };
 
     routerMock = {
-      navigate: jasmine.createSpy(),
+      navigate: jasmine
+        .createSpy<RouterMock['navigate']>('navigate')
+        .and.returnValue(Promise.resolve(true)),
     };
 
     await TestBed.configureTestingModule({
