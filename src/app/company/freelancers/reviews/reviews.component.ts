@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/authService.service';
-import { ReviewsService } from 'src/app/core/services/reviewsService.service';
+import {
+  ReviewsService,
+  Review,
+  FreelancerToReview,
+} from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
 interface User {
   id: number;
-  type: 'freelancer' | 'client';
+  type: number;
   name: string;
   email: string;
 }
@@ -20,26 +24,10 @@ interface Profile {
   profileImage?: string;
 }
 
-interface Review {
-  id: number;
-  fromUserId: number;
-  toUserId: number;
-  proposalId: number;
-  rating: number;
-  comment: string;
-  createdAt: Date;
-}
-
 interface RatingDistribution {
   rating: number;
   count: number;
   percentage: number;
-}
-
-interface Freelancer {
-  id: number;
-  name: string;
-  email: string;
 }
 
 @Component({
@@ -48,7 +36,7 @@ interface Freelancer {
   styleUrls: ['./reviews.component.css'],
 })
 export class ReviewsComponent implements OnInit {
-  user: any | null = null;
+  user: User | null = null;
   profile: Profile | null = null;
   isLoading = true;
 
@@ -61,7 +49,7 @@ export class ReviewsComponent implements OnInit {
   mainTab: 'avaliacoes' | 'avaliar' = 'avaliacoes';
   activeTab: 'received' | 'sent' = 'received';
 
-  freelancers: Freelancer[] = [];
+  freelancers: FreelancerToReview[] = [];
 
   // Campos para avaliação
   selectedFreelancerId: string | null = null;
@@ -77,9 +65,10 @@ export class ReviewsComponent implements OnInit {
     private userService: UserService
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadProfileData();
   }
+
   loadProfileData(): void {
     this.authService.currentUser.subscribe({
       next: (user) => {
@@ -89,10 +78,9 @@ export class ReviewsComponent implements OnInit {
           return;
         }
         this.userService.getUser(user.id).subscribe({
-          next: (user) => {
-            this.user = user;
+          next: (fullUser) => {
+            this.user = fullUser;
             this.loadData();
-
             this.calculateStats();
           },
         });
@@ -106,54 +94,54 @@ export class ReviewsComponent implements OnInit {
     });
   }
 
-  private loadFreelancers() {
+  private loadFreelancers(): void {
+    if (!this.user) return;
+
     this.reviewsService.getFreelancersToReview(this.user.id).subscribe({
       next: (freelancers) => {
         this.freelancers = freelancers;
-        console.log(freelancers);
-
+        this.isLoading = false;
+      },
+      error: (err: Error) => {
+        console.error('Erro ao carregar freelancers:', err);
         this.isLoading = false;
       },
     });
   }
 
-  private loadData() {
+  private loadData(): void {
     if (!this.user) return;
 
     this.reviewsService.getReviews(this.user.id).subscribe({
       next: (reviews) => {
         this.reviewsReceived = reviews.filter(
-          (r) => r.receiverId === this.user.id
+          (r) => r.receiverId === this.user?.id || r.toUserId === this.user?.id
         );
 
         this.reviewsGiven = reviews.filter(
-          (r) => r.reviewerId === this.user.id
+          (r) =>
+            r.reviewerId === this.user?.id || r.fromUserId === this.user?.id
         );
 
         this.sentReviews = this.reviewsGiven;
-
         this.calculateStats();
-
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: Error) => {
         console.error('Erro ao carregar reviews:', err);
         this.isLoading = false;
       },
     });
   }
 
-  private calculateStats() {
-    // Soma da nota total
+  private calculateStats(): void {
     const total = this.reviewsReceived.reduce((acc, review) => {
       return acc + (review.rating || 0);
     }, 0);
 
-    // Média
     this.averageRating =
       this.reviewsReceived.length > 0 ? total / this.reviewsReceived.length : 0;
 
-    // Distribuição das notas
     this.ratingDistribution = [5, 4, 3, 2, 1].map((rating) => {
       const count = this.reviewsReceived.filter(
         (r) => r.rating === rating
@@ -167,12 +155,11 @@ export class ReviewsComponent implements OnInit {
     });
   }
 
-  setActiveTab(tab: 'received' | 'sent') {
+  setActiveTab(tab: 'received' | 'sent'): void {
     this.activeTab = tab;
   }
 
-  // Alterna o formulário de avaliação
-  toggleEvaluationForm(freelancerId: string) {
+  toggleEvaluationForm(freelancerId: string): void {
     if (this.selectedFreelancerId === freelancerId) {
       this.selectedFreelancerId = null;
       this.newReview = { rating: 0, comment: '' };
@@ -182,29 +169,36 @@ export class ReviewsComponent implements OnInit {
     }
   }
 
-  // Define a nota (1 a 5)
-  setRating(star: number) {
+  setRating(star: number): void {
     this.newReview.rating = star;
   }
 
-  async submitReview(freelancer: any, proposalId: number): Promise<void> {
+  // FIX 4: Usar userId OU id do freelancer, com fallback
+  async submitReview(
+    freelancer: FreelancerToReview,
+    proposalId: number
+  ): Promise<void> {
     try {
+      if (!this.user) return;
+
+      // Usar userId se disponível, caso contrário usar id
+      const receiverId = (freelancer as any).userId || (freelancer as any).id;
+
       const reviewCreate = {
         reviewerId: this.user.id,
-        receiverId: freelancer.user.id,
+        receiverId: receiverId,
         reviewText: this.newReview.comment,
         rating: this.newReview.rating,
         proposalId: proposalId,
       };
 
       await this.reviewsService.createReview(reviewCreate).toPromise();
-
       await this.loadProfileData();
 
       this.selectedFreelancerId = null;
       this.newReview = { rating: 0, comment: '' };
     } catch (error) {
-      console.error('Erro ao criar proposta:', error);
+      console.error('Erro ao criar avaliação:', error);
     }
   }
 

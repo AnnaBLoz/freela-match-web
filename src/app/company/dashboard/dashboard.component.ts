@@ -26,6 +26,7 @@ interface Application {
   message: string;
   createdAt: Date;
 }
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -53,8 +54,9 @@ export class DashboardComponent {
     this.loadProfileData();
   }
 
+  // FIX 1: Corrigir comparação de tipo para número
   isCompany(): boolean {
-    return this.user?.type === 'company';
+    return this.user?.type === 2;
   }
 
   getUserName(): string {
@@ -71,13 +73,14 @@ export class DashboardComponent {
         }
         this.userService.getUser(user.id).subscribe({
           next: (user) => {
-            this.user = user;
-            this.loadProposals();
-            this.loadData();
+            // FIX 2: Validar se user existe antes de chamar outros métodos
             if (!user) {
               this.router.navigate(['/account/auth/login']);
               return;
             }
+            this.user = user;
+            this.loadProposals();
+            this.loadData();
           },
         });
       },
@@ -142,12 +145,13 @@ export class DashboardComponent {
     return text.length > length ? text.substring(0, length) + '...' : text;
   }
 
+  // FIX 3: Definir isLoading = true no início do método
   private loadData() {
     this.isLoading = true;
     this.reviewsService.getReviews(this.user.id).subscribe({
       next: (response) => {
         this.userReviews = response;
-        this.calculateAverageRating(); // 👈 chama aqui, depois do response
+        this.calculateAverageRating();
         this.isLoading = false;
       },
       error: (err) => {

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/enviroments/enviroment';
+import { User } from '../models/auth.model';
 
 export interface Review {
   id: number;
@@ -16,18 +17,20 @@ export interface Review {
 }
 
 export interface FreelancerToReview {
-  id: number;
+  userId?: number;
+  id?: number;
   name: string;
   email: string;
 }
 
 export interface CompanyToReview {
-  userId: number;
+  id?: number;
+  userId?: number;
   name: string;
   avatarUrl?: string;
   projectId?: number;
   projectName?: string;
-  canReview: boolean;
+  owner: User;
 }
 
 export interface CreateReviewRequest {

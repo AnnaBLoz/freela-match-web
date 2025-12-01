@@ -37,7 +37,7 @@ interface FreelancerProfile {
 type Profile = FreelancerProfile;
 
 interface Review {
-  reviewId: number;
+  id: number;
   rating: number;
   comment: string;
   createdAt: string | Date;
@@ -92,6 +92,12 @@ export class DashboardComponent implements OnInit {
 
         this.userService.getUser(user.id).subscribe(
           (fullUser: User) => {
+            // FIX: Verificar se fullUser não é null antes de continuar
+            if (!fullUser) {
+              this.router.navigate(['/']);
+              return;
+            }
+
             this.user = fullUser;
             this.loadData();
             this.loadProfile();
@@ -178,7 +184,11 @@ export class DashboardComponent implements OnInit {
   }
 
   formatDate(date: Date | string): string {
-    return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
+    // FIX: Usar UTC para evitar problemas de timezone
+    const d = new Date(date);
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'UTC',
+    }).format(d);
   }
 
   truncateText(text: string, length: number): string {
@@ -212,6 +222,7 @@ export class DashboardComponent implements OnInit {
   private loadData(): void {
     if (!this.user) return;
 
+    // FIX: Definir isLoading = true ao iniciar carregamento
     this.isLoading = true;
     this.reviewsService.getReviews(this.user.id).subscribe(
       (response: Review[]) => {

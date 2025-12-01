@@ -5,8 +5,8 @@ import { PortfolioService } from 'src/app/core/services/portfolioService.service
 import { UserService } from 'src/app/core/services/userService.service';
 
 interface Freelancer {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   name: string;
   bio: string;
   skills: string[];
@@ -20,16 +20,16 @@ interface Freelancer {
 }
 
 interface Review {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
+  id: number;
+  fromUserId: number;
+  toUserId: number;
   rating: number;
   comment: string;
   createdAt: Date;
 }
 
 interface User {
-  id: string;
+  id: number;
   type: 'company' | 'freelancer';
   name: string;
 }
@@ -57,7 +57,7 @@ export class CommunityViewComponent implements OnInit {
   isLoading = true;
   activeTab: 'skills' | 'portfolio' | 'reviews' = 'skills';
 
-  freelancerId: number = 0;
+  freelancerId: number;
 
   portfolio: any[] = [];
 
@@ -130,20 +130,20 @@ export class CommunityViewComponent implements OnInit {
     });
   }
 
-  loadReviews(freelancerId: string) {
+  loadReviews(freelancerId: number) {
     // Substituir por chamada real ao backend
     this.reviews = [
       {
-        id: 'r1',
-        fromUserId: 'user1',
+        id: 1,
+        fromUserId: 1,
         toUserId: freelancerId,
         rating: 5,
         comment: 'Excelente profissional, entrega no prazo!',
         createdAt: new Date('2025-01-10'),
       },
       {
-        id: 'r2',
-        fromUserId: 'user2',
+        id: 2,
+        fromUserId: 2,
         toUserId: freelancerId,
         rating: 4,
         comment: 'Trabalho muito bom, recomendo.',
@@ -152,14 +152,14 @@ export class CommunityViewComponent implements OnInit {
     ];
   }
 
-  loadSimilarFreelancers(freelancerId: string) {
+  loadSimilarFreelancers(freelancerId: number) {
     // Substituir por chamada real ao backend
     if (!this.freelancer) return;
     this.similarFreelancers = [
-      { ...this.freelancer, id: 'f2', name: 'Lucas Silva', hourlyRate: 100 },
+      { ...this.freelancer, id: 2, name: 'Lucas Silva', hourlyRate: 100 },
       {
         ...this.freelancer,
-        id: 'f3',
+        id: 2,
         name: 'Cristian Domingues',
         hourlyRate: 110,
       },
@@ -256,7 +256,7 @@ export class CommunityViewComponent implements OnInit {
     if (!this.freelancer || !this.user) return;
 
     const newReview: Review = {
-      id: 'r' + (this.reviews.length + 1),
+      id: this.reviews.length + 1,
       fromUserId: this.user.id,
       toUserId: this.freelancer.userId,
       rating: this.reviewRating,

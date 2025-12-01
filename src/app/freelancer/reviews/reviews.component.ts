@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router'; // cuidado: estava importando de 'express' 🚨
+import { Router } from '@angular/router';
 import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
+
 interface Profile {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   name: string;
   email: string;
   skills: string[];
@@ -14,10 +15,10 @@ interface Profile {
 }
 
 interface Review {
-  id: string;
-  reviewerId: number;
-  receiverId: number;
-  proposalId: string;
+  id: number;
+  reviewerId?: number;
+  receiverId?: number;
+  proposalId: number;
   rating: number;
   comment: string;
   createdAt: Date;
@@ -34,9 +35,10 @@ interface Freelancer {
 }
 
 interface Company {
-  id: string;
+  id: number;
   name: string;
 }
+
 @Component({
   selector: 'app-reviews',
   templateUrl: './reviews.component.html',
@@ -75,6 +77,7 @@ export class ReviewsComponent implements OnInit {
   ngOnInit() {
     this.loadProfileData();
   }
+
   loadProfileData(): void {
     this.authService.currentUser.subscribe({
       next: (user) => {
@@ -87,7 +90,6 @@ export class ReviewsComponent implements OnInit {
           next: (user) => {
             this.user = user;
             this.loadData();
-
             this.calculateStats();
           },
         });
@@ -102,9 +104,17 @@ export class ReviewsComponent implements OnInit {
   }
 
   private loadFreelancers() {
+    // FIX: Verificar se user existe antes de acessar propriedades
+    if (!this.user) return;
+
     this.reviewsService.getCompaniesToReview(this.user.id).subscribe({
       next: (freelancers) => {
         this.freelancers = freelancers;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        // FIX: Adicionar tratamento de erro
+        console.error('Erro ao carregar freelancers:', err);
         this.isLoading = false;
       },
     });
@@ -159,7 +169,6 @@ export class ReviewsComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  // Alterna o formulário de avaliação
   toggleEvaluationForm(freelancerId: string) {
     if (this.selectedFreelancerId === freelancerId) {
       this.selectedFreelancerId = null;
@@ -170,7 +179,6 @@ export class ReviewsComponent implements OnInit {
     }
   }
 
-  // Define a nota (1 a 5)
   setRating(star: number) {
     this.newReview.rating = star;
   }

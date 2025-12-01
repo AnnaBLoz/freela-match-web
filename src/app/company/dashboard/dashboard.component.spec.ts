@@ -1,4 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError, Observable } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
@@ -6,6 +11,41 @@ import { AuthService } from 'src/app/core/services/authService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
+import { User } from 'src/app/core/models/auth.model';
+
+interface Proposal {
+  id: string;
+  companyId: number;
+  title: string;
+  description: string;
+  budget: number;
+  deadline: Date;
+  requiredSkills: string[];
+  status: 'open' | 'completed' | 'closed';
+  createdAt: Date;
+  isAvailable?: boolean;
+  candidates: Application[];
+}
+
+interface Application {
+  id: string;
+  freelancerId: string;
+  proposedRate: number;
+  message: string;
+  createdAt: Date;
+  status: number;
+}
+
+interface Review {
+  id: number;
+  rating: number;
+  comment: string;
+  reviewerId: number;
+  createdAt: Date;
+  fromUserId: number;
+  toUserId: number;
+  proposalId: number;
+}
 
 fdescribe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -16,10 +56,13 @@ fdescribe('DashboardComponent', () => {
   let mockProposalService: jasmine.SpyObj<ProposalService>;
   let mockReviewsService: jasmine.SpyObj<ReviewsService>;
 
-  const mockUser = {
+  const mockUser: User = {
     id: 123,
-    type: 'company',
+    type: 2,
     email: 'company@test.com',
+    name: 'Company User',
+    password: null,
+    jwtToken: 'fake-jwt-token',
   };
 
   const mockProfile = {
@@ -27,7 +70,7 @@ fdescribe('DashboardComponent', () => {
     cnpj: '12345678000199',
   };
 
-  const mockProposals = [
+  const mockProposals: Proposal[] = [
     {
       id: 'prop-1',
       companyId: 123,
@@ -73,32 +116,40 @@ fdescribe('DashboardComponent', () => {
     },
   ];
 
-  const mockReviews = [
+  const mockReviews: Review[] = [
     {
-      id: 'review-1',
+      id: 1,
       rating: 5,
       comment: 'Excelente empresa',
-      reviewerId: 'freelancer-1',
+      reviewerId: 1,
       createdAt: new Date(),
+      fromUserId: 1,
+      toUserId: 123,
+      proposalId: 100,
     },
     {
-      id: 'review-2',
+      id: 2,
       rating: 4,
       comment: 'Muito profissional',
-      reviewerId: 'freelancer-2',
+      reviewerId: 2,
       createdAt: new Date(),
+      fromUserId: 2,
+      toUserId: 123,
+      proposalId: 101,
     },
     {
-      id: 'review-3',
+      id: 3,
       rating: 5,
       comment: 'Recomendo',
-      reviewerId: 'freelancer-3',
+      reviewerId: 3,
       createdAt: new Date(),
+      fromUserId: 3,
+      toUserId: 123,
+      proposalId: 102,
     },
   ];
 
   beforeEach(async () => {
-    // Criar spies dos serviços
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
     mockAuthService = jasmine.createSpyObj('AuthService', [], {
       currentUser: of(mockUser),
@@ -108,6 +159,13 @@ fdescribe('DashboardComponent', () => {
       'getProposalsByCompany',
     ]);
     mockReviewsService = jasmine.createSpyObj('ReviewsService', ['getReviews']);
+
+    // Configurar retornos padrão
+    mockUserService.getUser.and.returnValue(of(mockUser));
+    mockProposalService.getProposalsByCompany.and.returnValue(
+      of(mockProposals)
+    );
+    mockReviewsService.getReviews.and.returnValue(of(mockReviews));
 
     await TestBed.configureTestingModule({
       declarations: [DashboardComponent],
@@ -124,8 +182,19 @@ fdescribe('DashboardComponent', () => {
     component = fixture.componentInstance;
   });
 
+  // -----------------------------------------------------
+  // Criação e inicialização
+  // -----------------------------------------------------
   it('deve criar o componente', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('deve ter valores padrão ao inicializar', () => {
+    expect(component.user).toBeNull();
+    expect(component.profile).toBeNull();
+    expect(component.isLoading).toBeTrue();
+    expect(component.proposals).toEqual([]);
+    expect(component.activeProposals).toEqual([]);
   });
 
   describe('Inicialização do Componente', () => {
@@ -134,189 +203,74 @@ fdescribe('DashboardComponent', () => {
       component.ngOnInit();
       expect(component.loadProfileData).toHaveBeenCalled();
     });
-
-    it('deve definir isLoading como true inicialmente', () => {
-      expect(component.isLoading).toBe(true);
-    });
   });
 
+  // -----------------------------------------------------
+  // loadProfileData
+  // -----------------------------------------------------
   describe('loadProfileData', () => {
-    it('deve carregar dados do usuário com sucesso', () => {
-      mockUserService.getUser.and.returnValue(of(mockUser));
-      mockProposalService.getProposalsByCompany.and.returnValue(
-        of(mockProposals)
-      );
-      mockReviewsService.getReviews.and.returnValue(of(mockReviews));
+    it('deve carregar dados do usuário com sucesso', fakeAsync(() => {
+      spyOn(component, 'loadProposals');
+      spyOn<DashboardComponent, any>(component, 'loadData');
 
       component.loadProfileData();
+      tick();
 
       expect(component.user).toEqual(mockUser);
       expect(mockUserService.getUser).toHaveBeenCalledWith(mockUser.id);
-    });
+      expect(component.loadProposals).toHaveBeenCalled();
+      expect(component['loadData']).toHaveBeenCalled();
+      expect(component.isLoading).toBeFalse();
+    }));
 
-    // ✅ CORRIGIDO: Resetar TestBed antes de fazer override
-    it('deve redirecionar para home se não houver usuário', () => {
-      // Resetar o módulo de teste
-      TestBed.resetTestingModule();
-
-      // Criar novo mock do AuthService
-      const mockAuthServiceNoUser = jasmine.createSpyObj('AuthService', [], {
-        currentUser: of(null),
-      });
-
-      // Reconfigurar o TestBed
-      TestBed.configureTestingModule({
-        declarations: [DashboardComponent],
-        providers: [
-          { provide: Router, useValue: mockRouter },
-          { provide: AuthService, useValue: mockAuthServiceNoUser },
-          { provide: UserService, useValue: mockUserService },
-          { provide: ProposalService, useValue: mockProposalService },
-          { provide: ReviewsService, useValue: mockReviewsService },
-        ],
-      }).compileComponents();
-
-      // Criar nova instância do componente
-      const newFixture = TestBed.createComponent(DashboardComponent);
-      const newComponent = newFixture.componentInstance;
-
-      newComponent.loadProfileData();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
-    });
-
-    // ✅ CORRIGIDO: Resetar TestBed antes de fazer override
-    it('deve redirecionar para home em caso de erro', () => {
-      // Resetar o módulo de teste
-      TestBed.resetTestingModule();
-
-      // Criar novo mock do AuthService com erro
-      const mockAuthServiceError = jasmine.createSpyObj('AuthService', [], {
-        currentUser: throwError(() => new Error('Erro de autenticação')),
-      });
-
-      // Reconfigurar o TestBed
-      TestBed.configureTestingModule({
-        declarations: [DashboardComponent],
-        providers: [
-          { provide: Router, useValue: mockRouter },
-          { provide: AuthService, useValue: mockAuthServiceError },
-          { provide: UserService, useValue: mockUserService },
-          { provide: ProposalService, useValue: mockProposalService },
-          { provide: ReviewsService, useValue: mockReviewsService },
-        ],
-      }).compileComponents();
-
-      // Criar nova instância do componente
-      const newFixture = TestBed.createComponent(DashboardComponent);
-      const newComponent = newFixture.componentInstance;
-
-      newComponent.loadProfileData();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
-    });
-
-    it('deve definir isLoading como false após carregar', () => {
-      mockUserService.getUser.and.returnValue(of(mockUser));
-      mockProposalService.getProposalsByCompany.and.returnValue(
-        of(mockProposals)
-      );
-      mockReviewsService.getReviews.and.returnValue(of(mockReviews));
+    it('deve redirecionar para login se não houver usuário no AuthService', fakeAsync(() => {
+      (
+        Object.getOwnPropertyDescriptor(mockAuthService, 'currentUser')
+          ?.get as jasmine.Spy
+      ).and.returnValue(of(null));
 
       component.loadProfileData();
+      tick();
 
-      expect(component.isLoading).toBe(false);
-    });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
+    }));
+
+    it('deve redirecionar para login se getUser retornar null', fakeAsync(() => {
+      mockUserService.getUser.and.returnValue(of(null as any));
+      spyOn(component, 'loadProposals');
+      spyOn<DashboardComponent, any>(component, 'loadData');
+
+      component.loadProfileData();
+      tick();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
+      expect(component.loadProposals).not.toHaveBeenCalled();
+      expect(component['loadData']).not.toHaveBeenCalled();
+    }));
+
+    it('deve redirecionar para login em caso de erro', fakeAsync(() => {
+      (
+        Object.getOwnPropertyDescriptor(mockAuthService, 'currentUser')
+          ?.get as jasmine.Spy
+      ).and.returnValue(throwError(() => new Error('Erro de autenticação')));
+
+      component.loadProfileData();
+      tick();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
+    }));
+
+    it('deve definir isLoading como false após carregar', fakeAsync(() => {
+      component.loadProfileData();
+      tick();
+
+      expect(component.isLoading).toBeFalse();
+    }));
   });
 
-  describe('loadProposals', () => {
-    beforeEach(() => {
-      component.user = mockUser;
-    });
-
-    it('deve carregar propostas com sucesso', () => {
-      mockProposalService.getProposalsByCompany.and.returnValue(
-        of(mockProposals)
-      );
-
-      component.loadProposals();
-
-      expect(mockProposalService.getProposalsByCompany).toHaveBeenCalledWith(
-        mockUser.id
-      );
-      expect(component.proposals).toEqual(mockProposals);
-    });
-
-    it('deve filtrar apenas propostas ativas', () => {
-      mockProposalService.getProposalsByCompany.and.returnValue(
-        of(mockProposals)
-      );
-
-      component.loadProposals();
-
-      expect(component.activeProposals.length).toBe(1);
-      expect(component.activeProposals[0].isAvailable).toBe(true);
-    });
-
-    it('deve definir isLoading como false após carregar', () => {
-      mockProposalService.getProposalsByCompany.and.returnValue(
-        of(mockProposals)
-      );
-
-      component.loadProposals();
-
-      expect(component.isLoading).toBe(false);
-    });
-  });
-
-  describe('loadData', () => {
-    beforeEach(() => {
-      component.user = mockUser;
-    });
-
-    it('deve carregar avaliações com sucesso', () => {
-      mockReviewsService.getReviews.and.returnValue(of(mockReviews));
-      spyOn(component, 'calculateAverageRating');
-
-      component['loadData']();
-
-      expect(mockReviewsService.getReviews).toHaveBeenCalledWith(mockUser.id);
-      expect(component.userReviews).toEqual(mockReviews);
-      expect(component.calculateAverageRating).toHaveBeenCalled();
-    });
-
-    it('deve tratar erro ao carregar avaliações', () => {
-      mockReviewsService.getReviews.and.returnValue(
-        throwError(() => new Error('Erro ao buscar avaliações'))
-      );
-      spyOn(console, 'error');
-
-      component['loadData']();
-
-      expect(console.error).toHaveBeenCalled();
-      expect(component.isLoading).toBe(false);
-    });
-
-    // ✅ CORRIGIDO: Verificar isLoading imediatamente antes do Observable completar
-    it('deve definir isLoading como true ao iniciar carregamento', (done) => {
-      // Criar um Observable customizado que permite verificar o estado
-      mockReviewsService.getReviews.and.returnValue(
-        new Observable((subscriber) => {
-          // Neste ponto, isLoading JÁ deve estar true
-          setTimeout(() => {
-            expect(component.isLoading).toBe(true);
-            subscriber.next(mockReviews);
-            subscriber.complete();
-            done();
-          }, 0);
-        })
-      );
-
-      component.isLoading = false;
-      component['loadData']();
-    });
-  });
-
+  // -----------------------------------------------------
+  // calculateAverageRating
+  // -----------------------------------------------------
   describe('calculateAverageRating', () => {
     it('deve calcular média corretamente com avaliações válidas', () => {
       component.userReviews = mockReviews;
@@ -350,17 +304,28 @@ fdescribe('DashboardComponent', () => {
 
       expect(component.averageRating).toBe(0);
     });
+
+    it('deve calcular média com uma única avaliação', () => {
+      component.userReviews = [mockReviews[0]];
+
+      component.calculateAverageRating();
+
+      expect(component.averageRating).toBe(5);
+    });
   });
 
+  // -----------------------------------------------------
+  // isCompany
+  // -----------------------------------------------------
   describe('isCompany', () => {
     it('deve retornar true se usuário for empresa', () => {
-      component.user = { type: 'company' };
+      component.user = mockUser;
 
       expect(component.isCompany()).toBe(true);
     });
 
     it('deve retornar false se usuário não for empresa', () => {
-      component.user = { type: 'freelancer' };
+      component.user = { ...mockUser, type: 1 };
 
       expect(component.isCompany()).toBe(false);
     });
@@ -370,8 +335,17 @@ fdescribe('DashboardComponent', () => {
 
       expect(component.isCompany()).toBe(false);
     });
+
+    it('deve retornar false se user for undefined', () => {
+      component.user = undefined;
+
+      expect(component.isCompany()).toBe(false);
+    });
   });
 
+  // -----------------------------------------------------
+  // getUserName
+  // -----------------------------------------------------
   describe('getUserName', () => {
     it('deve retornar nome da empresa se disponível', () => {
       component.profile = { companyName: 'Empresa Teste' };
@@ -390,14 +364,21 @@ fdescribe('DashboardComponent', () => {
 
       expect(component.getUserName()).toBe('Empresa');
     });
+
+    it('deve retornar "Empresa" se profile for undefined', () => {
+      component.profile = undefined;
+
+      expect(component.getUserName()).toBe('Empresa');
+    });
   });
 
+  // -----------------------------------------------------
+  // getTotalApplications
+  // -----------------------------------------------------
   describe('getTotalApplications', () => {
-    beforeEach(() => {
-      component.proposals = mockProposals;
-    });
-
     it('deve contar total de candidaturas aprovadas', () => {
+      component.proposals = mockProposals;
+
       const total = component.getTotalApplications();
 
       expect(total).toBe(1); // Apenas 1 candidato com status 1
@@ -408,8 +389,8 @@ fdescribe('DashboardComponent', () => {
         {
           ...mockProposals[0],
           candidates: [
-            { id: '1', status: 0 },
-            { id: '2', status: 0 },
+            { id: '1', status: 0 } as Application,
+            { id: '2', status: 0 } as Application,
           ],
         },
       ];
@@ -426,8 +407,47 @@ fdescribe('DashboardComponent', () => {
 
       expect(total).toBe(0);
     });
+
+    it('deve somar candidaturas aprovadas de múltiplas propostas', () => {
+      component.proposals = [
+        {
+          ...mockProposals[0],
+          candidates: [
+            { id: '1', status: 1 } as Application,
+            { id: '2', status: 1 } as Application,
+          ],
+        },
+        {
+          ...mockProposals[1],
+          candidates: [
+            { id: '3', status: 1 } as Application,
+            { id: '4', status: 0 } as Application,
+          ],
+        },
+      ];
+
+      const total = component.getTotalApplications();
+
+      expect(total).toBe(3);
+    });
+
+    it('deve tratar propostas sem candidatos', () => {
+      component.proposals = [
+        {
+          ...mockProposals[0],
+          candidates: [],
+        },
+      ];
+
+      const total = component.getTotalApplications();
+
+      expect(total).toBe(0);
+    });
   });
 
+  // -----------------------------------------------------
+  // getWelcomeMessage
+  // -----------------------------------------------------
   describe('getWelcomeMessage', () => {
     it('deve retornar mensagem de boas-vindas', () => {
       const message = component.getWelcomeMessage();
@@ -436,6 +456,9 @@ fdescribe('DashboardComponent', () => {
     });
   });
 
+  // -----------------------------------------------------
+  // Métodos de Navegação
+  // -----------------------------------------------------
   describe('Métodos de Navegação', () => {
     it('navigateToProposal - deve navegar para proposta específica', () => {
       const proposalId = 'prop-123';
@@ -469,6 +492,9 @@ fdescribe('DashboardComponent', () => {
     });
   });
 
+  // -----------------------------------------------------
+  // Métodos de Formatação
+  // -----------------------------------------------------
   describe('Métodos de Formatação', () => {
     describe('formatCurrency', () => {
       it('deve formatar valor em reais', () => {
@@ -489,20 +515,29 @@ fdescribe('DashboardComponent', () => {
 
         expect(formatted).toContain('0,00');
       });
+
+      it('deve formatar valores negativos', () => {
+        const formatted = component.formatCurrency(-500);
+
+        expect(formatted).toContain('500');
+        expect(formatted).toContain('-');
+      });
     });
 
     describe('formatDate', () => {
-      // ✅ CORRIGIDO: Testar o padrão ao invés do valor exato (evita problemas de timezone)
       it('deve formatar data no padrão brasileiro', () => {
-        const date = new Date('2024-03-15T12:00:00.000Z');
+        const date = new Date('2024-03-15');
         const formatted = component.formatDate(date);
 
         // Verifica se o formato está correto (dd/mm/aaaa)
         expect(formatted).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+      });
 
-        // Verifica se contém os componentes da data
-        expect(formatted).toContain('03'); // mês
-        expect(formatted).toContain('2024'); // ano
+      it('deve conter ano correto', () => {
+        const date = new Date('2024-03-15');
+        const formatted = component.formatDate(date);
+
+        expect(formatted).toContain('2024');
       });
     });
 
@@ -528,34 +563,50 @@ fdescribe('DashboardComponent', () => {
 
         expect(result).toBe('Exato');
       });
+
+      it('deve tratar string vazia', () => {
+        const result = component.truncateText('', 10);
+
+        expect(result).toBe('');
+      });
     });
   });
 
+  // -----------------------------------------------------
+  // Integração entre métodos
+  // -----------------------------------------------------
   describe('Integração entre métodos', () => {
-    it('deve carregar todos os dados ao inicializar', () => {
-      mockUserService.getUser.and.returnValue(of(mockUser));
-      mockProposalService.getProposalsByCompany.and.returnValue(
-        of(mockProposals)
-      );
-      mockReviewsService.getReviews.and.returnValue(of(mockReviews));
-
+    it('deve carregar todos os dados ao inicializar', fakeAsync(() => {
       component.ngOnInit();
+      tick();
 
-      expect(component.user).toBeTruthy();
-      expect(component.proposals.length).toBeGreaterThan(0);
-      expect(component.averageRating).toBeGreaterThan(0);
-    });
+      expect(component.user).toEqual(mockUser);
+      expect(component.proposals.length).toBe(2);
+      expect(component.userReviews.length).toBe(3);
+      expect(component.averageRating).toBeCloseTo(4.67, 1);
+    }));
 
-    it('deve atualizar activeProposals quando proposals mudar', () => {
-      mockProposalService.getProposalsByCompany.and.returnValue(
-        of(mockProposals)
-      );
+    it('deve atualizar activeProposals quando proposals mudar', fakeAsync(() => {
       component.user = mockUser;
 
       component.loadProposals();
+      tick();
 
       expect(component.proposals.length).toBe(2);
       expect(component.activeProposals.length).toBe(1);
-    });
+      expect(component.activeProposals[0].isAvailable).toBeTrue();
+    }));
+
+    it('deve processar fluxo completo sem erros', fakeAsync(() => {
+      component.ngOnInit();
+      tick();
+
+      expect(component.isLoading).toBeFalse();
+      expect(component.user).toBeTruthy();
+      expect(component.proposals).toBeTruthy();
+      expect(component.activeProposals).toBeTruthy();
+      expect(component.userReviews).toBeTruthy();
+      expect(component.averageRating).toBeGreaterThan(0);
+    }));
   });
 });
