@@ -1,21 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
-interface Profile {
-  name?: string;
-  biography?: string;
-  userSkills: any;
-  pricePerHour?: number;
-  experienceLevel?: ExperienceLevel;
-}
-
-interface EditForm {
-  name?: string;
-  biography?: string;
-  userSkills: any;
-  pricePerHour?: number;
-  experienceLevel?: ExperienceLevel;
-}
-
 enum ExperienceLevel {
   Junior = 1,
   Pleno,
@@ -30,6 +14,32 @@ export const ExperienceYears: Record<ExperienceLevel, string> = {
   [ExperienceLevel.Especialista]: '10+ anos',
 };
 
+interface Skill {
+  skillId: number;
+  name: string;
+}
+
+interface UserSkill {
+  skillId: number;
+  name: string;
+}
+
+interface Profile {
+  name?: string;
+  biography?: string;
+  userSkills?: UserSkill[];
+  pricePerHour?: number;
+  experienceLevel?: ExperienceLevel;
+}
+
+interface EditForm {
+  name?: string;
+  biography?: string;
+  userSkills?: UserSkill[];
+  pricePerHour?: number;
+  experienceLevel?: ExperienceLevel;
+}
+
 @Component({
   selector: 'app-profile-info',
   templateUrl: './profile-info.component.html',
@@ -40,31 +50,34 @@ export class ProfileInfoComponent implements OnInit {
 
   @Input() profile: Profile | null = null;
   @Input() isEditing = false;
-  @Input() skills: any[] = [];
+  @Input() skills: Skill[] = [];
   @Input() editForm: EditForm = {
     userSkills: undefined,
   };
   @Output() updateEditForm = new EventEmitter<EditForm>();
 
   skillSearch = '';
-  filteredSkills: any[] = [];
+  filteredSkills: Skill[] = [];
 
   ngOnInit() {
     this.filteredSkills = [...this.skills];
   }
 
-  onEditFormChange(field: string, value: any): void {
+  onEditFormChange(
+    field: keyof EditForm,
+    value: string | number | UserSkill[] | ExperienceLevel
+  ): void {
     const updated = { ...this.editForm, [field]: value };
     this.updateEditForm.emit(updated);
   }
 
-  getExperienceName(level?: ExperienceLevel) {
+  getExperienceName(level?: ExperienceLevel): string {
     if (level === undefined || level === null)
       return 'Nenhuma experiência adicionada.';
     return ExperienceLevel[level];
   }
 
-  filterSkills() {
+  filterSkills(): void {
     if (!Array.isArray(this.skills)) {
       this.filteredSkills = [];
       return;
@@ -80,13 +93,21 @@ export class ProfileInfoComponent implements OnInit {
     this.filteredSkills = this.skills.filter(
       (s) =>
         s.name.toLowerCase().includes(search) &&
-        !this.editForm.userSkills?.some((us: any) => us.skillId === s.skillId)
+        !this.editForm.userSkills?.some((us) => us.skillId === s.skillId)
     );
   }
 
-  addSkill(skill: any) {
-    if (!this.editForm.userSkills) this.editForm.userSkills = [];
-    this.editForm.userSkills.push(skill);
+  addSkill(skill: Skill): void {
+    if (!this.editForm.userSkills) {
+      this.editForm.userSkills = [];
+    }
+
+    const userSkill: UserSkill = {
+      skillId: skill.skillId,
+      name: skill.name,
+    };
+
+    this.editForm.userSkills.push(userSkill);
 
     this.skillSearch = '';
     this.filteredSkills = [];
@@ -94,18 +115,24 @@ export class ProfileInfoComponent implements OnInit {
     this.updateEditForm.emit(this.editForm);
   }
 
-  removeSkill(skill: any) {
+  removeSkill(skill: UserSkill): void {
+    if (!this.editForm.userSkills) return;
+
     this.editForm.userSkills = this.editForm.userSkills.filter(
-      (s: any) => s.skillId !== skill.skillId
+      (s) => s.skillId !== skill.skillId
     );
     this.updateEditForm.emit(this.editForm);
   }
 
-  addSkillFromInput() {
+  addSkillFromInput(): void {
     if (!this.skillSearch) return;
+
     const skill = this.skills.find(
       (s) => s.name.toLowerCase() === this.skillSearch.toLowerCase()
     );
-    if (skill) this.addSkill(skill);
+
+    if (skill) {
+      this.addSkill(skill);
+    }
   }
 }
