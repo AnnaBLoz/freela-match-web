@@ -21,11 +21,13 @@ fdescribe('ReviewsComponent', () => {
   let routerMock: any;
   let currentUserSubject: BehaviorSubject<any>;
 
-  const mockUser = {
+  const mockUser: User = {
     id: 1,
-    type: 'freelancer',
+    type: 1,
     name: 'João Silva',
     email: 'joao@example.com',
+    password: null,
+    jwtToken: null,
   };
 
   const mockReviews = [
