@@ -1,3 +1,5 @@
+import { Review } from '../services/reviewsService.service';
+
 export class User {
   id: number;
   name: string;
@@ -6,10 +8,10 @@ export class User {
   lastName?: string;
   token?: string;
   email: string;
-  jwtToken: any;
+  jwtToken: string;
   type: number; // 1 para freelancer, 2 para empresa
   isAvailable?: boolean;
-  reviewsReceived?: any[] = [];
+  reviewsReceived?: Review[] = [];
   userId?: number;
   profile?: Profile;
   userSkills?: UserSkills[];
@@ -26,6 +28,7 @@ export interface Profile {
 }
 
 export interface UserSkills {
-  id: number;
-  name: string;
+  skill?: {
+    name: string;
+  };
 }

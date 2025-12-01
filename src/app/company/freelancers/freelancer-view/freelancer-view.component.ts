@@ -1,8 +1,59 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { User } from 'src/app/core/models/auth.model';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { PortfolioService } from 'src/app/core/services/portfolioService.service';
 import { UserService } from 'src/app/core/services/userService.service';
+
+interface Skill {
+  skill?: {
+    name?: string;
+  };
+}
+
+interface UserSkill {
+  skill?: {
+    name: string;
+  };
+}
+
+interface Portfolio {
+  id: number;
+  url: string;
+  title?: string;
+  description?: string;
+  createdAt?: Date;
+}
+
+interface Profile {
+  userId: number;
+  name?: string;
+  biography?: string;
+  bio?: string;
+  skills?: string[];
+  pricePerHour?: number;
+  experienceLevel?: string;
+  experience?: string;
+  profileImage?: string;
+  companyName?: string;
+  description?: string;
+  industry?: string;
+  contactPerson?: string;
+  website?: string;
+  logoUrl?: string;
+}
+
+interface UserResponse {
+  id: number;
+  userId: number;
+  name: string;
+  profile?: Profile;
+  userSkills?: UserSkill[];
+  rating?: number;
+  completedProjects?: number;
+  isAvailable?: boolean;
+}
+
 interface Freelancer {
   id: number;
   userId: number;
@@ -17,22 +68,6 @@ interface Freelancer {
   experience: string;
   portfolio: string[];
   profile?: Profile;
-}
-
-interface Profile {
-  userId: number;
-  name?: string;
-  bio?: string;
-  skills?: string[];
-  pricePerHour?: number;
-  experience?: string;
-  profileImage?: string;
-  companyName?: string;
-  description?: string;
-  industry?: string;
-  contactPerson?: string;
-  website?: string;
-  logoUrl?: string;
 }
 
 enum ExperienceLevel {
@@ -51,10 +86,10 @@ interface Review {
   createdAt: Date;
 }
 
-interface User {
-  id: number;
-  type: 'company' | 'freelancer';
+interface CompanyInfo {
+  userId: number;
   name: string;
+  logo?: string;
 }
 
 export const ExperienceYears: Record<ExperienceLevel, string> = {
@@ -89,7 +124,7 @@ export class FreelancerViewComponent implements OnInit {
 
   freelancerId: number = 0;
 
-  portfolio: any[] = [];
+  portfolio: Portfolio[] = [];
   ExperienceYears = ExperienceYears;
 
   constructor(
@@ -100,7 +135,7 @@ export class FreelancerViewComponent implements OnInit {
     private portfolioService: PortfolioService
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.freelancerId = Number(this.route.snapshot.paramMap.get('id'));
     if (!this.freelancerId) {
       this.isLoading = false;
@@ -109,16 +144,15 @@ export class FreelancerViewComponent implements OnInit {
     this.loadFreelancer();
   }
 
-  loadFreelancer() {
+  loadFreelancer(): void {
     this.userService.getUser(this.freelancerId).subscribe({
-      next: (f) => {
+      next: (f: User) => {
         this.freelancer = {
           id: f.id,
           userId: f.userId,
           name: f.name,
           bio: f.profile?.biography || 'Sem biografia disponível',
-          skills:
-            f.userSkills?.map((s: any) => s.skill?.name || `Habilidade`) || [],
+          skills: f.userSkills?.map((s: UserSkill) => s.skill?.name) || [],
           hourlyRate: f.profile?.pricePerHour || 0,
           rating: f.rating || 0,
           completedProjects: f.completedProjects || 0,
@@ -130,21 +164,21 @@ export class FreelancerViewComponent implements OnInit {
 
         this.loadPortfolio();
       },
-      error: (err) => {
+      error: (err: Error) => {
         // console.error('Erro ao carregar freelancer:', err);
         this.isLoading = false;
       },
     });
   }
 
-  loadPortfolio() {
+  loadPortfolio(): void {
     this.portfolioService.getPortfolios(this.freelancerId).subscribe({
-      next: (portfolio) => {
+      next: (portfolio: Portfolio[]) => {
         this.portfolio = portfolio;
 
         // Atualiza o portfólio dentro do freelancer
         if (this.freelancer) {
-          this.freelancer.portfolio = portfolio.map((p: any) => p.url);
+          this.freelancer.portfolio = portfolio.map((p: Portfolio) => p.url);
         }
 
         this.isLoading = false;
@@ -155,13 +189,13 @@ export class FreelancerViewComponent implements OnInit {
           this.loadSimilarFreelancers(this.freelancer.id);
         }
       },
-      error: () => {
+      error: (err: Error) => {
         this.isLoading = false;
       },
     });
   }
 
-  loadReviews(freelancerId: number) {
+  loadReviews(freelancerId: number): void {
     // Substituir por chamada real ao backend
     this.reviews = [
       {
@@ -183,7 +217,7 @@ export class FreelancerViewComponent implements OnInit {
     ];
   }
 
-  loadSimilarFreelancers(freelancerId: number) {
+  loadSimilarFreelancers(freelancerId: number): void {
     // Substituir por chamada real ao backend
     if (!this.freelancer) return;
     this.similarFreelancers = [
@@ -199,7 +233,7 @@ export class FreelancerViewComponent implements OnInit {
 
   // ---------------- METHODS ----------------
   getAvailabilityText(avail: string): string {
-    const map: { [key: string]: string } = {
+    const map: Record<string, string> = {
       available: 'Disponível',
       busy: 'Ocupado',
       unavailable: 'Indisponível',
@@ -207,8 +241,8 @@ export class FreelancerViewComponent implements OnInit {
     return map[avail] || avail;
   }
 
-  getCompanyInfo(userId: number): { name: string; logo?: string } {
-    const companies = [
+  getCompanyInfo(userId: number): CompanyInfo {
+    const companies: CompanyInfo[] = [
       {
         userId: 1,
         name: 'Tech Solutions',
@@ -225,7 +259,12 @@ export class FreelancerViewComponent implements OnInit {
         logo: 'https://via.placeholder.com/40',
       },
     ];
-    return companies.find((c) => c.userId === userId) || { name: 'Empresa' };
+    return (
+      companies.find((c: CompanyInfo) => c.userId === userId) || {
+        userId,
+        name: 'Empresa',
+      }
+    );
   }
 
   formatDate(date: Date): string {
@@ -247,7 +286,10 @@ export class FreelancerViewComponent implements OnInit {
 
   get averageRating(): number {
     if (!this.reviews.length) return this.freelancer?.rating || 0;
-    const total = this.reviews.reduce((acc, r) => acc + r.rating, 0);
+    const total = this.reviews.reduce(
+      (acc: number, r: Review) => acc + r.rating,
+      0
+    );
     return total / this.reviews.length;
   }
 
@@ -255,35 +297,35 @@ export class FreelancerViewComponent implements OnInit {
     return Math.round(value);
   }
 
-  setActiveTab(tab: 'skills' | 'portfolio' | 'reviews') {
+  setActiveTab(tab: 'skills' | 'portfolio' | 'reviews'): void {
     this.activeTab = tab;
   }
 
-  navigateToFreelancers() {
+  navigateToFreelancers(): void {
     this.router.navigate(['company/freelancers']);
   }
 
-  navigateToProfile(freelancerId: number) {
+  navigateToProfile(freelancerId: number): void {
     this.router.navigate(['company/freelancer', freelancerId]);
   }
 
-  sendMessage() {
+  sendMessage(): void {
     alert('Abrir chat ou enviar mensagem');
   }
 
-  saveProfile() {
+  saveProfile(): void {
     alert('Salvar perfil do freelancer');
   }
 
-  openReviewModal() {
+  openReviewModal(): void {
     this.showReviewModal = true;
   }
 
-  closeReviewModal() {
+  closeReviewModal(): void {
     this.showReviewModal = false;
   }
 
-  submitReview() {
+  submitReview(): void {
     if (!this.freelancer || !this.user) return;
 
     const newReview: Review = {
@@ -301,7 +343,7 @@ export class FreelancerViewComponent implements OnInit {
     this.closeReviewModal();
   }
 
-  getExperienceName(level?: ExperienceLevel) {
+  getExperienceName(level?: ExperienceLevel): string {
     if (level === undefined || level === null)
       return 'Nenhuma experiência adicionada.';
     return ExperienceLevel[level];
