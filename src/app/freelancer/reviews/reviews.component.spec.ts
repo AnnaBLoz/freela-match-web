@@ -12,6 +12,16 @@ import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 import { User } from 'src/app/core/models/auth.model';
 
+interface Freelancer {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  owner: {
+    id: number;
+  };
+}
+
 fdescribe('ReviewsComponent', () => {
   let component: ReviewsComponent;
   let fixture: ComponentFixture<ReviewsComponent>;
@@ -77,7 +87,7 @@ fdescribe('ReviewsComponent', () => {
     },
   ];
 
-  const mockFreelancers = [
+  const mockFreelancers: Freelancer[] = [
     {
       id: '10',
       name: 'Maria Santos',
