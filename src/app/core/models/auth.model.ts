@@ -10,4 +10,22 @@ export class User {
   type: number; // 1 para freelancer, 2 para empresa
   isAvailable?: boolean;
   reviewsReceived?: any[] = [];
+  userId?: number;
+  profile?: Profile;
+  userSkills?: UserSkills[];
+  rating?: number;
+  completedProjects?: number;
+}
+export interface Profile {
+  biography?: string;
+  hourlyRate?: number;
+  experience?: string;
+  portfolioUrls?: string[];
+  pricePerHour?: number;
+  experienceLevel?: string;
+}
+
+export interface UserSkills {
+  id: number;
+  name: string;
 }
