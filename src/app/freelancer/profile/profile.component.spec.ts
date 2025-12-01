@@ -5,18 +5,34 @@ import {
   tick,
 } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Observable } from 'rxjs';
 import { OffersComponent } from '../offers/offers.component';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
+
+interface Proposal {
+  id: string;
+  title: string;
+  description: string;
+  requiredSkills: string[];
+  price: number;
+  createdAt: string;
+}
+
+interface RouterMock {
+  navigate: jasmine.Spy<(commands: (string | number)[]) => Promise<boolean>>;
+}
+
+interface ProposalServiceMock {
+  getProposals: jasmine.Spy<() => Observable<Proposal[]>>;
+}
 
 fdescribe('OffersComponent', () => {
   let component: OffersComponent;
   let fixture: ComponentFixture<OffersComponent>;
+  let routerMock: RouterMock;
+  let proposalServiceMock: ProposalServiceMock;
 
-  let routerMock: any;
-  let proposalServiceMock: any;
-
-  const mockProposals = [
+  const mockProposals: Proposal[] = [
     {
       id: '1',
       title: 'Desenvolvimento Angular',
@@ -45,14 +61,16 @@ fdescribe('OffersComponent', () => {
 
   beforeEach(async () => {
     routerMock = {
-      navigate: jasmine.createSpy('navigate'),
+      navigate: jasmine
+        .createSpy<RouterMock['navigate']>('navigate')
+        .and.returnValue(Promise.resolve(true)),
     };
 
-    proposalServiceMock = jasmine.createSpyObj('ProposalService', [
-      'getProposals',
-    ]);
-
-    proposalServiceMock.getProposals.and.returnValue(of(mockProposals));
+    proposalServiceMock = {
+      getProposals: jasmine
+        .createSpy<ProposalServiceMock['getProposals']>('getProposals')
+        .and.returnValue(of(mockProposals)),
+    };
 
     await TestBed.configureTestingModule({
       declarations: [OffersComponent],

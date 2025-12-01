@@ -99,7 +99,7 @@ export class ProfileComponent implements OnInit {
   // profile: Profile | null = null;
   profile: Profile;
   portfolio: Portfolio[] = [];
-  skills: any[] = [];
+  skills: Skill[] = [];
   isLoading = true;
   isEditing = false;
   editForm: EditForm = {};
