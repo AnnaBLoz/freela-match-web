@@ -6,7 +6,13 @@ import {
   waitForAsync,
 } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of, throwError, BehaviorSubject } from 'rxjs';
+import {
+  of,
+  throwError,
+  BehaviorSubject,
+  Subscription,
+  Observable,
+} from 'rxjs';
 import { ReviewsComponent } from './reviews.component';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
@@ -14,25 +20,61 @@ import { UserService } from 'src/app/core/services/userService.service';
 import { User } from 'src/app/core/models/auth.model';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 
-interface Freelancer {
+interface Review {
   id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
+  reviewerId: number;
+  receiverId: number;
+  proposalId: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+}
+
+interface Freelancer {
   owner: {
     id: string;
     name: string;
   };
 }
 
+interface ReviewCreate {
+  reviewerId: number;
+  receiverId: string;
+  reviewText: string;
+  rating: number;
+  proposalId: number;
+}
+
+interface AuthServiceMock {
+  currentUser: Observable<User | null>;
+}
+
+interface ReviewsServiceMock {
+  getReviews: jasmine.Spy<(userId: number) => Observable<Review[]>>;
+  getCompaniesToReview: jasmine.Spy<
+    (userId: number) => Observable<Freelancer[]>
+  >;
+  createReview: jasmine.Spy<
+    (review: ReviewCreate) => Observable<{ success: boolean }>
+  >;
+}
+
+interface UserServiceMock {
+  getUser: jasmine.Spy<(userId: number) => Observable<User>>;
+}
+
+interface RouterMock {
+  navigate: jasmine.Spy<(commands: string[]) => Promise<boolean>>;
+}
+
 fdescribe('ReviewsComponent', () => {
   let component: ReviewsComponent;
   let fixture: ComponentFixture<ReviewsComponent>;
-  let authServiceMock: any;
-  let reviewsServiceMock: any;
-  let userServiceMock: any;
-  let routerMock: any;
-  let currentUserSubject: BehaviorSubject<any>;
+  let authServiceMock: AuthServiceMock;
+  let reviewsServiceMock: ReviewsServiceMock;
+  let userServiceMock: UserServiceMock;
+  let routerMock: RouterMock;
+  let currentUserSubject: BehaviorSubject<User | null>;
 
   const mockUser: User = {
     id: 1,
@@ -43,7 +85,7 @@ fdescribe('ReviewsComponent', () => {
     jwtToken: null,
   };
 
-  const mockReviews = [
+  const mockReviews: Review[] = [
     {
       id: '1',
       reviewerId: 2,
@@ -84,22 +126,15 @@ fdescribe('ReviewsComponent', () => {
 
   const mockFreelancers: Freelancer[] = [
     {
-      id: '10',
-      name: 'Maria Santos',
-      email: 'maria@example.com',
-      avatarUrl: 'https://example.com/avatar1.jpg',
       owner: { id: '10', name: 'Maria Santos' },
     },
     {
-      id: '11',
-      name: 'Pedro Costa',
-      email: 'pedro@example.com',
       owner: { id: '11', name: 'Pedro Costa' },
     },
   ];
 
   beforeEach(async () => {
-    currentUserSubject = new BehaviorSubject<User>(mockUser);
+    currentUserSubject = new BehaviorSubject<User | null>(mockUser);
 
     authServiceMock = {
       currentUser: currentUserSubject.asObservable(),
@@ -107,22 +142,28 @@ fdescribe('ReviewsComponent', () => {
 
     reviewsServiceMock = {
       getReviews: jasmine
-        .createSpy('getReviews')
+        .createSpy<ReviewsServiceMock['getReviews']>('getReviews')
         .and.returnValue(of(mockReviews)),
       getCompaniesToReview: jasmine
-        .createSpy('getCompaniesToReview')
+        .createSpy<ReviewsServiceMock['getCompaniesToReview']>(
+          'getCompaniesToReview'
+        )
         .and.returnValue(of(mockFreelancers)),
       createReview: jasmine
-        .createSpy('createReview')
+        .createSpy<ReviewsServiceMock['createReview']>('createReview')
         .and.returnValue(of({ success: true })),
     };
 
     userServiceMock = {
-      getUser: jasmine.createSpy('getUser').and.returnValue(of(mockUser)),
+      getUser: jasmine
+        .createSpy<UserServiceMock['getUser']>('getUser')
+        .and.returnValue(of(mockUser)),
     };
 
     routerMock = {
-      navigate: jasmine.createSpy('navigate'),
+      navigate: jasmine
+        .createSpy<RouterMock['navigate']>('navigate')
+        .and.returnValue(Promise.resolve(true)),
     };
 
     await TestBed.configureTestingModule({
@@ -166,15 +207,23 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   it('should handle error and redirect to home', fakeAsync(() => {
-    // Recria o subject para emitir erro
-    const errorSubject = new BehaviorSubject<User>(mockUser);
+    const errorSubject = new BehaviorSubject<User | null>(mockUser);
     authServiceMock.currentUser = errorSubject.asObservable();
 
-    // Força o erro no subscribe
-    spyOn(errorSubject, 'subscribe').and.callFake((observer: any) => {
-      observer.error(new Error('Auth error'));
-      return { unsubscribe: () => {} } as any;
-    });
+    spyOn(errorSubject, 'subscribe').and.callFake(
+      (
+        observer: Partial<{
+          next: (value: User | null) => void;
+          error: (err: Error) => void;
+          complete: () => void;
+        }>
+      ) => {
+        if (observer.error) {
+          observer.error(new Error('Auth error'));
+        }
+        return new Subscription();
+      }
+    );
 
     component.ngOnInit();
     tick();
@@ -252,7 +301,7 @@ fdescribe('ReviewsComponent', () => {
 
   it('should handle zero reviews when calculating stats', () => {
     component.reviewsReceived = [];
-    component['calculateStats']();
+    (component as unknown as { calculateStats: () => void }).calculateStats();
 
     expect(component.averageRating).toBe(0);
     expect(
@@ -378,7 +427,9 @@ fdescribe('ReviewsComponent', () => {
     tick();
 
     expect(
-      component.reviewsReceived.every((r: any) => r.receiverId === mockUser.id)
+      component.reviewsReceived.every(
+        (r: Review) => r.receiverId === mockUser.id
+      )
     ).toBeTrue();
     expect(component.reviewsReceived.length).toBe(3);
   }));
@@ -388,7 +439,7 @@ fdescribe('ReviewsComponent', () => {
     tick();
 
     expect(
-      component.reviewsGiven.every((r: any) => r.reviewerId === mockUser.id)
+      component.reviewsGiven.every((r: Review) => r.reviewerId === mockUser.id)
     ).toBeTrue();
     expect(component.reviewsGiven.length).toBe(1);
   }));
