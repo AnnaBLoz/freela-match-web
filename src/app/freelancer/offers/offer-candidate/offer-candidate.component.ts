@@ -1,12 +1,109 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
-declare var bootstrap: any;
+declare var bootstrap: Bootstrap;
+
+interface Bootstrap {
+  Modal: {
+    new (element: HTMLElement): BootstrapModal;
+    getInstance(element: HTMLElement): BootstrapModal;
+  };
+}
+
+interface BootstrapModal {
+  show(): void;
+  hide(): void;
+}
+
+interface CandidateUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface Candidate {
+  candidateId: number;
+  user: CandidateUser;
+  proposedPrice: number;
+  appliedAt: string | Date;
+  estimatedDate: string;
+  message: string;
+  status: number; // 1=pendente, 2=aceito, 3=rejeitado
+}
+
+interface Proposal {
+  proposalId: number;
+  title: string;
+  description: string;
+  price: number;
+  maxDate: string | Date;
+  isAvailable: boolean;
+  ownerId: number;
+  candidates?: Candidate[];
+}
+
+interface Freelancer {
+  id: string;
+  name: string;
+  email: string;
+  skills?: string[];
+}
+
+interface Company {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface CounterProposal {
+  counterProposalId: number;
+  proposalId: number;
+  candidateId: number;
+  freelancerId: number;
+  companyId: number;
+  proposedPrice: number;
+  estimatedDate: string;
+  message: string;
+  isSendedByCompany: boolean;
+  isAccepted: boolean;
+  company: Company;
+}
+
+interface CounterProposalForm {
+  price: number | null;
+  estimatedDate: string;
+  message: string;
+  candidateId: number | null;
+  isAccepted: boolean | null;
+}
+
+interface CounterProposalPayload {
+  proposalId: number;
+  candidateId: number;
+  proposedPrice: number | null;
+  estimatedDate: string;
+  message: string;
+  freelancerId: string;
+  companyId: number;
+  isSendedByCompany: boolean;
+  isAccepted: boolean | null;
+}
+
+interface ApproveApplication {
+  proposalId: number;
+  candidateId: number;
+}
+
+interface DisapproveApplication {
+  proposalId: number;
+  candidateId: number;
+}
 
 @Component({
   selector: 'app-offer-candidate',
@@ -17,18 +114,18 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   proposalId!: number;
-  counterProposals: any[] = [];
+  counterProposals: CounterProposal[] = [];
   isLoading = true;
-  proposal: any = null;
-  freelancers: any[] = [];
+  proposal: Proposal | null = null;
+  freelancers: Freelancer[] = [];
 
-  userId: number;
+  userId!: number;
 
-  lastCounterProposal: any = null;
+  lastCounterProposal: CounterProposal | null = null;
 
   selectedCandidateId: number | null = null;
 
-  counterProposal = {
+  counterProposal: CounterProposalForm = {
     price: null,
     estimatedDate: '',
     message: '',
@@ -64,21 +161,20 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
       freelancers: this.generalService.getFreelancers(),
     })
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: ({ proposal, freelancers }) => {
-          this.proposal = proposal;
+      .subscribe(
+        ({ proposal, freelancers }) => {
+          this.proposal = proposal[0] || null;
           this.freelancers = freelancers;
-
           this.isLoading = false;
         },
-        error: (err) => {
+        (err: Error) => {
           console.error('Erro ao carregar candidatura:', err);
           this.isLoading = false;
-        },
-      });
+        }
+      );
   }
 
-  getFreelancerById(id: string) {
+  getFreelancerById(id: string): Freelancer | undefined {
     return this.freelancers.find((f) => f.id === id);
   }
 
@@ -89,62 +185,60 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     }).format(value);
   }
 
-  formatDate(date: string): string {
+  formatDate(date: string | Date): string {
     if (!date) return '-';
     return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
   approveApplication(applicationId: number): void {
-    var application = {
+    if (!this.proposal) return;
+
+    const application: ApproveApplication = {
       proposalId: this.proposal.proposalId,
       candidateId: applicationId,
     };
+
     this.proposalService
       .approveApplication(application)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => this.loadData(),
-        error: (err) => console.error('Erro ao aprovar candidatura:', err),
-      });
+      .subscribe(
+        () => this.loadData(),
+        (err: Error) => console.error('Erro ao aprovar candidatura:', err)
+      );
   }
 
   disapproveApplication(applicationId: number): void {
-    const application = {
+    if (!this.proposal) return;
+
+    const application: DisapproveApplication = {
       proposalId: this.proposal.proposalId,
       candidateId: applicationId,
     };
+
     this.proposalService
       .disapproveApplication(application)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => this.loadData(),
-        error: (err) => console.error('Erro ao rejeitar candidatura:', err),
-      });
+      .subscribe(
+        () => this.loadData(),
+        (err: Error) => console.error('Erro ao rejeitar candidatura:', err)
+      );
   }
 
   goBack(): void {
     this.router.navigate(['/freelancer/dashboard']);
   }
 
-  // Agora não ordena — sempre haverá só 1 candidato
-  get sortedCandidates() {
+  get sortedCandidates(): Candidate[] {
     if (!this.proposal?.candidates) return [];
     return this.proposal.candidates;
   }
 
-  viewProfile(freelancerId: string) {
+  viewProfile(freelancerId: string): void {
     this.router.navigate(['/company/freelancer', freelancerId]);
   }
 
   getStatusBadgeClass(status: boolean): string {
-    switch (status) {
-      case false:
-        return 'bg-primary';
-      case true:
-        return 'bg-success';
-      default:
-        return 'bg-secondary';
-    }
+    return status ? 'bg-success' : 'bg-primary';
   }
 
   sendCounterProposal(candidateId: number): void {
@@ -159,22 +253,28 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     };
 
     const modalEl = document.getElementById('counterProposalModal');
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+    if (modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
   }
 
   confirmCounterProposal(): void {
-    if (!this.selectedCandidateId) return;
+    if (!this.selectedCandidateId || !this.proposal) return;
 
-    const payload = {
+    const candidate = this.proposal.candidates?.find(
+      (c) => c.candidateId === this.selectedCandidateId
+    );
+
+    if (!candidate) return;
+
+    const payload: CounterProposalPayload = {
       proposalId: this.proposal.proposalId,
       candidateId: this.selectedCandidateId,
       proposedPrice: this.counterProposal.price,
       estimatedDate: this.counterProposal.estimatedDate,
       message: this.counterProposal.message,
-      freelancerId: this.proposal.candidates.find(
-        (c) => c.candidateId === this.selectedCandidateId
-      )?.user.id,
+      freelancerId: candidate.user.id,
       companyId: this.proposal.ownerId,
       isSendedByCompany: false,
       isAccepted: this.counterProposal.isAccepted,
@@ -183,18 +283,21 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     this.proposalService
       .sendCounterProposal(payload)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
+      .subscribe(
+        () => {
           const modalEl = document.getElementById('counterProposalModal');
-          const modal = bootstrap.Modal.getInstance(modalEl);
-          modal.hide();
-
+          if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) {
+              modal.hide();
+            }
+          }
           this.getCounterProposals();
         },
-        error: (err) => {
+        (err: Error) => {
           console.error('Erro ao enviar contra proposta:', err);
-        },
-      });
+        }
+      );
   }
 
   getCounterProposals(): void {
@@ -203,11 +306,10 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     this.proposalService
       .getCounterProposalByProposalId(proposalId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data) => {
+      .subscribe(
+        (data) => {
           this.counterProposals = data || [];
 
-          // Agora ordena corretamente pelas mais recentes
           const list = this.getCounterProposalsFor(this.userId);
 
           if (list.length > 0) {
@@ -215,7 +317,6 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
 
             const price = this.lastCounterProposal.proposedPrice ?? 0;
 
-            // 🔥 Converte "2025-12-31T00:00:00" → "2025-12-31"
             let isoDate = '';
             if (this.lastCounterProposal.estimatedDate) {
               isoDate = this.lastCounterProposal.estimatedDate.split('T')[0];
@@ -224,7 +325,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
             if (this.lastCounterProposal.isAccepted === true) {
               this.counterProposal.isAccepted = true;
               this.counterProposal.price = price;
-              this.counterProposal.estimatedDate = isoDate; // << AGORA SETA CERTO NO INPUT
+              this.counterProposal.estimatedDate = isoDate;
             }
           } else {
             this.lastCounterProposal = null;
@@ -232,21 +333,17 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
 
           this.isLoading = false;
         },
-        error: (err) => {
+        (err: Error) => {
           console.error('Erro ao carregar proposta:', err);
           this.isLoading = false;
-        },
-      });
+        }
+      );
   }
 
-  getCounterProposalsFor(candidateId: number) {
-    return (
-      this.counterProposals
-        .filter((cp) => cp.freelancerId === candidateId)
-
-        // ORDEM CORRETA AGORA → pela ordem criada
-        .sort((a, b) => a.counterProposalId - b.counterProposalId)
-    );
+  getCounterProposalsFor(candidateId: number): CounterProposal[] {
+    return this.counterProposals
+      .filter((cp) => cp.freelancerId === candidateId)
+      .sort((a, b) => a.counterProposalId - b.counterProposalId);
   }
 
   isLastCounterProposalFromFreelancer(candidateId: number): boolean {
@@ -258,33 +355,32 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
   }
 
   loadUserData(): void {
-    this.authService.currentUser.subscribe({
-      next: (user) => {
+    this.authService.currentUser.subscribe(
+      (user: User | null) => {
         if (!user) {
           this.router.navigate(['/']);
           return;
         }
 
-        this.userService.getUser(user.id).subscribe({
-          next: (fullUser) => {
+        this.userService.getUser(user.id).subscribe(
+          (fullUser: User) => {
             this.userId = fullUser.id;
             this.loadData();
             this.getCounterProposals();
             this.isLoading = false;
           },
-          error: () => this.router.navigate(['/']),
-        });
+          () => this.router.navigate(['/'])
+        );
       },
-      error: () => this.router.navigate(['/']),
-    });
+      () => this.router.navigate(['/'])
+    );
   }
 
-  onAcceptedChange() {
-    if (this.counterProposal.isAccepted) {
-      this.counterProposal.price = this.lastCounterProposal?.proposedPrice ?? 0;
+  onAcceptedChange(): void {
+    if (this.counterProposal.isAccepted && this.lastCounterProposal) {
+      this.counterProposal.price = this.lastCounterProposal.proposedPrice ?? 0;
 
-      // 🔥 Converte corretamente para yyyy-MM-dd
-      const isoDate = this.lastCounterProposal?.estimatedDate
+      const isoDate = this.lastCounterProposal.estimatedDate
         ? this.lastCounterProposal.estimatedDate.split('T')[0]
         : '';
 
