@@ -8,24 +8,13 @@ import { Router } from '@angular/router';
 import { of, throwError, Observable } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { AuthService } from 'src/app/core/services/authService.service';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
+import {
+  Proposal,
+  ProposalService,
+} from 'src/app/core/services/proposalService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 import { User } from 'src/app/core/models/auth.model';
-
-interface Proposal {
-  id: string;
-  companyId: number;
-  title: string;
-  description: string;
-  budget: number;
-  deadline: Date;
-  requiredSkills: string[];
-  status: 'open' | 'completed' | 'closed';
-  createdAt: Date;
-  isAvailable?: boolean;
-  candidates: Application[];
-}
 
 interface Application {
   id: string;
@@ -72,46 +61,74 @@ fdescribe('DashboardComponent', () => {
 
   const mockProposals: Proposal[] = [
     {
-      id: 'prop-1',
+      proposalId: 1,
       companyId: 123,
       title: 'Desenvolvimento de App',
       description: 'App mobile para delivery',
-      budget: 5000,
-      deadline: new Date('2024-12-31'),
-      requiredSkills: ['Angular', 'TypeScript'],
-      status: 'open',
       createdAt: new Date('2024-01-01'),
+      updatedAt: new Date(),
       isAvailable: true,
+      price: 5000,
+
+      requiredSkills: [
+        { skillId: 1, name: 'Angular' },
+        { skillId: 2, name: 'TypeScript' },
+      ],
+
+      maxDate: new Date('2024-12-31'),
+      status: 1,
+
       candidates: [
         {
-          id: 'app-1',
-          freelancerId: 'freelancer-1',
-          proposedRate: 4500,
-          message: 'Tenho experiência',
-          createdAt: new Date(),
+          userId: 10,
+          proposalId: 1,
+          message: 'Tenho experiência com apps híbridos',
+          proposedPrice: 4500,
+          estimatedDate: '2024-10-20',
+          appliedAt: new Date(),
           status: 1,
+          user: {
+            id: 10,
+            name: 'Pedro Silva',
+            email: null,
+          },
         },
         {
-          id: 'app-2',
-          freelancerId: 'freelancer-2',
-          proposedRate: 4800,
-          message: 'Disponível imediatamente',
-          createdAt: new Date(),
+          userId: 11,
+          proposalId: 1,
+          message: 'Posso começar imediatamente',
+          proposedPrice: 4800,
+          estimatedDate: '2024-10-25',
+          appliedAt: new Date(),
           status: 0,
+          user: {
+            id: 11,
+            name: 'João Souza',
+            email: null,
+          },
         },
       ],
     },
+
     {
-      id: 'prop-2',
+      proposalId: 2,
       companyId: 123,
       title: 'Website Institucional',
       description: 'Site corporativo responsivo',
-      budget: 3000,
-      deadline: new Date('2024-11-30'),
-      requiredSkills: ['HTML', 'CSS', 'JavaScript'],
-      status: 'open',
       createdAt: new Date('2024-02-01'),
+      updatedAt: new Date(),
       isAvailable: false,
+      price: 3000,
+
+      requiredSkills: [
+        { skillId: 1, name: 'HTML' },
+        { skillId: 2, name: 'CSS' },
+        { skillId: 3, name: 'JavaScript' },
+      ],
+
+      maxDate: new Date('2024-11-30'),
+      status: 0,
+
       candidates: [],
     },
   ];

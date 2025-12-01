@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
@@ -13,17 +14,13 @@ interface Skill {
   name: string;
 }
 
-interface RequiredSkill {
-  skill: Skill;
-}
-
 interface Proposal {
   proposalId: number;
   title: string;
   description: string;
   price: number;
   maxDate: string | Date;
-  requiredSkills?: RequiredSkill[];
+  requiredSkills?: Skill[];
 }
 
 interface FreelancerProfile {
@@ -83,32 +80,43 @@ export class DashboardComponent implements OnInit {
   }
 
   loadUserData(): void {
+    this.isLoading = true;
+
     this.authService.currentUser.subscribe(
       (user: User | null) => {
         if (!user) {
+          this.isLoading = false;
           this.router.navigate(['/']);
           return;
         }
 
-        this.userService.getUser(user.id).subscribe(
-          (fullUser: User) => {
-            // FIX: Verificar se fullUser não é null antes de continuar
-            if (!fullUser) {
-              this.router.navigate(['/']);
-              return;
-            }
+        this.userService
+          .getUser(user.id)
+          .pipe(finalize(() => (this.isLoading = false)))
+          .subscribe({
+            next: (fullUser: User) => {
+              if (!fullUser) {
+                this.router.navigate(['/']);
+                return;
+              }
 
-            this.user = fullUser;
-            this.loadData();
-            this.loadProfile();
-            this.loadProposals();
-            this.CompletedProjects();
-            this.isLoading = false;
-          },
-          () => this.router.navigate(['/'])
-        );
+              this.user = fullUser;
+
+              // Carrega tudo apenas uma vez
+              this.loadProfile();
+              this.loadProposals();
+              this.CompletedProjects();
+              this.loadData();
+            },
+            error: () => {
+              this.router.navigate(['/']);
+            },
+          });
       },
-      () => this.router.navigate(['/'])
+      () => {
+        this.isLoading = false;
+        this.router.navigate(['/']);
+      }
     );
   }
 
@@ -130,11 +138,11 @@ export class DashboardComponent implements OnInit {
   // ======== Métodos auxiliares ========
 
   isFreelancer(): boolean {
-    return this.user?.type === 1; // 1 = freelancer
+    return this.user?.type === 1;
   }
 
   isCompany(): boolean {
-    return this.user?.type === 2; // 2 = company
+    return this.user?.type === 2;
   }
 
   getUserName(): string {
@@ -184,7 +192,6 @@ export class DashboardComponent implements OnInit {
   }
 
   formatDate(date: Date | string): string {
-    // FIX: Usar UTC para evitar problemas de timezone
     const d = new Date(date);
     return new Intl.DateTimeFormat('pt-BR', {
       timeZone: 'UTC',
@@ -222,7 +229,6 @@ export class DashboardComponent implements OnInit {
   private loadData(): void {
     if (!this.user) return;
 
-    // FIX: Definir isLoading = true ao iniciar carregamento
     this.isLoading = true;
     this.reviewsService.getReviews(this.user.id).subscribe(
       (response: Review[]) => {

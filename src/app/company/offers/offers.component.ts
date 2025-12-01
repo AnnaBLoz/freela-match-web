@@ -2,37 +2,18 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
+import {
+  ProposalService,
+  Proposal,
+  Candidate,
+} from 'src/app/core/services/proposalService.service';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
-interface Application {
-  id: string;
-  freelancerId: string;
-  proposedRate: number;
-  message: string;
-  createdAt: Date;
-  status: any;
-}
-
-interface Proposal {
-  id: string;
-  companyId: string;
-  title: string;
-  description: string;
-  budget: number;
-  deadline: Date;
-  requiredSkills: string[];
-  status: 'open' | 'completed' | 'closed';
-  createdAt: Date;
-  candidates: Application[];
-  isAvailable: boolean;
-}
-
 interface Freelancer {
-  id: string;
+  id: number;
   name: string;
   rating: number;
   skills: string[];
@@ -52,8 +33,8 @@ export class OffersComponent implements OnInit, OnDestroy {
   proposals: Proposal[] = [];
   freelancers: Freelancer[] = [];
 
-  activeProposals: any[] = [];
-  completedProposals: any[] = [];
+  activeProposals: Proposal[] = [];
+  completedProposals: Proposal[] = [];
 
   activeTab: 'active' | 'completed' | 'all' = 'active';
 
@@ -95,10 +76,10 @@ export class OffersComponent implements OnInit, OnDestroy {
             next: ({ proposals, freelancers }) => {
               this.proposals = proposals || [];
               this.freelancers = freelancers || [];
-              this.activeProposals = proposals.filter(
+              this.activeProposals = this.proposals.filter(
                 (p) => p.isAvailable === true
               );
-              this.completedProposals = proposals.filter(
+              this.completedProposals = this.proposals.filter(
                 (p) => p.isAvailable === false
               );
               this.isLoading = false;
@@ -112,12 +93,15 @@ export class OffersComponent implements OnInit, OnDestroy {
   }
 
   getTotalApplications(): number {
-    return this.proposals.reduce((total, p) => total + p.candidates.length, 0);
+    return this.proposals.reduce(
+      (total, p) => total + (p.candidates?.length || 0),
+      0
+    );
   }
 
-  approveApplication(proposalId: number, applicationId: number): void {
-    var application = {
-      candidateId: applicationId,
+  approveApplication(proposalId: number, candidateId: number): void {
+    const application = {
+      candidateId: candidateId,
       proposalId: proposalId,
     };
 
@@ -130,9 +114,9 @@ export class OffersComponent implements OnInit, OnDestroy {
       });
   }
 
-  rejectApplication(proposalId: number, applicationId: number): void {
+  rejectApplication(proposalId: number, candidateId: number): void {
     this.proposalService
-      .rejectApplication(proposalId, applicationId)
+      .rejectApplication(proposalId, candidateId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => this.reloadProposals(),
@@ -162,16 +146,19 @@ export class OffersComponent implements OnInit, OnDestroy {
   get filteredProposals(): Proposal[] {
     switch (this.activeTab) {
       case 'active':
-        return this.proposals.filter((p) => p.status === 'open');
+        return this.proposals.filter((p) => p.isAvailable === true);
       case 'completed':
-        return this.proposals.filter((p) => p.status === 'completed');
+        return this.proposals.filter((p) => p.isAvailable === false);
       default:
         return this.proposals;
     }
   }
 
   get totalApplications(): number {
-    return this.proposals.reduce((sum, p) => sum + p.candidates.length, 0);
+    return this.proposals.reduce(
+      (sum, p) => sum + (p.candidates?.length || 0),
+      0
+    );
   }
 
   setActiveTab(tab: 'active' | 'completed' | 'all'): void {
@@ -182,12 +169,12 @@ export class OffersComponent implements OnInit, OnDestroy {
     this.router.navigate(['/company/new-offer']);
   }
 
-  viewProposalDetails(id: string): void {
+  viewProposalDetails(id: number): void {
     this.router.navigate(['/company/offer', id]);
   }
 
   // ---------- Utils ----------
-  formatDate(date: Date): string {
+  formatDate(date: Date | string): string {
     return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
@@ -202,17 +189,21 @@ export class OffersComponent implements OnInit, OnDestroy {
     return text.length <= limit ? text : `${text.substring(0, limit)}...`;
   }
 
-  getStatusClass(status: string): string {
-    return (
-      {
-        open: 'bg-primary',
-        completed: 'bg-success',
-        closed: 'bg-secondary',
-      }[status] || 'bg-secondary'
-    );
+  getStatusClass(status: number): string {
+    // Ajuste conforme seus códigos de status
+    switch (status) {
+      case 1:
+        return 'bg-primary'; // open
+      case 2:
+        return 'bg-success'; // completed
+      case 3:
+        return 'bg-secondary'; // closed
+      default:
+        return 'bg-secondary';
+    }
   }
 
-  getFreelancerById(id: string): Freelancer | undefined {
+  getFreelancerById(id: number): Freelancer | undefined {
     return this.freelancers.find((f) => f.id === id);
   }
 
@@ -227,21 +218,14 @@ export class OffersComponent implements OnInit, OnDestroy {
   }
 
   getStatusBadgeClass(status: boolean): string {
-    switch (status) {
-      case false:
-        return 'bg-primary';
-      case true:
-        return 'bg-success';
-      default:
-        return 'bg-secondary';
-    }
+    return status ? 'bg-success' : 'bg-primary';
   }
 
-  viewApplications(proposalId: string): void {
+  viewApplications(proposalId: number): void {
     this.router.navigate(['/company/offer', proposalId]);
   }
 
-  getApprovedCandidate(proposal: Proposal): Application | null {
+  getApprovedCandidate(proposal: Proposal): Candidate | null {
     if (!proposal.candidates || proposal.candidates.length === 0) return null;
 
     if (!proposal.isAvailable) {

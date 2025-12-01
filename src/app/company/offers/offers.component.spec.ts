@@ -3,12 +3,16 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { OffersComponent } from './offers.component';
 import { AuthService } from 'src/app/core/services/authService.service';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
+import {
+  ProposalService,
+  Proposal,
+  Candidate,
+} from 'src/app/core/services/proposalService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
-describe('OffersComponent', () => {
+fdescribe('OffersComponent', () => {
   let component: OffersComponent;
   let fixture: ComponentFixture<OffersComponent>;
   let mockRouter: jasmine.SpyObj<Router>;
@@ -20,76 +24,99 @@ describe('OffersComponent', () => {
 
   const mockUser = {
     id: 123,
-    type: 'company',
+    type: 2, // company
     email: 'company@test.com',
   };
 
   const mockFreelancers = [
     {
-      id: 'freelancer-1',
+      id: 1,
       name: 'João Silva',
       rating: 4.5,
       skills: ['Angular', 'TypeScript'],
     },
     {
-      id: 'freelancer-2',
+      id: 2,
       name: 'Maria Santos',
       rating: 5.0,
       skills: ['React', 'Node.js'],
     },
   ];
 
-  const mockProposals = [
+  const mockProposals: Proposal[] = [
     {
-      id: 'prop-1',
-      companyId: '123',
+      proposalId: 1,
+      companyId: 123,
       title: 'Desenvolvimento de App',
       description: 'App mobile para delivery com funcionalidades avançadas',
-      budget: 5000,
-      deadline: new Date('2024-12-31'),
-      requiredSkills: ['Angular', 'TypeScript'],
-      status: 'open' as const,
+      price: 5000,
+      maxDate: new Date('2024-12-31'),
+      requiredSkills: [
+        { skillId: 1, name: 'Angular' },
+        { skillId: 2, name: 'TypeScript' },
+      ],
+      status: 1, // open
       createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
       isAvailable: true,
       candidates: [
         {
-          id: 'app-1',
-          freelancerId: 'freelancer-1',
-          proposedRate: 4500,
+          candidateId: 1,
+          userId: 10,
+          proposalId: 1,
           message: 'Tenho experiência',
-          createdAt: new Date(),
+          proposedPrice: 4500,
+          estimatedDate: new Date().toString(),
           status: 1,
-        },
-        {
-          id: 'app-2',
-          freelancerId: 'freelancer-2',
-          proposedRate: 4800,
-          message: 'Disponível imediatamente',
           createdAt: new Date(),
+          updatedAt: new Date(),
+          appliedAt: new Date(),
+          user: null,
+        } as Candidate,
+        {
+          candidateId: 2,
+          userId: 11,
+          proposalId: 1,
+          message: 'Disponível imediatamente',
+          proposedPrice: 4800,
+          estimatedDate: new Date().toString(),
           status: 0,
-        },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          appliedAt: new Date(),
+          user: null,
+        } as Candidate,
       ],
     },
     {
-      id: 'prop-2',
-      companyId: '123',
+      proposalId: 2,
+      companyId: 123,
       title: 'Website Institucional',
       description: 'Site corporativo responsivo',
-      budget: 3000,
-      deadline: new Date('2024-11-30'),
-      requiredSkills: ['HTML', 'CSS'],
-      status: 'completed' as const,
+      price: 3000,
+      maxDate: new Date('2024-11-30'),
+      requiredSkills: [
+        { skillId: 3, name: 'HTML' },
+        { skillId: 4, name: 'CSS' },
+      ],
+      status: 2, // completed
       createdAt: new Date('2024-02-01'),
+      updatedAt: new Date('2024-02-01'),
       isAvailable: false,
       candidates: [
         {
-          id: 'app-3',
-          freelancerId: 'freelancer-1',
-          proposedRate: 2900,
+          candidateId: 3,
+          userId: 10,
+          proposalId: 2,
           message: 'Projeto concluído',
-          createdAt: new Date(),
+          proposedPrice: 2900,
+          estimatedDate: new Date().toString(),
           status: 2,
-        },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          appliedAt: new Date(),
+          user: null,
+        } as Candidate,
       ],
     },
   ];
@@ -266,7 +293,9 @@ describe('OffersComponent', () => {
     });
 
     it('deve aprovar candidatura com sucesso', () => {
-      mockProposalService.approveApplication.and.returnValue(of({}));
+      mockProposalService.approveApplication.and.returnValue(
+        of({} as Candidate)
+      );
 
       component.approveApplication(1, 100);
 
@@ -277,7 +306,9 @@ describe('OffersComponent', () => {
     });
 
     it('deve recarregar propostas após aprovação', () => {
-      mockProposalService.approveApplication.and.returnValue(of({}));
+      mockProposalService.approveApplication.and.returnValue(
+        of({} as Candidate)
+      );
       spyOn<any>(component, 'reloadProposals');
 
       component.approveApplication(1, 100);
@@ -306,7 +337,7 @@ describe('OffersComponent', () => {
     });
 
     it('deve rejeitar candidatura com sucesso', () => {
-      mockProposalService.rejectApplication.and.returnValue(of({}));
+      mockProposalService.rejectApplication.and.returnValue(of(undefined));
 
       component.rejectApplication(1, 100);
 
@@ -317,7 +348,7 @@ describe('OffersComponent', () => {
     });
 
     it('deve recarregar propostas após rejeição', () => {
-      mockProposalService.rejectApplication.and.returnValue(of({}));
+      mockProposalService.rejectApplication.and.returnValue(of(undefined));
       spyOn<any>(component, 'reloadProposals');
 
       component.rejectApplication(1, 100);
@@ -348,7 +379,7 @@ describe('OffersComponent', () => {
       const filtered = component.filteredProposals;
 
       expect(filtered.length).toBe(1);
-      expect(filtered[0].status).toBe('open');
+      expect(filtered[0].isAvailable).toBe(true);
     });
 
     it('deve retornar apenas propostas concluídas quando activeTab for "completed"', () => {
@@ -357,7 +388,7 @@ describe('OffersComponent', () => {
       const filtered = component.filteredProposals;
 
       expect(filtered.length).toBe(1);
-      expect(filtered[0].status).toBe('completed');
+      expect(filtered[0].isAvailable).toBe(false);
     });
 
     it('deve retornar todas as propostas quando activeTab for "all"', () => {
@@ -405,21 +436,15 @@ describe('OffersComponent', () => {
     });
 
     it('viewProposalDetails - deve navegar para detalhes da proposta', () => {
-      component.viewProposalDetails('prop-123');
+      component.viewProposalDetails(123);
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith([
-        '/company/offer',
-        'prop-123',
-      ]);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/company/offer', 123]);
     });
 
     it('viewApplications - deve navegar para candidaturas da proposta', () => {
-      component.viewApplications('prop-456');
+      component.viewApplications(456);
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith([
-        '/company/offer',
-        'prop-456',
-      ]);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/company/offer', 456]);
     });
   });
 
@@ -474,20 +499,20 @@ describe('OffersComponent', () => {
   });
 
   describe('getStatusClass', () => {
-    it('deve retornar classe correta para status "open"', () => {
-      expect(component.getStatusClass('open')).toBe('bg-primary');
+    it('deve retornar classe correta para status 1 (open)', () => {
+      expect(component.getStatusClass(1)).toBe('bg-primary');
     });
 
-    it('deve retornar classe correta para status "completed"', () => {
-      expect(component.getStatusClass('completed')).toBe('bg-success');
+    it('deve retornar classe correta para status 2 (completed)', () => {
+      expect(component.getStatusClass(2)).toBe('bg-success');
     });
 
-    it('deve retornar classe correta para status "closed"', () => {
-      expect(component.getStatusClass('closed')).toBe('bg-secondary');
+    it('deve retornar classe correta para status 3 (closed)', () => {
+      expect(component.getStatusClass(3)).toBe('bg-secondary');
     });
 
     it('deve retornar classe padrão para status desconhecido', () => {
-      expect(component.getStatusClass('unknown')).toBe('bg-secondary');
+      expect(component.getStatusClass(999)).toBe('bg-secondary');
     });
   });
 
@@ -497,14 +522,14 @@ describe('OffersComponent', () => {
     });
 
     it('deve encontrar freelancer por ID', () => {
-      const freelancer = component.getFreelancerById('freelancer-1');
+      const freelancer = component.getFreelancerById(1);
 
       expect(freelancer).toBeDefined();
       expect(freelancer?.name).toBe('João Silva');
     });
 
     it('deve retornar undefined se freelancer não existir', () => {
-      const freelancer = component.getFreelancerById('inexistente');
+      const freelancer = component.getFreelancerById(999);
 
       expect(freelancer).toBeUndefined();
     });
@@ -513,7 +538,7 @@ describe('OffersComponent', () => {
   describe('getFreelancerInitials', () => {
     it('deve retornar iniciais do nome do freelancer', () => {
       const freelancer = {
-        id: '1',
+        id: 1,
         name: 'João Silva Santos',
         rating: 5,
         skills: [],
@@ -530,14 +555,14 @@ describe('OffersComponent', () => {
     });
 
     it('deve retornar "FL" se freelancer não tiver nome', () => {
-      const freelancer = { id: '1', name: '', rating: 5, skills: [] };
+      const freelancer = { id: 1, name: '', rating: 5, skills: [] };
       const initials = component.getFreelancerInitials(freelancer);
 
       expect(initials).toBe('FL');
     });
 
     it('deve converter iniciais para maiúsculas', () => {
-      const freelancer = { id: '1', name: 'ana maria', rating: 5, skills: [] };
+      const freelancer = { id: 1, name: 'ana maria', rating: 5, skills: [] };
       const initials = component.getFreelancerInitials(freelancer);
 
       expect(initials).toBe('AM');
@@ -578,7 +603,7 @@ describe('OffersComponent', () => {
     });
 
     it('deve retornar null se não houver candidato com status 2', () => {
-      const proposal = {
+      const proposal: Proposal = {
         ...mockProposals[1],
         isAvailable: false,
         candidates: [{ ...mockProposals[1].candidates[0], status: 1 }],

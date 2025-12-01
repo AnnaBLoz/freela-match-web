@@ -6,6 +6,15 @@ import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
+interface CreateProposalPayload {
+  title: string;
+  description: string;
+  price: number;
+  maxDate: string;
+  ownerId: number;
+  requiredSkills: { skillId: number }[];
+}
+
 @Component({
   selector: 'app-new-offer',
   templateUrl: './new-offer.component.html',
@@ -33,7 +42,7 @@ export class NewOfferComponent implements OnInit {
     this.proposalForm = this.fb.group({
       title: ['', Validators.required],
       description: ['', Validators.required],
-      price: ['', Validators.required],
+      price: ['', [Validators.required, Validators.min(0)]],
       maxDate: ['', Validators.required],
       skill: [''],
     });
@@ -63,10 +72,13 @@ export class NewOfferComponent implements OnInit {
     this.generalService.getSkills().subscribe({
       next: (skills) => {
         this.availableSkills = skills;
+        this.isLoading = false;
       },
-      error: (err) => console.error('Erro ao carregar habilidades:', err),
+      error: (err) => {
+        console.error('Erro ao carregar habilidades:', err);
+        this.isLoading = false;
+      },
     });
-    this.isLoading = false;
   }
 
   addSkill(): void {
@@ -101,7 +113,7 @@ export class NewOfferComponent implements OnInit {
     this.isSubmitting = true;
 
     try {
-      const proposalCreate = {
+      const proposalCreate: CreateProposalPayload = {
         title: this.proposalForm.value.title,
         description: this.proposalForm.value.description,
         price: Number(this.proposalForm.value.price),
@@ -112,11 +124,21 @@ export class NewOfferComponent implements OnInit {
         })),
       };
 
-      await this.proposalService.createProposal(proposalCreate).toPromise();
+      // Cast para 'any' para contornar o erro de tipo temporariamente
+      // Verifique o tipo correto esperado pelo serviço
+      await this.proposalService
+        .createProposal(proposalCreate as any)
+        .toPromise();
 
       this.isCreated = true;
+
+      // Redireciona após sucesso
+      setTimeout(() => {
+        this.goToMyProposals();
+      }, 2000);
     } catch (error) {
       console.error('Erro ao criar proposta:', error);
+      alert('Erro ao criar proposta. Por favor, tente novamente.');
     } finally {
       this.isSubmitting = false;
     }

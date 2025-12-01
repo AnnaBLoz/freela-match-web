@@ -7,16 +7,10 @@ import {
 import { Router } from '@angular/router';
 import { of, throwError, Observable } from 'rxjs';
 import { OffersComponent } from '../offers/offers.component';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
-
-interface Proposal {
-  id: string;
-  title: string;
-  description: string;
-  requiredSkills: string[];
-  price: number;
-  createdAt: string;
-}
+import {
+  Proposal,
+  ProposalService,
+} from 'src/app/core/services/proposalService.service';
 
 interface RouterMock {
   navigate: jasmine.Spy<(commands: (string | number)[]) => Promise<boolean>>;
@@ -34,28 +28,49 @@ fdescribe('OffersComponent', () => {
 
   const mockProposals: Proposal[] = [
     {
-      id: '1',
+      proposalId: 1,
+      companyId: 100,
       title: 'Desenvolvimento Angular',
       description: 'Criar componentes avançados',
-      requiredSkills: ['Angular', 'Typescript'],
+      requiredSkills: [
+        { skillId: 1, name: 'Angular' },
+        { skillId: 2, name: 'Typescript' },
+      ],
       price: 1800,
-      createdAt: '2025-01-10',
+      createdAt: new Date('2025-01-10'),
+      updatedAt: new Date('2025-01-10'),
+      isAvailable: true,
+      maxDate: new Date('2025-02-10'),
     },
     {
-      id: '2',
+      proposalId: 2,
+      companyId: 100,
       title: 'API Node',
       description: 'Desenvolvimento de API REST',
-      requiredSkills: ['Node', 'Express'],
+      requiredSkills: [
+        { skillId: 3, name: 'Node' },
+        { skillId: 4, name: 'Express' },
+      ],
       price: 3000,
-      createdAt: '2025-01-12',
+      createdAt: new Date('2025-01-12'),
+      updatedAt: new Date('2025-01-12'),
+      isAvailable: true,
+      maxDate: new Date('2025-02-12'),
     },
     {
-      id: '3',
+      proposalId: 3,
+      companyId: 100,
       title: 'Projeto Enterprise',
       description: 'Arquitetura avançada',
-      requiredSkills: ['Java', 'Microservices'],
+      requiredSkills: [
+        { skillId: 5, name: 'Java' },
+        { skillId: 6, name: 'Microservices' },
+      ],
       price: 7000,
-      createdAt: '2025-01-15',
+      createdAt: new Date('2025-01-15'),
+      updatedAt: new Date('2025-01-15'),
+      isAvailable: true,
+      maxDate: new Date('2025-02-15'),
     },
   ];
 
@@ -113,7 +128,7 @@ fdescribe('OffersComponent', () => {
   // applyFilters
   // ------------------------------------------------------------
   it('should filter by search term', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
 
     component.searchTerm = 'Angular';
     component.applyFilters();
@@ -125,17 +140,21 @@ fdescribe('OffersComponent', () => {
   });
 
   it('should filter by skill', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
 
     component.skillFilter = 'Node';
     component.applyFilters();
 
     expect(component.filteredProposals.length).toBe(1);
-    expect(component.filteredProposals[0].requiredSkills).toContain('Node');
+    expect(
+      component.filteredProposals[0].requiredSkills.some(
+        (s) => s.name === 'Node'
+      )
+    ).toBeTrue();
   });
 
   it('should filter by budget - low (< 2000)', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
 
     component.budgetFilter = 'low';
     component.applyFilters();
@@ -145,7 +164,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('should filter by budget - medium (2000 - 5000)', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
 
     component.budgetFilter = 'medium';
     component.applyFilters();
@@ -155,7 +174,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('should filter by budget - high (> 5000)', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
 
     component.budgetFilter = 'high';
     component.applyFilters();
@@ -165,7 +184,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('should combine filters', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
 
     component.searchTerm = 'API';
     component.skillFilter = 'Node';
@@ -174,7 +193,7 @@ fdescribe('OffersComponent', () => {
     component.applyFilters();
 
     expect(component.filteredProposals.length).toBe(1);
-    expect(component.filteredProposals[0].id).toBe('2');
+    expect(component.filteredProposals[0].proposalId).toBe(2);
   });
 
   // ------------------------------------------------------------

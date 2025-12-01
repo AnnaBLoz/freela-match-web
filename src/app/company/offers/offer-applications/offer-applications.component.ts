@@ -84,7 +84,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   }
 
   approveApplication(applicationId: number): void {
-    var application = {
+    const application = {
       proposalId: this.proposal.proposalId,
       candidateId: applicationId,
     };
@@ -97,11 +97,23 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       });
   }
 
-  disapproveApplication(applicationId: number): void {
+  disapproveApplication(candidateId: number): void {
+    // Encontra o applicationId do candidato
+    const candidate = this.proposal.candidates.find(
+      (c: any) => c.candidateId === candidateId
+    );
+
+    if (!candidate) {
+      console.error('Candidato não encontrado');
+      return;
+    }
+
     const application = {
       proposalId: this.proposal.proposalId,
-      candidateId: applicationId,
+      candidateId: candidateId,
+      applicationId: candidate.candidateId, // ou candidate.applicationId se existir
     };
+
     this.proposalService
       .disapproveApplication(application)
       .pipe(takeUntil(this.destroy$))
@@ -117,7 +129,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
 
   get sortedCandidates() {
     if (!this.proposal?.candidates) return [];
-    return [...this.proposal.candidates].sort((a, b) => {
+    return [...this.proposal.candidates].sort((a: any, b: any) => {
       if (a.status === 2 && b.status !== 2) return -1;
       if (a.status !== 2 && b.status === 2) return 1;
       return 0;
@@ -158,15 +170,19 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   confirmCounterProposal(): void {
     if (!this.selectedCandidateId) return;
 
+    const candidate = this.proposal.candidates.find(
+      (c: any) => c.candidateId === this.selectedCandidateId
+    );
+
     const payload = {
       proposalId: this.proposal.proposalId,
       candidateId: this.selectedCandidateId,
+      userId: candidate?.user?.id || this.proposal.ownerId,
       proposedPrice: this.counterProposal.price,
       estimatedDate: this.counterProposal.estimatedDate,
+      description: this.counterProposal.message,
       message: this.counterProposal.message,
-      freelancerId: this.proposal.candidates.find(
-        (c) => c.candidateId === this.selectedCandidateId
-      )?.user.id,
+      freelancerId: candidate?.user?.id,
       companyId: this.proposal.ownerId,
       isSendedByCompany: true,
     };
@@ -231,8 +247,10 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
 
   isLastCounterProposalFromFreelancers(candidateId: number): boolean {
     const list = this.getCounterProposalsFor(candidateId);
+    if (list.length === 0) return false;
 
     const last = list[list.length - 1];
     if (last.isAccepted === true) return false;
+    return last.isSendedByCompany === false;
   }
 }

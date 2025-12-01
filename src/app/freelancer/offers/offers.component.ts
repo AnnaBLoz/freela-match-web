@@ -5,12 +5,17 @@ import { ProposalService } from 'src/app/core/services/proposalService.service';
 type BudgetFilter = 'all' | 'low' | 'medium' | 'high';
 
 interface Proposal {
-  id: string;
+  proposalId: number;
   title: string;
   description: string;
-  requiredSkills?: string[];
+  requiredSkills: Skill[];
   price: number;
   createdAt: string | Date;
+}
+
+interface Skill {
+  skillId: number;
+  name: string;
 }
 
 @Component({
@@ -79,8 +84,8 @@ export class OffersComponent implements OnInit {
 
       const matchesSkill =
         this.skillFilter === '' ||
-        proposal.requiredSkills?.some((skill: string) =>
-          skill.toLowerCase().includes(this.skillFilter.toLowerCase())
+        proposal.requiredSkills?.some((skill: Skill) =>
+          skill.name.toLowerCase().includes(this.skillFilter.toLowerCase())
         ) ||
         false;
 

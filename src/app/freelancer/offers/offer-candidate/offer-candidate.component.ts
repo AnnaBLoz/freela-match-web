@@ -22,13 +22,13 @@ interface BootstrapModal {
 }
 
 interface CandidateUser {
-  id: string;
+  id: number;
   name: string;
   email: string;
 }
 
 interface Candidate {
-  candidateId: number;
+  userId: number;
   user: CandidateUser;
   proposedPrice: number;
   appliedAt: string | Date;
@@ -44,7 +44,7 @@ interface Proposal {
   price: number;
   maxDate: string | Date;
   isAvailable: boolean;
-  ownerId: number;
+  ownerId?: number;
   candidates?: Candidate[];
 }
 
@@ -85,14 +85,15 @@ interface CounterProposalForm {
 
 interface CounterProposalPayload {
   proposalId: number;
-  candidateId: number;
+  userId: number;
   proposedPrice: number | null;
   estimatedDate: string;
   message: string;
-  freelancerId: string;
+  freelancerId: number;
   companyId: number;
   isSendedByCompany: boolean;
   isAccepted: boolean | null;
+  description: string;
 }
 
 interface ApproveApplication {
@@ -101,6 +102,7 @@ interface ApproveApplication {
 }
 
 interface DisapproveApplication {
+  applicationId: number;
   proposalId: number;
   candidateId: number;
 }
@@ -213,6 +215,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     const application: DisapproveApplication = {
       proposalId: this.proposal.proposalId,
       candidateId: applicationId,
+      applicationId: applicationId,
     };
 
     this.proposalService
@@ -263,14 +266,14 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
     if (!this.selectedCandidateId || !this.proposal) return;
 
     const candidate = this.proposal.candidates?.find(
-      (c) => c.candidateId === this.selectedCandidateId
+      (c) => c.userId === this.selectedCandidateId
     );
 
     if (!candidate) return;
 
     const payload: CounterProposalPayload = {
       proposalId: this.proposal.proposalId,
-      candidateId: this.selectedCandidateId,
+      userId: this.selectedCandidateId,
       proposedPrice: this.counterProposal.price,
       estimatedDate: this.counterProposal.estimatedDate,
       message: this.counterProposal.message,
@@ -278,6 +281,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
       companyId: this.proposal.ownerId,
       isSendedByCompany: false,
       isAccepted: this.counterProposal.isAccepted,
+      description: this.proposal.description,
     };
 
     this.proposalService

@@ -7,30 +7,13 @@ import {
 import { OffersComponent } from './offers.component';
 import { Router } from '@angular/router';
 import { of, throwError, Observable } from 'rxjs';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
-
-// Interface do componente (como deveria ser)
-interface ComponentProposal {
-  id: string;
-  title: string;
-  description: string;
-  requiredSkills?: string[];
-  price: number;
-  createdAt: string | Date;
-}
-
-// Interface dos mocks de teste
-interface MockProposal {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  requiredSkills: string[];
-  maxDate: string;
-}
+import {
+  Proposal,
+  ProposalService,
+} from 'src/app/core/services/proposalService.service';
 
 interface ProposalServiceMock {
-  getProposals: jasmine.Spy<() => Observable<ComponentProposal[]>>;
+  getProposals: jasmine.Spy<() => Observable<Proposal[]>>;
 }
 
 interface RouterMock {
@@ -43,42 +26,53 @@ fdescribe('OffersComponent', () => {
   let proposalServiceMock: ProposalServiceMock;
   let routerMock: RouterMock;
 
-  const mockProposalsData: MockProposal[] = [
+  const mockProposals: Proposal[] = [
     {
-      id: 1,
+      proposalId: 1,
+      companyId: 100,
       title: 'Site profissional',
       description: 'Criação de site em Angular',
       price: 1500,
-      requiredSkills: ['angular', 'frontend'],
-      maxDate: '2024-10-01',
+      requiredSkills: [
+        { skillId: 1, name: 'angular' },
+        { skillId: 2, name: 'frontend' },
+      ],
+      createdAt: new Date('2024-10-01'),
+      updatedAt: new Date('2024-10-01'),
+      isAvailable: true,
+      maxDate: new Date('2024-10-01'),
     },
     {
-      id: 2,
+      proposalId: 2,
+      companyId: 100,
       title: 'API em .NET',
       description: 'Desenvolver API REST',
       price: 4500,
-      requiredSkills: ['c#', 'api'],
-      maxDate: '2024-11-10',
+      requiredSkills: [
+        { skillId: 3, name: 'c#' },
+        { skillId: 4, name: 'api' },
+      ],
+      createdAt: new Date('2024-11-10'),
+      updatedAt: new Date('2024-11-10'),
+      isAvailable: true,
+      maxDate: new Date('2024-11-10'),
     },
     {
-      id: 3,
+      proposalId: 3,
+      companyId: 100,
       title: 'Sistema avançado',
       description: 'Projeto complexo',
       price: 8000,
-      requiredSkills: ['arquitetura', 'fullstack'],
-      maxDate: '2024-12-01',
+      requiredSkills: [
+        { skillId: 5, name: 'arquitetura' },
+        { skillId: 6, name: 'fullstack' },
+      ],
+      createdAt: new Date('2024-12-01'),
+      updatedAt: new Date('2024-12-01'),
+      isAvailable: true,
+      maxDate: new Date('2024-12-01'),
     },
   ];
-
-  // Converte para o formato esperado pelo componente
-  const mockProposals: ComponentProposal[] = mockProposalsData.map((p) => ({
-    id: String(p.id),
-    title: p.title,
-    description: p.description,
-    price: p.price,
-    requiredSkills: p.requiredSkills,
-    createdAt: p.maxDate,
-  }));
 
   beforeEach(async () => {
     proposalServiceMock = {
@@ -129,7 +123,7 @@ fdescribe('OffersComponent', () => {
   // Filtros
   // -----------------------------------------------------
   it('deve filtrar por termo de busca', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
     component.searchTerm = 'API';
     component.applyFilters();
     expect(component.filteredProposals.length).toBe(1);
@@ -137,7 +131,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('deve filtrar por skill', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
     component.skillFilter = 'angular';
     component.applyFilters();
     expect(component.filteredProposals.length).toBe(1);
@@ -145,7 +139,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('deve filtrar por budget: low (< 2000)', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
     component.budgetFilter = 'low';
     component.applyFilters();
     expect(component.filteredProposals.length).toBe(1);
@@ -153,7 +147,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('deve filtrar por budget: medium (2000–5000)', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
     component.budgetFilter = 'medium';
     component.applyFilters();
     expect(component.filteredProposals.length).toBe(1);
@@ -161,7 +155,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('deve filtrar por budget: high (> 5000)', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
     component.budgetFilter = 'high';
     component.applyFilters();
     expect(component.filteredProposals.length).toBe(1);
@@ -169,7 +163,7 @@ fdescribe('OffersComponent', () => {
   });
 
   it('deve limpar filtros corretamente', () => {
-    component.proposals = mockProposals;
+    component.proposals = [...mockProposals];
     component.searchTerm = 'API';
     component.skillFilter = 'angular';
     component.budgetFilter = 'low';

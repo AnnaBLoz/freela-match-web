@@ -12,8 +12,6 @@ import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 
-type ProposalStatus = 'open' | 'closed';
-
 interface Candidate {
   userId: number;
   proposalId: number;
@@ -27,17 +25,15 @@ interface Proposal {
   proposalId: number;
   title: string;
   description: string;
-  budget: number;
-  deadline: Date | string;
-  requiredSkills: string[];
-  status: ProposalStatus;
+  requiredSkills: { skillId: number; name: string }[];
+  status?: number;
   createdAt: Date | string;
-  applications: Candidate[];
-  candidates: Candidate[];
+  applications?: Candidate[];
+  candidates?: Candidate[];
   isAvailable: boolean;
   maxDate: Date;
   price: number;
-  createdDate: string | Date;
+  createdDate?: string | Date;
 }
 
 interface Company {
@@ -57,7 +53,7 @@ interface ApplicationFormValue {
 }
 
 interface CandidateResponse {
-  success: boolean;
+  success?: boolean;
   candidateId?: number;
   message?: string;
 }
