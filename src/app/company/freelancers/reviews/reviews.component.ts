@@ -12,8 +12,8 @@ interface User {
 }
 
 interface Profile {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   name: string;
   email: string;
   skills: string[];
@@ -21,10 +21,10 @@ interface Profile {
 }
 
 interface Review {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
-  proposalId: string;
+  id: number;
+  fromUserId: number;
+  toUserId: number;
+  proposalId: number;
   rating: number;
   comment: string;
   createdAt: Date;
@@ -37,10 +37,9 @@ interface RatingDistribution {
 }
 
 interface Freelancer {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  avatarUrl?: string;
 }
 
 @Component({
