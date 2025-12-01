@@ -10,6 +10,7 @@ import { ReviewsComponent } from './reviews.component';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
+import { User } from 'src/app/core/models/auth.model';
 
 fdescribe('ReviewsComponent', () => {
   let component: ReviewsComponent;
@@ -91,7 +92,7 @@ fdescribe('ReviewsComponent', () => {
   ];
 
   beforeEach(async () => {
-    currentUserSubject = new BehaviorSubject<any>(mockUser);
+    currentUserSubject = new BehaviorSubject<User>(mockUser);
 
     authServiceMock = {
       currentUser: currentUserSubject.asObservable(),
@@ -153,7 +154,7 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   it('should handle error and redirect to home', fakeAsync(() => {
-    currentUserSubject = new BehaviorSubject<any>(null);
+    currentUserSubject = new BehaviorSubject<User>(null);
     authServiceMock.currentUser = throwError(() => new Error('Auth error'));
 
     component.ngOnInit();

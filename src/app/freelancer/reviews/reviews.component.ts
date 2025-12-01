@@ -1,16 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router'; // cuidado: estava importando de 'express' 🚨
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
-
-interface User {
-  id: number;
-  type: 'freelancer' | 'client';
-  name: string;
-  email: string;
-}
-
 interface Profile {
   id: string;
   userId: string;
@@ -37,19 +30,20 @@ interface RatingDistribution {
 }
 
 interface Freelancer {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
+  owner: Company;
 }
 
+interface Company {
+  id: string;
+  name: string;
+}
 @Component({
   selector: 'app-reviews',
   templateUrl: './reviews.component.html',
   styleUrls: ['./reviews.component.css'],
 })
 export class ReviewsComponent implements OnInit {
-  user: any | null = null;
+  user: User | null = null;
   profile: Profile | null = null;
   isLoading = true;
 
@@ -181,7 +175,10 @@ export class ReviewsComponent implements OnInit {
     this.newReview.rating = star;
   }
 
-  async submitReview(freelancer: any, proposalId: number): Promise<void> {
+  async submitReview(
+    freelancer: Freelancer,
+    proposalId: number
+  ): Promise<void> {
     try {
       const reviewCreate = {
         reviewerId: this.user.id,
