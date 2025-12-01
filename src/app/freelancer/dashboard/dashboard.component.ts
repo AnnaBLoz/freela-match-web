@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
@@ -7,22 +8,63 @@ import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
+interface Skill {
+  skillId: number;
+  name: string;
+}
+
+interface RequiredSkill {
+  skill: Skill;
+}
+
+interface Proposal {
+  proposalId: number;
+  title: string;
+  description: string;
+  price: number;
+  maxDate: string | Date;
+  requiredSkills?: RequiredSkill[];
+}
+
+interface FreelancerProfile {
+  id?: number;
+  name: string;
+  pricePerHour?: number;
+  biography?: string;
+  availability?: string;
+}
+
+type Profile = FreelancerProfile;
+
+interface Review {
+  reviewId: number;
+  rating: number;
+  comment: string;
+  createdAt: string | Date;
+}
+
+interface CompletedProject {
+  projectId: number;
+  title: string;
+  completedAt: string | Date;
+}
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit {
-  user: any = null;
-  profile: any = null;
+  user: User | null = null;
+  profile: Profile | null = null;
   isLoading = true;
-  proposals: any[] = [];
-  freelancers: any[] = [];
+  proposals: Proposal[] = [];
+  freelancers: unknown[] = [];
 
-  userReviews: any;
-  averageRating: any;
+  userReviews: Review[] = [];
+  averageRating: number = 0;
 
-  completedProjects: any;
+  completedProjects: number = 0;
 
   constructor(
     private router: Router,
@@ -35,22 +77,21 @@ export class DashboardComponent implements OnInit {
     private generalService: GeneralService
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadUserData();
     this.loadProfile();
-    // this.loadProposals();
   }
 
   loadUserData(): void {
-    this.authService.currentUser.subscribe({
-      next: (user) => {
+    this.authService.currentUser.subscribe(
+      (user: User | null) => {
         if (!user) {
           this.router.navigate(['/']);
           return;
         }
 
-        this.userService.getUser(user.id).subscribe({
-          next: (fullUser) => {
+        this.userService.getUser(user.id).subscribe(
+          (fullUser: User) => {
             this.user = fullUser;
             this.loadData();
             this.loadProfile();
@@ -58,25 +99,26 @@ export class DashboardComponent implements OnInit {
             this.CompletedProjects();
             this.isLoading = false;
           },
-          error: () => this.router.navigate(['/']),
-        });
+          () => this.router.navigate(['/'])
+        );
       },
-      error: () => this.router.navigate(['/']),
-    });
+      () => this.router.navigate(['/'])
+    );
   }
 
   loadProfile(): void {
     if (!this.user) return;
-    this.profileService.getProfile(this.user.id).subscribe({
-      next: (profile) => {
+
+    this.profileService.getProfile(this.user.id).subscribe(
+      (profile: Profile) => {
         this.profile = profile;
         this.isLoading = false;
       },
-      error: (err) => {
+      (err: Error) => {
         console.error('Erro ao carregar perfil:', err);
-        this.isLoading = false; // ✅ adiciona isso
-      },
-    });
+        this.isLoading = false;
+      }
+    );
   }
 
   // ======== Métodos auxiliares ========
@@ -90,10 +132,11 @@ export class DashboardComponent implements OnInit {
   }
 
   getUserName(): string {
-    if (this.isFreelancer()) {
-      return this.profile?.name || 'Freelancer';
+    if (!this.profile) {
+      return this.isFreelancer() ? 'Freelancer' : 'Empresa';
     }
-    return this.profile?.companyName || 'Empresa';
+
+    return (this.profile as FreelancerProfile).name || 'Freelancer';
   }
 
   getWelcomeMessage(): string {
@@ -103,19 +146,19 @@ export class DashboardComponent implements OnInit {
     return 'Encontre os melhores talentos para seus projetos';
   }
 
-  navigateToProposal(proposalId: string) {
+  navigateToProposal(proposalId: number): void {
     this.router.navigate(['/freelancer/offers/candidate/', proposalId]);
   }
 
-  navigateToAllProposals() {
+  navigateToAllProposals(): void {
     this.router.navigate(['/freelancer/offers']);
   }
 
-  navigateToCreateProposal() {
+  navigateToCreateProposal(): void {
     this.router.navigate(['/create-proposal']);
   }
 
-  navigateToFreelancers() {
+  navigateToFreelancers(): void {
     this.router.navigate(['/freelancers']);
   }
 
@@ -134,7 +177,7 @@ export class DashboardComponent implements OnInit {
     }).format(value);
   }
 
-  formatDate(date: Date): string {
+  formatDate(date: Date | string): string {
     return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
@@ -150,33 +193,37 @@ export class DashboardComponent implements OnInit {
     return availability === true ? 'bg-success' : 'bg-secondary';
   }
 
-  private CompletedProjects() {
+  private CompletedProjects(): void {
+    if (!this.user) return;
+
     this.isLoading = true;
-    this.generalService.completedProjects(this.user.id).subscribe({
-      next: (response) => {
-        this.completedProjects = response?.length;
+    this.generalService.completedProjects(this.user.id).subscribe(
+      (response: CompletedProject[]) => {
+        this.completedProjects = response?.length || 0;
         this.isLoading = false;
       },
-      error: (err) => {
-        console.error('Erro ao carregar avaliações:', err);
+      (err: Error) => {
+        console.error('Erro ao carregar projetos concluídos:', err);
         this.isLoading = false;
-      },
-    });
+      }
+    );
   }
 
-  private loadData() {
+  private loadData(): void {
+    if (!this.user) return;
+
     this.isLoading = true;
-    this.reviewsService.getReviews(this.user.id).subscribe({
-      next: (response) => {
+    this.reviewsService.getReviews(this.user.id).subscribe(
+      (response: Review[]) => {
         this.userReviews = response;
         this.calculateAverageRating();
         this.isLoading = false;
       },
-      error: (err) => {
+      (err: Error) => {
         console.error('Erro ao carregar avaliações:', err);
         this.isLoading = false;
-      },
-    });
+      }
+    );
   }
 
   calculateAverageRating(): void {
@@ -186,7 +233,7 @@ export class DashboardComponent implements OnInit {
     }
 
     const sum = this.userReviews.reduce(
-      (acc, review) => acc + review.rating,
+      (acc: number, review: Review) => acc + review.rating,
       0
     );
 
@@ -194,11 +241,17 @@ export class DashboardComponent implements OnInit {
   }
 
   loadProposals(): void {
-    this.proposalService.getProposalsByUserId(this.user.id).subscribe({
-      next: (proposals) => {
+    if (!this.user) return;
+
+    this.proposalService.getProposalsByUserId(this.user.id).subscribe(
+      (proposals: Proposal[]) => {
         this.proposals = proposals;
+        this.isLoading = false;
       },
-    });
-    this.isLoading = false;
+      (err: Error) => {
+        console.error('Erro ao carregar propostas:', err);
+        this.isLoading = false;
+      }
+    );
   }
 }

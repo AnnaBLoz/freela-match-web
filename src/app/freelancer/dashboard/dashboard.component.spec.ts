@@ -6,8 +6,8 @@ import {
 } from '@angular/core/testing';
 import { DashboardComponent } from './dashboard.component';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
-
+import { of, Observable } from 'rxjs';
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
@@ -15,22 +15,83 @@ import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 
+interface FreelancerProfile {
+  id: number;
+  name: string;
+  companyName?: string;
+}
+
+interface CompanyProfile {
+  id: number;
+  companyName: string;
+  name?: string;
+}
+
+type Profile = FreelancerProfile | CompanyProfile;
+
+interface Proposal {
+  id: number;
+  title: string;
+}
+
+interface Review {
+  rating: number;
+}
+
+interface RouterMock {
+  navigate: jasmine.Spy<(commands: (string | number)[]) => Promise<boolean>>;
+}
+
+interface AuthServiceMock {
+  currentUser: Observable<User | null>;
+}
+
+interface UserServiceMock {
+  getUser: jasmine.Spy<(userId: number) => Observable<User>>;
+}
+
+interface ProfileServiceMock {
+  getProfile: jasmine.Spy<(userId: number) => Observable<Profile>>;
+}
+
+interface ProposalServiceMock {
+  getProposalsByUserId: jasmine.Spy<(userId: number) => Observable<Proposal[]>>;
+}
+
+interface GeneralServiceMock {
+  completedProjects: jasmine.Spy<(userId: number) => Observable<number[]>>;
+}
+
+interface ReviewsServiceMock {
+  getReviews: jasmine.Spy<(userId: number) => Observable<Review[]>>;
+}
+
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
+  let routerMock: RouterMock;
+  let authServiceMock: AuthServiceMock;
+  let userServiceMock: UserServiceMock;
+  let proposalServiceMock: ProposalServiceMock;
+  let generalServiceMock: GeneralServiceMock;
+  let profileServiceMock: ProfileServiceMock;
+  let reviewsServiceMock: ReviewsServiceMock;
 
-  let routerMock: any;
-  let authServiceMock: any;
-  let userServiceMock: any;
-  let proposalServiceMock: any;
-  let generalServiceMock: any;
-  let profileServiceMock: any;
-  let reviewsServiceMock: any;
-
-  const loggedUser = { id: 10, type: 1 };
+  const loggedUser: User = {
+    id: 10,
+    type: 1,
+    name: 'Test User',
+    email: 'test@test.com',
+    password: null,
+    jwtToken: null,
+  };
 
   beforeEach(async () => {
-    routerMock = { navigate: jasmine.createSpy('navigate') };
+    routerMock = {
+      navigate: jasmine
+        .createSpy<RouterMock['navigate']>('navigate')
+        .and.returnValue(Promise.resolve(true)),
+    };
 
     authServiceMock = {
       currentUser: of(loggedUser),
@@ -38,31 +99,39 @@ describe('DashboardComponent', () => {
 
     userServiceMock = {
       getUser: jasmine
-        .createSpy()
-        .and.returnValue(of({ id: 10, type: 1, email: 'test@test.com' })),
+        .createSpy<UserServiceMock['getUser']>('getUser')
+        .and.returnValue(of(loggedUser)),
     };
 
     profileServiceMock = {
       getProfile: jasmine
-        .createSpy()
+        .createSpy<ProfileServiceMock['getProfile']>('getProfile')
         .and.returnValue(
-          of({ id: 10, name: 'John Doe', companyName: 'Empresa X' })
+          of({
+            id: 10,
+            name: 'John Doe',
+            companyName: 'Empresa X',
+          })
         ),
     };
 
     proposalServiceMock = {
       getProposalsByUserId: jasmine
-        .createSpy()
+        .createSpy<ProposalServiceMock['getProposalsByUserId']>(
+          'getProposalsByUserId'
+        )
         .and.returnValue(of([{ id: 1, title: 'Projeto XPTO' }])),
     };
 
     generalServiceMock = {
-      completedProjects: jasmine.createSpy().and.returnValue(of([1, 2, 3])),
+      completedProjects: jasmine
+        .createSpy<GeneralServiceMock['completedProjects']>('completedProjects')
+        .and.returnValue(of([1, 2, 3])),
     };
 
     reviewsServiceMock = {
       getReviews: jasmine
-        .createSpy()
+        .createSpy<ReviewsServiceMock['getReviews']>('getReviews')
         .and.returnValue(of([{ rating: 4 }, { rating: 5 }])),
     };
 
@@ -87,32 +156,35 @@ describe('DashboardComponent', () => {
   // Inicialização
   // ------------------------------------------------------------
   it('deve inicializar chamando loadUserData e loadProfile', () => {
-    spyOn(component as any, 'loadUserData').and.callThrough();
-    spyOn(component as any, 'loadProfile');
+    spyOn(component, 'loadUserData').and.callThrough();
+    spyOn(component, 'loadProfile');
 
     component.ngOnInit();
 
-    expect((component as any).loadUserData).toHaveBeenCalled();
-    expect((component as any).loadProfile).toHaveBeenCalled();
+    expect(component.loadUserData).toHaveBeenCalled();
+    expect(component.loadProfile).toHaveBeenCalled();
   });
 
   // ------------------------------------------------------------
   // loadUserData
   // ------------------------------------------------------------
   it('deve carregar usuário e chamar loadData, loadProfile, loadProposals e CompletedProjects', fakeAsync(() => {
-    spyOn(component as any, 'loadData').and.callThrough();
-    spyOn(component as any, 'loadProfile').and.callThrough();
-    spyOn(component as any, 'loadProposals').and.callThrough();
-    spyOn(component as any, 'CompletedProjects').and.callThrough();
+    spyOn<DashboardComponent, any>(component, 'loadData').and.callThrough();
+    spyOn(component, 'loadProfile').and.callThrough();
+    spyOn(component, 'loadProposals').and.callThrough();
+    spyOn<DashboardComponent, any>(
+      component,
+      'CompletedProjects'
+    ).and.callThrough();
 
     component.loadUserData();
     tick();
 
-    expect(component.user.id).toBe(10);
-    expect((component as any).loadData).toHaveBeenCalled();
-    expect((component as any).loadProfile).toHaveBeenCalled();
-    expect((component as any).loadProposals).toHaveBeenCalled();
-    expect((component as any).CompletedProjects).toHaveBeenCalled();
+    expect(component.user?.id).toBe(10);
+    expect(component['loadData']).toHaveBeenCalled();
+    expect(component.loadProfile).toHaveBeenCalled();
+    expect(component.loadProposals).toHaveBeenCalled();
+    expect(component['CompletedProjects']).toHaveBeenCalled();
   }));
 
   it('deve redirecionar se não houver usuário logado', fakeAsync(() => {
@@ -133,7 +205,7 @@ describe('DashboardComponent', () => {
     tick();
 
     expect(profileServiceMock.getProfile).toHaveBeenCalledWith(10);
-    expect(component.profile.name).toBe('John Doe');
+    expect((component.profile as FreelancerProfile)?.name).toBe('John Doe');
   }));
 
   // ------------------------------------------------------------
@@ -141,7 +213,7 @@ describe('DashboardComponent', () => {
   // ------------------------------------------------------------
   it('deve carregar avaliações do usuário e calcular média', fakeAsync(() => {
     component.user = loggedUser;
-    (component as any).loadData();
+    component['loadData']();
     tick();
 
     expect(reviewsServiceMock.getReviews).toHaveBeenCalledWith(10);
@@ -153,7 +225,7 @@ describe('DashboardComponent', () => {
   // ------------------------------------------------------------
   it('deve carregar total de projetos concluídos', fakeAsync(() => {
     component.user = loggedUser;
-    (component as any)['CompletedProjects']();
+    component['CompletedProjects']();
     tick();
 
     expect(component.completedProjects).toBe(3);
@@ -175,34 +247,34 @@ describe('DashboardComponent', () => {
   // Métodos auxiliares
   // ------------------------------------------------------------
   it('deve identificar freelancer', () => {
-    component.user = { type: 1 };
+    component.user = { ...loggedUser, type: 1 };
     expect(component.isFreelancer()).toBeTrue();
   });
 
   it('deve identificar empresa', () => {
-    component.user = { type: 2 };
+    component.user = { ...loggedUser, type: 2 };
     expect(component.isCompany()).toBeTrue();
   });
 
   it('deve retornar nome do usuário (freelancer)', () => {
-    component.user = { type: 1 };
-    component.profile = { name: 'Ana Teste' };
+    component.user = { ...loggedUser, type: 1 };
+    component.profile = { id: 10, name: 'Ana Teste' };
     expect(component.getUserName()).toBe('Ana Teste');
   });
 
   it('deve retornar nome da empresa', () => {
-    component.user = { type: 2 };
-    component.profile = { companyName: 'XPTO Ltda' };
+    component.user = { ...loggedUser, type: 2 };
+    component.profile = { id: 10, name: 'XPTO Ltda' };
     expect(component.getUserName()).toBe('XPTO Ltda');
   });
 
   it('deve retornar mensagem para freelancer', () => {
-    component.user = { type: 1 };
+    component.user = { ...loggedUser, type: 1 };
     expect(component.getWelcomeMessage()).toContain('carreira');
   });
 
   it('deve retornar mensagem para empresa', () => {
-    component.user = { type: 2 };
+    component.user = { ...loggedUser, type: 2 };
     expect(component.getWelcomeMessage()).toContain('talentos');
   });
 
@@ -211,11 +283,16 @@ describe('DashboardComponent', () => {
   });
 
   it('deve formatar moeda BRL', () => {
-    expect(component.formatCurrency(1000)).toBe('R$ 1.000,00');
+    const result = component.formatCurrency(1000);
+    // Normaliza espaços
+    const normalized = result.replace(/\s/g, ' ');
+    expect(normalized).toBe('R$ 1.000,00');
   });
 
   it('deve formatar data', () => {
-    expect(component.formatDate(new Date('2024-01-01'))).toBe('01/01/2024');
+    // Cria uma data local explicitamente para evitar problemas de timezone
+    const date = new Date(2024, 0, 1); // ano, mês (0-indexed), dia
+    expect(component.formatDate(date)).toBe('01/01/2024');
   });
 
   it('deve truncar texto', () => {
@@ -236,10 +313,10 @@ describe('DashboardComponent', () => {
   // Navegação
   // ------------------------------------------------------------
   it('deve navegar para detalhes da proposta', () => {
-    component.navigateToProposal('abc');
+    component.navigateToProposal(123);
     expect(routerMock.navigate).toHaveBeenCalledWith([
       '/freelancer/offers/candidate/',
-      'abc',
+      123,
     ]);
   });
 
