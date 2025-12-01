@@ -15,8 +15,8 @@ interface Profile {
 
 interface Review {
   id: string;
-  fromUserId: string;
-  toUserId: string;
+  reviewerId: number;
+  receiverId: number;
   proposalId: string;
   rating: number;
   comment: string;
