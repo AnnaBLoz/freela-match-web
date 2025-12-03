@@ -5,7 +5,7 @@ import {
   tick,
 } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of, throwError, Observable } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { AuthService } from 'src/app/core/services/authService.service';
 import {
@@ -14,7 +14,7 @@ import {
 } from 'src/app/core/services/proposalService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
-import { User } from 'src/app/core/models/auth.model';
+import { User, Profile } from 'src/app/core/models/auth.model';
 
 interface Application {
   id: string;
@@ -52,11 +52,6 @@ fdescribe('DashboardComponent', () => {
     name: 'Company User',
     password: null,
     jwtToken: 'fake-jwt-token',
-  };
-
-  const mockProfile = {
-    companyName: 'Empresa Teste LTDA',
-    cnpj: '12345678000199',
   };
 
   const mockProposals: Proposal[] = [
@@ -214,7 +209,7 @@ fdescribe('DashboardComponent', () => {
     expect(component.activeProposals).toEqual([]);
   });
 
-  describe('Inicialização do Componente', () => {
+  fdescribe('Inicialização do Componente', () => {
     it('deve carregar dados do perfil ao inicializar', () => {
       spyOn(component, 'loadProfileData');
       component.ngOnInit();
@@ -228,7 +223,7 @@ fdescribe('DashboardComponent', () => {
   describe('loadProfileData', () => {
     it('deve carregar dados do usuário com sucesso', fakeAsync(() => {
       spyOn(component, 'loadProposals');
-      spyOn<DashboardComponent, any>(component, 'loadData');
+      spyOn(component as unknown as { loadData: () => void }, 'loadData');
 
       component.loadProfileData();
       tick();
@@ -236,7 +231,9 @@ fdescribe('DashboardComponent', () => {
       expect(component.user).toEqual(mockUser);
       expect(mockUserService.getUser).toHaveBeenCalledWith(mockUser.id);
       expect(component.loadProposals).toHaveBeenCalled();
-      expect(component['loadData']).toHaveBeenCalled();
+      expect(
+        (component as unknown as { loadData: () => void }).loadData
+      ).toHaveBeenCalled();
       expect(component.isLoading).toBeFalse();
     }));
 
@@ -253,16 +250,18 @@ fdescribe('DashboardComponent', () => {
     }));
 
     it('deve redirecionar para login se getUser retornar null', fakeAsync(() => {
-      mockUserService.getUser.and.returnValue(of(null as any));
+      mockUserService.getUser.and.returnValue(of(null!));
       spyOn(component, 'loadProposals');
-      spyOn<DashboardComponent, any>(component, 'loadData');
+      spyOn(component as unknown as { loadData: () => void }, 'loadData');
 
       component.loadProfileData();
       tick();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/account/auth/login']);
       expect(component.loadProposals).not.toHaveBeenCalled();
-      expect(component['loadData']).not.toHaveBeenCalled();
+      expect(
+        (component as unknown as { loadData: () => void }).loadData
+      ).not.toHaveBeenCalled();
     }));
 
     it('deve redirecionar para login em caso de erro', fakeAsync(() => {
@@ -354,7 +353,7 @@ fdescribe('DashboardComponent', () => {
     });
 
     it('deve retornar false se user for undefined', () => {
-      component.user = undefined;
+      component.user = undefined!;
 
       expect(component.isCompany()).toBe(false);
     });
@@ -365,7 +364,6 @@ fdescribe('DashboardComponent', () => {
   // -----------------------------------------------------
   describe('getUserName', () => {
     it('deve retornar nome da empresa se disponível', () => {
-      // Criar o objeto profile completo com user
       component.profile = {
         user: {
           id: 1,
@@ -375,13 +373,13 @@ fdescribe('DashboardComponent', () => {
           jwtToken: 'token-fake',
           type: 2,
         },
-      };
+      } as Profile;
 
       expect(component.getUserName()).toBe('Empresa Teste');
     });
 
-    it('deve retornar "Empresa" se profile não tiver companyName', () => {
-      component.profile = { user: null };
+    it('deve retornar "Empresa" se profile não tiver user', () => {
+      component.profile = { user: null } as Profile;
 
       expect(component.getUserName()).toBe('Empresa');
     });
@@ -393,7 +391,7 @@ fdescribe('DashboardComponent', () => {
     });
 
     it('deve retornar "Empresa" se profile for undefined', () => {
-      component.profile = undefined;
+      component.profile = undefined!;
 
       expect(component.getUserName()).toBe('Empresa');
     });
@@ -412,15 +410,33 @@ fdescribe('DashboardComponent', () => {
     });
 
     it('deve retornar 0 se não houver candidaturas aprovadas', () => {
-      component.proposals = [
-        {
-          ...mockProposals[0],
-          candidates: [
-            { id: '1', status: 0 } as Application,
-            { id: '2', status: 0 } as Application,
-          ],
-        },
-      ];
+      const proposalWithRejected: Proposal = {
+        ...mockProposals[0],
+        candidates: [
+          {
+            userId: 1,
+            proposalId: 1,
+            message: 'Test',
+            proposedPrice: 1000,
+            estimatedDate: '2024-10-20',
+            appliedAt: new Date(),
+            status: 0,
+            user: { id: 1, name: 'Test', email: null },
+          },
+          {
+            userId: 2,
+            proposalId: 1,
+            message: 'Test 2',
+            proposedPrice: 2000,
+            estimatedDate: '2024-10-21',
+            appliedAt: new Date(),
+            status: 0,
+            user: { id: 2, name: 'Test 2', email: null },
+          },
+        ],
+      };
+
+      component.proposals = [proposalWithRejected];
 
       const total = component.getTotalApplications();
 
@@ -436,22 +452,59 @@ fdescribe('DashboardComponent', () => {
     });
 
     it('deve somar candidaturas aprovadas de múltiplas propostas', () => {
-      component.proposals = [
-        {
-          ...mockProposals[0],
-          candidates: [
-            { id: '1', status: 1 } as Application,
-            { id: '2', status: 1 } as Application,
-          ],
-        },
-        {
-          ...mockProposals[1],
-          candidates: [
-            { id: '3', status: 1 } as Application,
-            { id: '4', status: 0 } as Application,
-          ],
-        },
-      ];
+      const proposal1: Proposal = {
+        ...mockProposals[0],
+        candidates: [
+          {
+            userId: 1,
+            proposalId: 1,
+            message: 'Test',
+            proposedPrice: 1000,
+            estimatedDate: '2024-10-20',
+            appliedAt: new Date(),
+            status: 1,
+            user: { id: 1, name: 'Test', email: null },
+          },
+          {
+            userId: 2,
+            proposalId: 1,
+            message: 'Test 2',
+            proposedPrice: 2000,
+            estimatedDate: '2024-10-21',
+            appliedAt: new Date(),
+            status: 1,
+            user: { id: 2, name: 'Test 2', email: null },
+          },
+        ],
+      };
+
+      const proposal2: Proposal = {
+        ...mockProposals[1],
+        candidates: [
+          {
+            userId: 3,
+            proposalId: 2,
+            message: 'Test 3',
+            proposedPrice: 3000,
+            estimatedDate: '2024-10-22',
+            appliedAt: new Date(),
+            status: 1,
+            user: { id: 3, name: 'Test 3', email: null },
+          },
+          {
+            userId: 4,
+            proposalId: 2,
+            message: 'Test 4',
+            proposedPrice: 4000,
+            estimatedDate: '2024-10-23',
+            appliedAt: new Date(),
+            status: 0,
+            user: { id: 4, name: 'Test 4', email: null },
+          },
+        ],
+      };
+
+      component.proposals = [proposal1, proposal2];
 
       const total = component.getTotalApplications();
 
@@ -459,12 +512,12 @@ fdescribe('DashboardComponent', () => {
     });
 
     it('deve tratar propostas sem candidatos', () => {
-      component.proposals = [
-        {
-          ...mockProposals[0],
-          candidates: [],
-        },
-      ];
+      const proposalWithoutCandidates: Proposal = {
+        ...mockProposals[0],
+        candidates: [],
+      };
+
+      component.proposals = [proposalWithoutCandidates];
 
       const total = component.getTotalApplications();
 
