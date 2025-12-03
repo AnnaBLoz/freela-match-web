@@ -25,6 +25,7 @@ export interface Profile {
   portfolioUrls?: string[];
   pricePerHour?: number;
   experienceLevel?: string;
+  user?: User;
 }
 
 export interface UserSkills {

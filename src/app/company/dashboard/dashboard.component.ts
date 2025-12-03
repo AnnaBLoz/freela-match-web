@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { Profile, User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
@@ -33,8 +34,8 @@ interface Application {
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
-  user: any = null;
-  profile: any = null;
+  user: User = null;
+  profile: Profile = null;
   isLoading = true;
   proposals: any[] = [];
   activeProposals: any[] = [];
@@ -54,13 +55,12 @@ export class DashboardComponent {
     this.loadProfileData();
   }
 
-  // FIX 1: Corrigir comparação de tipo para número
   isCompany(): boolean {
     return this.user?.type === 2;
   }
 
   getUserName(): string {
-    return this.profile?.companyName || 'Empresa';
+    return this.profile?.user?.name || 'Empresa';
   }
 
   loadProfileData(): void {
@@ -73,7 +73,6 @@ export class DashboardComponent {
         }
         this.userService.getUser(user.id).subscribe({
           next: (user) => {
-            // FIX 2: Validar se user existe antes de chamar outros métodos
             if (!user) {
               this.router.navigate(['/account/auth/login']);
               return;
@@ -145,7 +144,6 @@ export class DashboardComponent {
     return text.length > length ? text.substring(0, length) + '...' : text;
   }
 
-  // FIX 3: Definir isLoading = true no início do método
   private loadData() {
     this.isLoading = true;
     this.reviewsService.getReviews(this.user.id).subscribe({

@@ -365,13 +365,23 @@ fdescribe('DashboardComponent', () => {
   // -----------------------------------------------------
   describe('getUserName', () => {
     it('deve retornar nome da empresa se disponível', () => {
-      component.profile = { companyName: 'Empresa Teste' };
+      // Criar o objeto profile completo com user
+      component.profile = {
+        user: {
+          id: 1,
+          name: 'Empresa Teste',
+          email: 'teste@empresa.com',
+          password: 'senha123',
+          jwtToken: 'token-fake',
+          type: 2,
+        },
+      };
 
       expect(component.getUserName()).toBe('Empresa Teste');
     });
 
     it('deve retornar "Empresa" se profile não tiver companyName', () => {
-      component.profile = {};
+      component.profile = { user: null };
 
       expect(component.getUserName()).toBe('Empresa');
     });
