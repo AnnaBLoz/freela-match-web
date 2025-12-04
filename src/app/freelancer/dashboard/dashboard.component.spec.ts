@@ -194,7 +194,9 @@ fdescribe('DashboardComponent', () => {
     proposalService = TestBed.inject(
       ProposalService
     ) as jasmine.SpyObj<ProposalService>;
-    generalService = TestBed.inject(GeneralService) as any;
+    generalService = TestBed.inject(
+      GeneralService
+    ) as unknown as GeneralServiceSpy;
     profileService = TestBed.inject(
       ProfileService
     ) as jasmine.SpyObj<ProfileService>;
