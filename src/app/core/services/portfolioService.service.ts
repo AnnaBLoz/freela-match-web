@@ -13,6 +13,18 @@ interface Portfolio {
   title: string;
 }
 
+interface CreatedPortfolio {
+  portfolioId?: number;
+  userId: number;
+  URL?: string;
+  isActive?: boolean;
+}
+interface EditPortfolio {
+  portfolioId?: number;
+  URL?: string;
+  isActive?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PortfolioService {
   private apiUrl = environment.apiUrl;
@@ -23,14 +35,17 @@ export class PortfolioService {
     return this.http.get<any>(`${this.apiUrl}/Portfolio?userId=${userId}`);
   }
 
-  editPortfolio(userId: number, updatedPortfolio: any): Observable<any> {
+  editPortfolio(
+    userId: number,
+    updatedPortfolio: EditPortfolio
+  ): Observable<Portfolio> {
     return this.http.put<any>(
       `${this.apiUrl}/Portfolio/${userId}`,
       updatedPortfolio
     );
   }
 
-  createPortfolio(createdPortfolio: any): Observable<any> {
+  createPortfolio(createdPortfolio: CreatedPortfolio): Observable<Portfolio> {
     return this.http.post<any>(
       `${this.apiUrl}/Portfolio/create`,
       createdPortfolio

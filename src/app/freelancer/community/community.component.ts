@@ -39,7 +39,7 @@ interface BackendFreelancer {
     pricePerHour?: number;
   };
   userSkills?: Array<{
-    skillId: number;
+    userSkillsId?: number;
     skill?: {
       name: string;
     };
@@ -98,11 +98,11 @@ export class CommunityComponent implements OnInit {
           bio: f.profile?.biography || 'Sem biografia disponível',
           skills:
             f.userSkills?.map(
-              (s) => s.skill?.name || `Habilidade ${s.skillId}`
+              (s) => s.skill?.name || `Habilidade ${s.userSkillsId}`
             ) || [],
           userSkills:
             f.userSkills?.map(
-              (s) => s.skill?.name || `Habilidade ${s.skillId}`
+              (s) => s.skill?.name || `Habilidade ${s.userSkillsId}`
             ) || [],
           hourlyRate: f.profile?.pricePerHour || f.pricePerHour || 0,
           rating: f.rating || 0,

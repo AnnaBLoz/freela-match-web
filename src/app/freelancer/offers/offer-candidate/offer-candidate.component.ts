@@ -4,6 +4,7 @@ import { forkJoin, Subject, takeUntil } from 'rxjs';
 import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
+import { Skill } from 'src/app/core/services/profileService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
@@ -49,10 +50,10 @@ interface Proposal {
 }
 
 interface Freelancer {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  skills?: string[];
+  skills?: Skill[];
 }
 
 interface Company {
@@ -176,7 +177,7 @@ export class OfferCandidateComponent implements OnInit, OnDestroy {
       );
   }
 
-  getFreelancerById(id: string): Freelancer | undefined {
+  getFreelancerById(id: number): Freelancer | undefined {
     return this.freelancers.find((f) => f.id === id);
   }
 

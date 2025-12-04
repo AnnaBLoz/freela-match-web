@@ -35,7 +35,7 @@ interface Skill {
 export class NewOfferComponent implements OnInit {
   proposalForm: FormGroup;
   skillInput: Skill | null = null;
-  availableSkills: string[] = [];
+  availableSkills: Skill[] = [];
   requiredSkills: Skill[] = [];
   isSubmitting = false;
   isCreated = false;
@@ -81,7 +81,7 @@ export class NewOfferComponent implements OnInit {
 
   getSkills(): void {
     this.generalService.getSkills().subscribe({
-      next: (skills: string[]) => {
+      next: (skills: Skill[]) => {
         this.availableSkills = skills;
         this.isLoading = false;
       },

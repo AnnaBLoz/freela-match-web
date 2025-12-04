@@ -13,13 +13,6 @@ import { GeneralService } from 'src/app/core/services/generalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 import { User } from 'src/app/core/models/auth.model';
 
-interface Freelancer {
-  id: number;
-  name: string;
-  rating: number;
-  skills: string[];
-}
-
 @Component({
   selector: 'app-offers',
   templateUrl: './offers.component.html',
@@ -32,7 +25,7 @@ export class OffersComponent implements OnInit, OnDestroy {
   isLoading = true;
 
   proposals: Proposal[] = [];
-  freelancers: Freelancer[] = [];
+  freelancers: User[] = [];
 
   activeProposals: Proposal[] = [];
   completedProposals: Proposal[] = [];
@@ -204,11 +197,11 @@ export class OffersComponent implements OnInit, OnDestroy {
     }
   }
 
-  getFreelancerById(id: number): Freelancer | undefined {
+  getFreelancerById(id: number): User | undefined {
     return this.freelancers.find((f) => f.id === id);
   }
 
-  getFreelancerInitials(f: Freelancer | undefined): string {
+  getFreelancerInitials(f: User | undefined): string {
     return f?.name
       ? f.name
           .split(' ')

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { User } from 'src/app/core/models/auth.model';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import {
   Proposal,
@@ -17,13 +18,6 @@ declare const bootstrap: {
     hide: () => void;
   } | null;
 };
-
-interface Freelancer {
-  id: string;
-  name: string;
-  email?: string;
-  [key: string]: unknown;
-}
 
 interface CandidateUser {
   id: number;
@@ -72,7 +66,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   counterProposals: CounterProposal[] = [];
   isLoading = true;
   proposal: ProposalWithOwner | null = null;
-  freelancers: Freelancer[] = [];
+  freelancers: User[] = [];
 
   selectedCandidateId: number | null = null;
 
@@ -122,8 +116,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       });
   }
 
-  getFreelancerById(id: string): Freelancer | undefined {
-    return this.freelancers.find((f) => f.id === id);
+  getFreelancerById(id: number): User | undefined {
+    return this.freelancers.find((f) => f.userId === id);
   }
 
   formatCurrency(value: number): string {

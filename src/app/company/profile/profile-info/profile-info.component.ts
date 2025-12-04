@@ -37,7 +37,7 @@ export class ProfileInfoComponent implements OnInit {
   @Output() updateEditForm = new EventEmitter<EditForm>();
 
   skillSearch = '';
-  sectors: any[] = [];
+  sectors: Sector[] = [];
 
   constructor(private generalService: GeneralService) {}
 

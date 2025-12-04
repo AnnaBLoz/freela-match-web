@@ -40,11 +40,11 @@ interface Review {
   createdAt: string | Date;
 }
 
-interface CompletedProject {
-  projectId: number;
-  title: string;
-  completedAt: string | Date;
-}
+// interface CompletedProject {
+//   projectId: number;
+//   title: string;
+//   completedAt: string | Date;
+// }
 
 @Component({
   selector: 'app-dashboard',
@@ -215,7 +215,7 @@ export class DashboardComponent implements OnInit {
 
     this.isLoading = true;
     this.generalService.completedProjects(this.user.id).subscribe({
-      next: (response: CompletedProject[]) => {
+      next: (response: Proposal[]) => {
         this.completedProjects = response?.length || 0;
         this.isLoading = false;
       },

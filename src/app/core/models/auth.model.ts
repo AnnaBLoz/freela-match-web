@@ -29,6 +29,7 @@ export interface Profile {
 }
 
 export interface UserSkills {
+  userSkillsId?: number;
   skill?: {
     name: string;
   };
