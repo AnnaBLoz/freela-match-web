@@ -2,31 +2,15 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { Profile, User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
-import { ReviewsService } from 'src/app/core/services/reviewsService.service';
+import {
+  Proposal,
+  ProposalService,
+} from 'src/app/core/services/proposalService.service';
+import {
+  Review,
+  ReviewsService,
+} from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
-
-interface Proposal {
-  id: string;
-  companyId: string;
-  title: string;
-  description: string;
-  budget: number;
-  deadline: Date;
-  requiredSkills: string[];
-  status: 'open' | 'completed' | 'closed';
-  createdAt: Date;
-  candidates: Application[];
-  isAvailable?: boolean;
-}
-
-interface Application {
-  id: string;
-  freelancerId: string;
-  proposedRate: number;
-  message: string;
-  createdAt: Date;
-}
 
 @Component({
   selector: 'app-dashboard',
@@ -37,11 +21,11 @@ export class DashboardComponent {
   user: User = null;
   profile: Profile = null;
   isLoading = true;
-  proposals: any[] = [];
-  activeProposals: any[] = [];
+  proposals: Proposal[] = [];
+  activeProposals: Proposal[] = [];
 
-  userReviews: any;
-  averageRating: any;
+  userReviews: Review[] | null = null;
+  averageRating: number = 0;
 
   constructor(
     private router: Router,
@@ -102,8 +86,8 @@ export class DashboardComponent {
 
   getTotalApplications(): number {
     return this.proposals.reduce((total, p) => {
-      const approvedCount = p.candidates.filter(
-        (c: any) => c.status === 1
+      const approvedCount = (p.candidates || []).filter(
+        (c) => c.status === 1
       ).length;
       return total + approvedCount;
     }, 0);
