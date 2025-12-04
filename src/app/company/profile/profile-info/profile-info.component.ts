@@ -7,7 +7,7 @@ interface Profile {
   biography?: string;
   website: string;
   pricePerHour?: number;
-  sector?: any;
+  sector?: Sector;
 }
 
 interface EditForm {

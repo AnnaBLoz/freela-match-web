@@ -5,6 +5,23 @@ import { GeneralService } from 'src/app/core/services/generalService.service';
 import { Skill } from 'src/app/core/services/profileService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
+interface FreelancerView {
+  userId: number;
+  name: string;
+  bio: string;
+  userSkills: string[];
+  hourlyRate?: number;
+  rating: number;
+  completedProjects: number;
+  availability: boolean;
+}
+
+interface MockReview {
+  id: string;
+  toUserId: string;
+  rating: number;
+}
+
 @Component({
   selector: 'app-freelancers',
   templateUrl: './freelancers.component.html',
@@ -24,12 +41,11 @@ export class FreelancersComponent implements OnInit {
   sortBy = 'rating';
   showFilters = false;
   savedSearches: string[] = [];
-  freelancers: any[] = [];
+  freelancers: FreelancerView[] = [];
 
   // Data
-  // freelancers: Freelancer[] = [];
   filteredFreelancers: User[] = [];
-  mockReviews: any[] = [];
+  mockReviews: MockReview[] = [];
 
   ngOnInit() {
     this.loadFreelancers();
@@ -56,8 +72,8 @@ export class FreelancersComponent implements OnInit {
             ) || [],
           hourlyRate: f.profile?.pricePerHour,
           rating: f.rating || 0,
-          completedProjects: f.completedProjects,
-          availability: f.isAvailable,
+          completedProjects: f.completedProjects || 0,
+          availability: f.isAvailable || false,
         }));
 
         // Aplica filtros iniciais
@@ -199,7 +215,7 @@ export class FreelancersComponent implements OnInit {
   }
 
   getAvailabilityText(availability: string): string {
-    const map: { [key: string]: string } = {
+    const map: Record<string, string> = {
       available: 'Disponível',
       busy: 'Ocupado',
       unavailable: 'Indisponível',

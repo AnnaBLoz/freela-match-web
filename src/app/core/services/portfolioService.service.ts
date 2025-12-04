@@ -33,21 +33,23 @@ export class PortfolioService {
   constructor(private http: HttpClient) {}
 
   getPortfolios(userId: number): Observable<Portfolio[]> {
-    return this.http.get<any>(`${this.apiUrl}/Portfolio?userId=${userId}`);
+    return this.http.get<Portfolio[]>(
+      `${this.apiUrl}/Portfolio?userId=${userId}`
+    );
   }
 
   editPortfolio(
     userId: number,
     updatedPortfolio: EditPortfolio
   ): Observable<Portfolio> {
-    return this.http.put<any>(
+    return this.http.put<Portfolio>(
       `${this.apiUrl}/Portfolio/${userId}`,
       updatedPortfolio
     );
   }
 
   createPortfolio(createdPortfolio: CreatedPortfolio): Observable<Portfolio> {
-    return this.http.post<any>(
+    return this.http.post<Portfolio>(
       `${this.apiUrl}/Portfolio/create`,
       createdPortfolio
     );

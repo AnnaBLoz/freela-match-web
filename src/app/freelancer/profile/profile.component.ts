@@ -95,7 +95,7 @@ export class ProfileComponent implements OnInit {
   user: User | null = null;
   profile: Profile;
   portfolio: Portfolio[] = [];
-  skills: any[] = [];
+  skills: Skill[] = [];
   isLoading = true;
   isEditing = false;
   editForm: EditForm = {};
@@ -269,7 +269,7 @@ export class ProfileComponent implements OnInit {
       experienceLevel: Number(this.editForm.experienceLevel),
       pricePerHour: Number(this.editForm.pricePerHour),
       userSkills: this.editForm.userSkills
-        ? this.editForm.userSkills.map((skill: any) => ({
+        ? this.editForm.userSkills.map((skill: UserSkills) => ({
             skillId: skill.skillId,
             skill: { name: skill.name },
           }))
@@ -308,7 +308,7 @@ export class ProfileComponent implements OnInit {
         this.portfolioService.editPortfolio(item.portfolioId, item).subscribe({
           next: (updatedItem) => {
             const index = this.profile.portfolio.findIndex(
-              (p: any) => p.portfolioId === item.portfolioId
+              (p: Portfolio) => p.portfolioId === item.portfolioId
             );
             if (index !== -1) this.profile.portfolio[index] = updatedItem;
           },
