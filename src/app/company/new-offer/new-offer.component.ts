@@ -1,18 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
+import {
+  CreateProposalDto,
+  ProposalService,
+} from 'src/app/core/services/proposalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
-interface CreateProposalPayload {
+// Interface para criação de proposta nova (baseada na estrutura de Proposal)
+interface CreateNewProposalDto {
   title: string;
   description: string;
   price: number;
   maxDate: string;
-  ownerId: number;
+  companyId: number;
   requiredSkills: { skillId: number }[];
+}
+
+// Interface para habilidade no formulário
+interface Skill {
+  id?: number;
+  skillId?: number;
+  name?: string;
 }
 
 @Component({
@@ -22,14 +34,13 @@ interface CreateProposalPayload {
 })
 export class NewOfferComponent implements OnInit {
   proposalForm: FormGroup;
-  skillInput: any;
+  skillInput: Skill | null = null;
   availableSkills: string[] = [];
-  requiredSkills: any[] = [];
+  requiredSkills: Skill[] = [];
   isSubmitting = false;
   isCreated = false;
   isLoading = true;
-  user: any = null;
-  profile: any = null;
+  user: User | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -55,7 +66,7 @@ export class NewOfferComponent implements OnInit {
 
   async loadUserData(): Promise<void> {
     this.authService.currentUser.subscribe({
-      next: (user) => {
+      next: (user: User | null) => {
         this.user = user;
         if (!user) {
           this.router.navigate(['/']);
@@ -70,11 +81,11 @@ export class NewOfferComponent implements OnInit {
 
   getSkills(): void {
     this.generalService.getSkills().subscribe({
-      next: (skills) => {
+      next: (skills: string[]) => {
         this.availableSkills = skills;
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: Error) => {
         console.error('Erro ao carregar habilidades:', err);
         this.isLoading = false;
       },
@@ -84,14 +95,14 @@ export class NewOfferComponent implements OnInit {
   addSkill(): void {
     if (
       this.skillInput &&
-      !this.requiredSkills.some((s) => s.id === this.skillInput.skillId)
+      !this.requiredSkills.some((s) => s.id === this.skillInput?.skillId)
     ) {
       this.requiredSkills.push(this.skillInput);
-      this.skillInput = '';
+      this.skillInput = null;
     }
   }
 
-  removeSkill(skillToRemove: any): void {
+  removeSkill(skillToRemove: Skill): void {
     this.requiredSkills = this.requiredSkills.filter(
       (skill) => skill.id !== skillToRemove.id
     );
@@ -110,29 +121,31 @@ export class NewOfferComponent implements OnInit {
       return;
     }
 
+    if (!this.user) {
+      alert('Usuário não autenticado');
+      return;
+    }
+
     this.isSubmitting = true;
 
     try {
-      const proposalCreate: CreateProposalPayload = {
+      const proposalCreate: CreateNewProposalDto = {
         title: this.proposalForm.value.title,
         description: this.proposalForm.value.description,
         price: Number(this.proposalForm.value.price),
         maxDate: this.proposalForm.value.maxDate,
-        ownerId: this.user.id,
-        requiredSkills: this.requiredSkills.map((skill: any) => ({
-          skillId: skill.id || skill.skillId,
+        companyId: this.user.id,
+        requiredSkills: this.requiredSkills.map((skill: Skill) => ({
+          skillId: skill.id || skill.skillId || 0,
         })),
       };
 
-      // Cast para 'any' para contornar o erro de tipo temporariamente
-      // Verifique o tipo correto esperado pelo serviço
       await this.proposalService
-        .createProposal(proposalCreate as any)
+        .createProposal(proposalCreate as unknown as CreateProposalDto)
         .toPromise();
 
       this.isCreated = true;
 
-      // Redireciona após sucesso
       setTimeout(() => {
         this.goToMyProposals();
       }, 2000);

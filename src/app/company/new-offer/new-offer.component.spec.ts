@@ -3,36 +3,56 @@ import { NewOfferComponent } from './new-offer.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { ProposalService } from 'src/app/core/services/proposalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
+interface Skill {
+  id?: number;
+  skillId?: number;
+  name: string;
+}
+
 fdescribe('NewOfferComponent', () => {
   let component: NewOfferComponent;
   let fixture: ComponentFixture<NewOfferComponent>;
 
-  let mockRouter = { navigate: jasmine.createSpy('navigate') };
-  let mockAuthService: any;
-  let mockGeneralService: any;
-  let mockProposalService: any;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: { currentUser: Subject<User | null> };
+  let mockGeneralService: jasmine.SpyObj<GeneralService>;
+  let mockProposalService: jasmine.SpyObj<ProposalService>;
+
+  const mockSkills: string[] = ['Angular', 'Node'];
+
+  const mockProposal = {
+    proposalId: 1,
+    companyId: 123,
+    title: 'Test Proposal',
+    description: 'Test Description',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
+    price: 100,
+    requiredSkills: [{ skillId: 1, name: 'Angular' }],
+    maxDate: new Date(),
+  };
 
   beforeEach(async () => {
+    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+
     mockAuthService = {
-      currentUser: new Subject<any>(),
+      currentUser: new Subject<User | null>(),
     };
 
-    mockGeneralService = {
-      getSkills: jasmine
-        .createSpy('getSkills')
-        .and.returnValue(of(['Angular', 'Node'])),
-    };
+    mockGeneralService = jasmine.createSpyObj('GeneralService', ['getSkills']);
+    mockGeneralService.getSkills.and.returnValue(of(mockSkills));
 
-    mockProposalService = {
-      createProposal: jasmine
-        .createSpy('createProposal')
-        .and.returnValue(of({})),
-    };
+    mockProposalService = jasmine.createSpyObj('ProposalService', [
+      'createProposal',
+    ]);
+    mockProposalService.createProposal.and.returnValue(of(mockProposal));
 
     await TestBed.configureTestingModule({
       declarations: [NewOfferComponent],
@@ -83,16 +103,16 @@ fdescribe('NewOfferComponent', () => {
 
     expect(component.requiredSkills.length).toBe(1);
 
-    component.removeSkill({ id: 1 });
+    component.removeSkill({ id: 1, name: 'Angular' });
     expect(component.requiredSkills.length).toBe(0);
   });
 
   // -----------------------------------------------------
-  // Teste: impedir skill duplicada (CORRIGIDO)
+  // Teste: impedir skill duplicada
   // -----------------------------------------------------
   it('should not add duplicate skills', () => {
-    component.requiredSkills = [{ id: 1 }];
-    component.skillInput = { skillId: 1 }; // <<< ALTERAÇÃO AQUI
+    component.requiredSkills = [{ id: 1, name: 'Angular' }];
+    component.skillInput = { skillId: 1, name: 'Angular' };
 
     component.addSkill();
     expect(component.requiredSkills.length).toBe(1);
@@ -102,13 +122,12 @@ fdescribe('NewOfferComponent', () => {
   // Teste formulário inválido
   // -----------------------------------------------------
   it('should NOT submit when form is invalid', async () => {
-    spyOn<any>(component, 'markFormGroupTouched').and.callThrough();
-
     component.requiredSkills = []; // skills vazias → inválido
 
     await component.onSubmit();
 
-    expect(component['markFormGroupTouched']).toHaveBeenCalled();
+    // Verifica que os campos foram marcados como touched
+    expect(component.proposalForm.get('title')?.touched).toBeTrue();
     expect(mockProposalService.createProposal).not.toHaveBeenCalled();
   });
 
@@ -124,8 +143,15 @@ fdescribe('NewOfferComponent', () => {
       skill: '',
     });
 
-    component.requiredSkills = [{ id: 1 }];
-    component.user = { id: 123 };
+    component.requiredSkills = [{ id: 1, name: 'Angular' }];
+    component.user = {
+      id: 123,
+      name: 'Test User',
+      email: 'test@test.com',
+      password: '',
+      jwtToken: 'token',
+      type: 2,
+    };
 
     await component.onSubmit();
 
@@ -138,7 +164,7 @@ fdescribe('NewOfferComponent', () => {
   // -----------------------------------------------------
   it('should handle error on submit', async () => {
     mockProposalService.createProposal.and.returnValue(
-      throwError(() => new Error())
+      throwError(() => new Error('API Error'))
     );
 
     component.proposalForm.setValue({
@@ -149,8 +175,15 @@ fdescribe('NewOfferComponent', () => {
       skill: '',
     });
 
-    component.requiredSkills = [{ id: 1 }];
-    component.user = { id: 10 };
+    component.requiredSkills = [{ id: 1, name: 'Angular' }];
+    component.user = {
+      id: 10,
+      name: 'Test User',
+      email: 'test@test.com',
+      password: '',
+      jwtToken: 'token',
+      type: 2,
+    };
 
     await component.onSubmit();
 
@@ -182,5 +215,92 @@ fdescribe('NewOfferComponent', () => {
   it('should navigate to cancel route', () => {
     component.cancel();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  // -----------------------------------------------------
+  // Testes adicionais de validação
+  // -----------------------------------------------------
+  it('should not submit when user is null', async () => {
+    component.user = null;
+    component.proposalForm.setValue({
+      title: 'Teste',
+      description: 'Desc',
+      price: 100,
+      maxDate: '2025-01-01',
+      skill: '',
+    });
+    component.requiredSkills = [{ id: 1, name: 'Angular' }];
+
+    await component.onSubmit();
+
+    expect(mockProposalService.createProposal).not.toHaveBeenCalled();
+  });
+
+  it('should mark fields as touched when form is invalid', async () => {
+    component.proposalForm.reset();
+    component.requiredSkills = [];
+
+    await component.onSubmit();
+
+    expect(component.proposalForm.get('title')?.touched).toBeTrue();
+    expect(component.proposalForm.get('description')?.touched).toBeTrue();
+  });
+
+  it('should validate field errors correctly', () => {
+    const titleControl = component.proposalForm.get('title');
+    titleControl?.markAsTouched();
+    titleControl?.setValue('');
+
+    expect(component.isFieldInvalid('title')).toBeTrue();
+    expect(component.getFieldErrorMessage('title')).toBe(
+      'Este campo é obrigatório'
+    );
+  });
+
+  it('should validate min price error', () => {
+    const priceControl = component.proposalForm.get('price');
+    priceControl?.markAsTouched();
+    priceControl?.setValue(-10);
+
+    expect(component.isFieldInvalid('price')).toBeTrue();
+    expect(component.getFieldErrorMessage('price')).toBe(
+      'O valor deve ser maior que zero'
+    );
+  });
+
+  it('should handle skill input with Enter key', () => {
+    component.skillInput = { id: 1, name: 'Angular' };
+    const event = new KeyboardEvent('keypress', { key: 'Enter' });
+    spyOn(event, 'preventDefault');
+    spyOn(component, 'addSkill');
+
+    component.onSkillInputKeyPress(event);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(component.addSkill).toHaveBeenCalled();
+  });
+
+  it('should not add skill when skillInput is null', () => {
+    component.skillInput = null;
+    const initialLength = component.requiredSkills.length;
+
+    component.addSkill();
+
+    expect(component.requiredSkills.length).toBe(initialLength);
+  });
+
+  it('should handle error when loading skills', () => {
+    spyOn(console, 'error');
+    mockGeneralService.getSkills.and.returnValue(
+      throwError(() => new Error('Failed to load skills'))
+    );
+
+    component.getSkills();
+
+    expect(console.error).toHaveBeenCalledWith(
+      'Erro ao carregar habilidades:',
+      jasmine.any(Error)
+    );
+    expect(component.isLoading).toBeFalse();
   });
 });
