@@ -24,7 +24,10 @@ fdescribe('NewOfferComponent', () => {
   let mockGeneralService: jasmine.SpyObj<GeneralService>;
   let mockProposalService: jasmine.SpyObj<ProposalService>;
 
-  const mockSkills: string[] = ['Angular', 'Node'];
+  const mockSkills: Skill[] = [
+    { id: 1, name: 'Angular' },
+    { id: 2, name: 'React' },
+  ];
 
   const mockProposal = {
     proposalId: 1,

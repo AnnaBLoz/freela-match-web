@@ -38,12 +38,20 @@ fdescribe('OffersComponent', () => {
       name: 'João Silva',
       rating: 4.5,
       skills: ['Angular', 'TypeScript'],
+      password: null,
+      email: null,
+      jwtToken: null,
+      type: 1,
     },
     {
       id: 2,
       name: 'Maria Santos',
       rating: 5.0,
       skills: ['React', 'Node.js'],
+      password: null,
+      email: null,
+      jwtToken: null,
+      type: 1,
     },
   ];
 
@@ -560,6 +568,10 @@ fdescribe('OffersComponent', () => {
         name: 'João Silva Santos',
         rating: 5,
         skills: [],
+        password: null,
+        email: null,
+        jwtToken: null,
+        type: 1,
       };
       const initials = component.getFreelancerInitials(freelancer);
 
@@ -573,14 +585,32 @@ fdescribe('OffersComponent', () => {
     });
 
     it('deve retornar "FL" se freelancer não tiver nome', () => {
-      const freelancer = { id: 1, name: '', rating: 5, skills: [] };
+      const freelancer = {
+        id: 1,
+        name: '',
+        rating: 5,
+        skills: [],
+        password: null,
+        email: null,
+        jwtToken: null,
+        type: 1,
+      };
       const initials = component.getFreelancerInitials(freelancer);
 
       expect(initials).toBe('FL');
     });
 
     it('deve converter iniciais para maiúsculas', () => {
-      const freelancer = { id: 1, name: 'ana maria', rating: 5, skills: [] };
+      const freelancer = {
+        id: 1,
+        name: 'ana maria',
+        rating: 5,
+        skills: [],
+        password: null,
+        email: null,
+        jwtToken: null,
+        type: 1,
+      };
       const initials = component.getFreelancerInitials(freelancer);
 
       expect(initials).toBe('AM');

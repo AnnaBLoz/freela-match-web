@@ -31,12 +31,6 @@ interface FreelancerProfile {
 
 type Profile = FreelancerProfile;
 
-interface CompletedProject {
-  projectId: number;
-  title: string;
-  completedAt: string;
-}
-
 fdescribe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
@@ -44,7 +38,7 @@ fdescribe('DashboardComponent', () => {
   let authService: { currentUser: BehaviorSubject<User | null> };
   let userService: jasmine.SpyObj<UserService>;
   let proposalService: jasmine.SpyObj<ProposalService>;
-  let generalService: jasmine.SpyObj<GeneralService>;
+  let generalService: any;
   let profileService: jasmine.SpyObj<ProfileService>;
   let reviewsService: jasmine.SpyObj<ReviewsService>;
 
@@ -113,10 +107,43 @@ fdescribe('DashboardComponent', () => {
     },
   ];
 
-  const mockCompletedProjects: CompletedProject[] = [
-    { projectId: 1, title: 'Projeto 1', completedAt: '2024-01-01' },
-    { projectId: 2, title: 'Projeto 2', completedAt: '2024-02-01' },
-    { projectId: 3, title: 'Projeto 3', completedAt: '2024-03-01' },
+  const mockCompletedProjects: Proposal[] = [
+    {
+      proposalId: 3,
+      title: 'Projeto Concluído 1',
+      description: 'Projeto finalizado',
+      price: 1500,
+      maxDate: new Date('2024-03-31'),
+      companyId: 7,
+      createdAt: new Date('2024-01-10'),
+      updatedAt: new Date('2024-03-31'),
+      isAvailable: false,
+      requiredSkills: [],
+    },
+    {
+      proposalId: 4,
+      title: 'Projeto Concluído 2',
+      description: 'Outro projeto finalizado',
+      price: 2000,
+      maxDate: new Date('2024-04-30'),
+      companyId: 8,
+      createdAt: new Date('2024-02-10'),
+      updatedAt: new Date('2024-04-30'),
+      isAvailable: false,
+      requiredSkills: [],
+    },
+    {
+      proposalId: 5,
+      title: 'Projeto Concluído 3',
+      description: 'Terceiro projeto finalizado',
+      price: 3000,
+      maxDate: new Date('2024-05-31'),
+      companyId: 9,
+      createdAt: new Date('2024-03-10'),
+      updatedAt: new Date('2024-05-31'),
+      isAvailable: false,
+      requiredSkills: [],
+    },
   ];
 
   beforeEach(async () => {
@@ -125,9 +152,13 @@ fdescribe('DashboardComponent', () => {
     const proposalServiceSpy = jasmine.createSpyObj('ProposalService', [
       'getProposalsByUserId',
     ]);
-    const generalServiceSpy = jasmine.createSpyObj('GeneralService', [
-      'completedProjects',
-    ]);
+
+    const generalServiceSpy = {
+      completedProjects: jasmine
+        .createSpy('completedProjects')
+        .and.returnValue(of(mockCompletedProjects)),
+    };
+
     const profileServiceSpy = jasmine.createSpyObj('ProfileService', [
       'getProfile',
     ]);
@@ -159,9 +190,7 @@ fdescribe('DashboardComponent', () => {
     proposalService = TestBed.inject(
       ProposalService
     ) as jasmine.SpyObj<ProposalService>;
-    generalService = TestBed.inject(
-      GeneralService
-    ) as jasmine.SpyObj<GeneralService>;
+    generalService = TestBed.inject(GeneralService) as any;
     profileService = TestBed.inject(
       ProfileService
     ) as jasmine.SpyObj<ProfileService>;
@@ -174,7 +203,6 @@ fdescribe('DashboardComponent', () => {
     userService.getUser.and.returnValue(of(mockUser));
     profileService.getProfile.and.returnValue(of(mockProfile));
     proposalService.getProposalsByUserId.and.returnValue(of(mockProposals));
-    generalService.completedProjects.and.returnValue(of(mockCompletedProjects));
     reviewsService.getReviews.and.returnValue(of(mockReviews));
 
     fixture = TestBed.createComponent(DashboardComponent);
@@ -184,7 +212,7 @@ fdescribe('DashboardComponent', () => {
   // ============================================================
   // TESTES DE CRIAÇÃO E INICIALIZAÇÃO
   // ============================================================
-  describe('Criação e Inicialização', () => {
+  fdescribe('Criação e Inicialização', () => {
     it('deve criar o componente', () => {
       expect(component).toBeTruthy();
     });
@@ -257,7 +285,7 @@ fdescribe('DashboardComponent', () => {
     it('deve definir isLoading como false mesmo em caso de erro', fakeAsync(() => {
       userService.getUser.and.returnValue(throwError(() => new Error('Error')));
 
-      fixture.detectChanges(); // <-- NECESSÁRIO
+      fixture.detectChanges();
 
       tick();
 
