@@ -2,9 +2,63 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
 import { GeneralService } from 'src/app/core/services/generalService.service';
-import { ProposalService } from 'src/app/core/services/proposalService.service';
+import {
+  Proposal,
+  ProposalService,
+} from 'src/app/core/services/proposalService.service';
 
-declare var bootstrap: any;
+declare const bootstrap: {
+  Modal: new (element: HTMLElement | null) => {
+    show: () => void;
+    hide: () => void;
+  };
+  getInstance: (element: HTMLElement | null) => {
+    show: () => void;
+    hide: () => void;
+  } | null;
+};
+
+interface Freelancer {
+  id: string;
+  name: string;
+  email?: string;
+  [key: string]: unknown;
+}
+
+interface CandidateUser {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+// Estende a interface Proposal do serviço adicionando ownerId se necessário
+interface ProposalWithOwner extends Proposal {
+  ownerId?: number;
+}
+
+interface CounterProposal {
+  id?: number;
+  proposalId: number;
+  candidateId: number;
+  freelancerId: number;
+  companyId: number;
+  userId: number;
+  proposedPrice: number | null;
+  estimatedDate: string;
+  description: string;
+  message: string;
+  isSendedByCompany: boolean;
+  isAccepted: boolean | null;
+  createdAt?: Date;
+}
+
+interface CounterProposalForm {
+  price: number | null;
+  estimatedDate: string;
+  message: string;
+  candidateId: number | null;
+  isAccepted: boolean | null;
+}
 
 @Component({
   selector: 'app-offer-applications',
@@ -15,14 +69,14 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   proposalId!: number;
-  counterProposals: any[] = [];
+  counterProposals: CounterProposal[] = [];
   isLoading = true;
-  proposal: any = null;
-  freelancers: any[] = [];
+  proposal: ProposalWithOwner | null = null;
+  freelancers: Freelancer[] = [];
 
   selectedCandidateId: number | null = null;
 
-  counterProposal = {
+  counterProposal: CounterProposalForm = {
     price: null,
     estimatedDate: '',
     message: '',
@@ -55,7 +109,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ proposal, freelancers }) => {
-          this.proposal = proposal;
+          // Se getProposalById retornar um array, pega o primeiro elemento
+          this.proposal = Array.isArray(proposal) ? proposal[0] : proposal;
           this.freelancers = freelancers;
           this.getCounterProposals();
           this.isLoading = false;
@@ -67,7 +122,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       });
   }
 
-  getFreelancerById(id: string) {
+  getFreelancerById(id: string): Freelancer | undefined {
     return this.freelancers.find((f) => f.id === id);
   }
 
@@ -78,12 +133,14 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     }).format(value);
   }
 
-  formatDate(date: string): string {
+  formatDate(date: string | Date): string {
     if (!date) return '-';
     return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
   approveApplication(applicationId: number): void {
+    if (!this.proposal) return;
+
     const application = {
       proposalId: this.proposal.proposalId,
       candidateId: applicationId,
@@ -98,9 +155,11 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   }
 
   disapproveApplication(candidateId: number): void {
+    if (!this.proposal) return;
+
     // Encontra o applicationId do candidato
     const candidate = this.proposal.candidates.find(
-      (c: any) => c.candidateId === candidateId
+      (c) => c.userId === candidateId
     );
 
     if (!candidate) {
@@ -111,7 +170,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     const application = {
       proposalId: this.proposal.proposalId,
       candidateId: candidateId,
-      applicationId: candidate.candidateId, // ou candidate.applicationId se existir
+      applicationId: candidate.userId,
     };
 
     this.proposalService
@@ -127,16 +186,16 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/company/offers']);
   }
 
-  get sortedCandidates() {
+  get sortedCandidates(): ProposalWithOwner['candidates'] {
     if (!this.proposal?.candidates) return [];
-    return [...this.proposal.candidates].sort((a: any, b: any) => {
+    return [...this.proposal.candidates].sort((a, b) => {
       if (a.status === 2 && b.status !== 2) return -1;
       if (a.status !== 2 && b.status === 2) return 1;
       return 0;
     });
   }
 
-  viewProfile(freelancerId: string) {
+  viewProfile(freelancerId: string): void {
     this.router.navigate(['/company/freelancer', freelancerId]);
   }
 
@@ -168,22 +227,23 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   }
 
   confirmCounterProposal(): void {
-    if (!this.selectedCandidateId) return;
+    if (!this.selectedCandidateId || !this.proposal) return;
 
     const candidate = this.proposal.candidates.find(
-      (c: any) => c.candidateId === this.selectedCandidateId
+      (c) => c.userId === this.selectedCandidateId
     );
 
     const payload = {
       proposalId: this.proposal.proposalId,
       candidateId: this.selectedCandidateId,
-      userId: candidate?.user?.id || this.proposal.ownerId,
+      userId:
+        candidate?.user?.id || this.proposal.ownerId || this.proposal.companyId,
       proposedPrice: this.counterProposal.price,
       estimatedDate: this.counterProposal.estimatedDate,
       description: this.counterProposal.message,
       message: this.counterProposal.message,
       freelancerId: candidate?.user?.id,
-      companyId: this.proposal.ownerId,
+      companyId: this.proposal.ownerId || this.proposal.companyId,
       isSendedByCompany: true,
     };
 
@@ -193,8 +253,8 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           const modalEl = document.getElementById('counterProposalModal');
-          const modal = bootstrap.Modal.getInstance(modalEl);
-          modal.hide();
+          const modal = bootstrap.getInstance(modalEl);
+          modal?.hide();
 
           this.getCounterProposals();
         },
@@ -226,7 +286,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     return this.counterProposals.some((cp) => cp.freelancerId === candidateId);
   }
 
-  getCounterProposalsFor(candidateId: number) {
+  getCounterProposalsFor(candidateId: number): CounterProposal[] {
     return this.counterProposals
       .filter((cp) => cp.freelancerId === candidateId)
       .sort(
