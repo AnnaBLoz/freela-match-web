@@ -11,6 +11,7 @@ import { AuthService } from 'src/app/core/services/authService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
+import { User } from 'src/app/core/models/auth.model';
 
 interface Freelancer {
   id: number;
@@ -27,7 +28,7 @@ interface Freelancer {
 export class OffersComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  user: any = null;
+  user: User;
   isLoading = true;
 
   proposals: Proposal[] = [];

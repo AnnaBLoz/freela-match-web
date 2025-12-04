@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { OffersComponent } from './offers.component';
+import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
 import {
   ProposalService,
@@ -22,10 +23,13 @@ fdescribe('OffersComponent', () => {
   let mockGeneralService: jasmine.SpyObj<GeneralService>;
   let mockUserService: jasmine.SpyObj<UserService>;
 
-  const mockUser = {
+  const mockUser: User = {
     id: 123,
     type: 2, // company
+    name: 'Company User',
     email: 'company@test.com',
+    password: null,
+    jwtToken: 'fake-token',
   };
 
   const mockFreelancers = [
@@ -167,9 +171,11 @@ fdescribe('OffersComponent', () => {
     });
 
     it('deve carregar dados ao inicializar', () => {
-      spyOn<any>(component, 'loadData');
+      spyOn(component as unknown as { loadData: () => void }, 'loadData');
       component.ngOnInit();
-      expect(component['loadData']).toHaveBeenCalled();
+      expect(
+        (component as unknown as { loadData: () => void }).loadData
+      ).toHaveBeenCalled();
     });
   });
 
@@ -309,11 +315,17 @@ fdescribe('OffersComponent', () => {
       mockProposalService.approveApplication.and.returnValue(
         of({} as Candidate)
       );
-      spyOn<any>(component, 'reloadProposals');
+      spyOn(
+        component as unknown as { reloadProposals: () => void },
+        'reloadProposals'
+      );
 
       component.approveApplication(1, 100);
 
-      expect(component['reloadProposals']).toHaveBeenCalled();
+      expect(
+        (component as unknown as { reloadProposals: () => void })
+          .reloadProposals
+      ).toHaveBeenCalled();
     });
 
     it('deve tratar erro ao aprovar candidatura', () => {
@@ -349,11 +361,17 @@ fdescribe('OffersComponent', () => {
 
     it('deve recarregar propostas após rejeição', () => {
       mockProposalService.rejectApplication.and.returnValue(of(undefined));
-      spyOn<any>(component, 'reloadProposals');
+      spyOn(
+        component as unknown as { reloadProposals: () => void },
+        'reloadProposals'
+      );
 
       component.rejectApplication(1, 100);
 
-      expect(component['reloadProposals']).toHaveBeenCalled();
+      expect(
+        (component as unknown as { reloadProposals: () => void })
+          .reloadProposals
+      ).toHaveBeenCalled();
     });
 
     it('deve tratar erro ao rejeitar candidatura', () => {
@@ -616,13 +634,18 @@ fdescribe('OffersComponent', () => {
 
   describe('ngOnDestroy', () => {
     it('deve completar o subject destroy$', () => {
-      spyOn(component['destroy$'], 'next');
-      spyOn(component['destroy$'], 'complete');
+      const destroySubject = (
+        component as unknown as {
+          destroy$: { next: () => void; complete: () => void };
+        }
+      ).destroy$;
+      spyOn(destroySubject, 'next');
+      spyOn(destroySubject, 'complete');
 
       component.ngOnDestroy();
 
-      expect(component['destroy$'].next).toHaveBeenCalled();
-      expect(component['destroy$'].complete).toHaveBeenCalled();
+      expect(destroySubject.next).toHaveBeenCalled();
+      expect(destroySubject.complete).toHaveBeenCalled();
     });
   });
 
@@ -633,7 +656,9 @@ fdescribe('OffersComponent', () => {
         of(mockProposals)
       );
 
-      component['reloadProposals']();
+      (
+        component as unknown as { reloadProposals: () => void }
+      ).reloadProposals();
 
       expect(component.proposals.length).toBe(2);
       expect(component.activeProposals.length).toBe(1);
@@ -644,7 +669,9 @@ fdescribe('OffersComponent', () => {
       component.user = null;
       const initialProposals = component.proposals;
 
-      component['reloadProposals']();
+      (
+        component as unknown as { reloadProposals: () => void }
+      ).reloadProposals();
 
       expect(mockProposalService.getProposalsByCompany).not.toHaveBeenCalled();
       expect(component.proposals).toBe(initialProposals);
