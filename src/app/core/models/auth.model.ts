@@ -18,6 +18,13 @@ export class User {
   rating?: number;
   completedProjects?: number;
 }
+
+export class UserDTO {
+  email: string;
+  name: string;
+  password: string;
+  type: number;
+}
 export interface Profile {
   biography?: string;
   hourlyRate?: number;

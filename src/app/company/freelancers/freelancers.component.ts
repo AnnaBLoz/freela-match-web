@@ -1,27 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { User, UserSkills } from 'src/app/core/models/auth.model';
 import { GeneralService } from 'src/app/core/services/generalService.service';
+import { Skill } from 'src/app/core/services/profileService.service';
 import { UserService } from 'src/app/core/services/userService.service';
-
-interface Freelancer {
-  id: string;
-  userId: string;
-  name: string;
-  bio: string;
-  skills: string[];
-  hourlyRate: number;
-  rating: number;
-  completedProjects: number;
-  availability: 'available' | 'busy' | 'unavailable';
-  profileImage?: string;
-  compatibility?: number;
-}
-
-interface User {
-  id: string;
-  type: 'company' | 'freelancer';
-  name: string;
-}
 
 @Component({
   selector: 'app-freelancers',
@@ -46,7 +28,7 @@ export class FreelancersComponent implements OnInit {
 
   // Data
   // freelancers: Freelancer[] = [];
-  filteredFreelancers: Freelancer[] = [];
+  filteredFreelancers: User[] = [];
   mockReviews: any[] = [];
 
   ngOnInit() {
@@ -64,23 +46,22 @@ export class FreelancersComponent implements OnInit {
     this.generalService.getFreelancers().subscribe({
       next: (freelancers) => {
         // Transforma os dados vindos do backend no formato esperado pelo front
-        this.freelancers = freelancers.map((f: any) => ({
-          id: f.id?.toString() || f.userId?.toString() || '',
-          userId: f.userId?.toString() || f.id?.toString() || '',
+        this.freelancers = freelancers.map((f: User) => ({
+          userId: f.userId,
           name: f.name || 'Nome não informado',
           bio: f.profile?.biography || 'Sem biografia disponível',
           userSkills:
             f.userSkills?.map(
-              (s: any) => s.skill?.name || `Habilidade ${s.skillId}`
+              (s: UserSkills) => s.skill?.name || `Habilidade ${s.userSkillsId}`
             ) || [],
-          hourlyRate: f.profile?.pricePerHour || f.pricePerHour || 0,
+          hourlyRate: f.profile?.pricePerHour,
           rating: f.rating || 0,
-          completedProjects: f.completedProjects || f.projectsCount || 0,
-          availability: f.isAvailable ? 'available' : 'unavailable',
+          completedProjects: f.completedProjects,
+          availability: f.isAvailable,
         }));
 
         // Aplica filtros iniciais
-        this.applyFilters();
+        // this.applyFilters();
         this.isLoading = false;
       },
       error: (err) => {
@@ -102,121 +83,115 @@ export class FreelancersComponent implements OnInit {
   }
 
   // ---------------- FILTRAGEM ----------------
-  calculateCompatibility(freelancer: Freelancer): number {
-    if (this.user?.type !== 'company' || !this.skillFilter) return 0;
+  // calculateCompatibility(freelancer: User): number {
+  //   if (this.user?.type !== 'company' || !this.skillFilter) return 0;
 
-    const searchSkills = this.skillFilter
-      .toLowerCase()
-      .split(',')
-      .map((s) => s.trim());
+  //   const searchSkills = this.skillFilter
+  //     .toLowerCase()
+  //     .split(',')
+  //     .map((s) => s.trim());
 
-    const freelancerSkills = freelancer.skills.map((s) => s.toLowerCase());
+  //   const freelancerSkills = freelancer.skills.map((s) => s.toLowerCase());
 
-    const matches = searchSkills.filter((skill) =>
-      freelancerSkills.some((fSkill) => fSkill.includes(skill))
-    );
+  //   const matches = searchSkills.filter((skill) =>
+  //     freelancerSkills.some((fSkill) => fSkill.includes(skill))
+  //   );
 
-    return (matches.length / searchSkills.length) * 100;
-  }
+  //   return (matches.length / searchSkills.length) * 100;
+  // }
 
   applyFilters() {
-    this.filteredFreelancers = this.freelancers
-      .filter((freelancer) => {
-        const matchesSearch =
-          freelancer.name
-            .toLowerCase()
-            .includes(this.searchTerm.toLowerCase()) ||
-          freelancer.bio
-            .toLowerCase()
-            .includes(this.searchTerm.toLowerCase()) ||
-          freelancer.skills.some((skill) =>
-            skill.toLowerCase().includes(this.searchTerm.toLowerCase())
-          );
-
-        const matchesSkill =
-          !this.skillFilter ||
-          freelancer.skills.some((skill) =>
-            skill.toLowerCase().includes(this.skillFilter.toLowerCase())
-          );
-
-        const matchesAvailability =
-          this.availabilityFilter === 'all' ||
-          freelancer.availability === this.availabilityFilter;
-
-        const matchesRating = freelancer.rating >= this.ratingFilter;
-
-        const matchesPrice =
-          freelancer.hourlyRate >= this.priceRange[0] &&
-          freelancer.hourlyRate <= this.priceRange[1];
-
-        const matchesExperience =
-          this.experienceFilter === 'all' ||
-          (this.experienceFilter === 'junior' &&
-            freelancer.completedProjects < 10) ||
-          (this.experienceFilter === 'mid' &&
-            freelancer.completedProjects >= 10 &&
-            freelancer.completedProjects < 25) ||
-          (this.experienceFilter === 'senior' &&
-            freelancer.completedProjects >= 25);
-
-        return (
-          matchesSearch &&
-          matchesSkill &&
-          matchesAvailability &&
-          matchesRating &&
-          matchesPrice &&
-          matchesExperience
-        );
-      })
-      .map((freelancer) => ({
-        ...freelancer,
-        compatibility: this.calculateCompatibility(freelancer),
-      }))
-      .sort((a, b) => {
-        switch (this.sortBy) {
-          case 'rating':
-            return b.rating - a.rating;
-          case 'price_low':
-            return a.hourlyRate - b.hourlyRate;
-          case 'price_high':
-            return b.hourlyRate - a.hourlyRate;
-          case 'experience':
-            return b.completedProjects - a.completedProjects;
-          case 'compatibility':
-            return (b.compatibility || 0) - (a.compatibility || 0);
-          default:
-            return 0;
-        }
-      });
+    //   this.filteredFreelancers = this.freelancers
+    //     .filter((freelancer) => {
+    //       const matchesSearch =
+    //         freelancer.name
+    //           .toLowerCase()
+    //           .includes(this.searchTerm.toLowerCase()) ||
+    //         freelancer.bio
+    //           .toLowerCase()
+    //           .includes(this.searchTerm.toLowerCase()) ||
+    //         freelancer.skills.some((skill) =>
+    //           skill.toLowerCase().includes(this.searchTerm.toLowerCase())
+    //         );
+    //       const matchesSkill =
+    //         !this.skillFilter ||
+    //         freelancer.skills.some((skill) =>
+    //           skill.toLowerCase().includes(this.skillFilter.toLowerCase())
+    //         );
+    //       const matchesAvailability =
+    //         this.availabilityFilter === 'all' ||
+    //         freelancer.availability === this.availabilityFilter;
+    //       const matchesRating = freelancer.rating >= this.ratingFilter;
+    //       const matchesPrice =
+    //         freelancer.hourlyRate >= this.priceRange[0] &&
+    //         freelancer.hourlyRate <= this.priceRange[1];
+    //       const matchesExperience =
+    //         this.experienceFilter === 'all' ||
+    //         (this.experienceFilter === 'junior' &&
+    //           freelancer.completedProjects < 10) ||
+    //         (this.experienceFilter === 'mid' &&
+    //           freelancer.completedProjects >= 10 &&
+    //           freelancer.completedProjects < 25) ||
+    //         (this.experienceFilter === 'senior' &&
+    //           freelancer.completedProjects >= 25);
+    //       return (
+    //         matchesSearch &&
+    //         matchesSkill &&
+    //         matchesAvailability &&
+    //         matchesRating &&
+    //         matchesPrice &&
+    //         matchesExperience
+    //       );
+    //     })
+    //     .map((freelancer) => ({
+    //       ...freelancer,
+    //       compatibility: this.calculateCompatibility(freelancer),
+    //     }))
+    //     .sort((a, b) => {
+    //       switch (this.sortBy) {
+    //         case 'rating':
+    //           return b.rating - a.rating;
+    //         case 'price_low':
+    //           return a.hourlyRate - b.hourlyRate;
+    //         case 'price_high':
+    //           return b.hourlyRate - a.hourlyRate;
+    //         case 'experience':
+    //           return b.completedProjects - a.completedProjects;
+    //         case 'compatibility':
+    //           return (b.compatibility || 0) - (a.compatibility || 0);
+    //         default:
+    //           return 0;
+    //       }
+    //     });
   }
 
   clearAllFilters() {
-    this.searchTerm = '';
-    this.skillFilter = '';
-    this.availabilityFilter = 'all';
-    this.ratingFilter = 0;
-    this.priceRange = [0, 200];
-    this.experienceFilter = 'all';
-    this.sortBy = 'rating';
-    this.applyFilters();
+    //   this.searchTerm = '';
+    //   this.skillFilter = '';
+    //   this.availabilityFilter = 'all';
+    //   this.ratingFilter = 0;
+    //   this.priceRange = [0, 200];
+    //   this.experienceFilter = 'all';
+    //   this.sortBy = 'rating';
+    //   this.applyFilters();
   }
 
   saveCurrentSearch() {
-    const searchQuery = `${this.searchTerm} ${this.skillFilter}`.trim();
-    if (searchQuery && !this.savedSearches.includes(searchQuery)) {
-      this.savedSearches = [...this.savedSearches, searchQuery];
-    }
+    //   const searchQuery = `${this.searchTerm} ${this.skillFilter}`.trim();
+    //   if (searchQuery && !this.savedSearches.includes(searchQuery)) {
+    //     this.savedSearches = [...this.savedSearches, searchQuery];
+    //   }
   }
 
   loadSavedSearch(search: string) {
-    const [term, skill] = search.split(' ');
-    this.searchTerm = term || '';
-    this.skillFilter = skill || '';
-    this.applyFilters();
+    //   const [term, skill] = search.split(' ');
+    //   this.searchTerm = term || '';
+    //   this.skillFilter = skill || '';
+    //   this.applyFilters();
   }
 
   removeSavedSearch(index: number) {
-    this.savedSearches = this.savedSearches.filter((_, i) => i !== index);
+    //   this.savedSearches = this.savedSearches.filter((_, i) => i !== index);
   }
 
   viewProfile(freelancerId: string) {

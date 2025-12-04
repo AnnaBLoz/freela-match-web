@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { User } from '../models/auth.model';
+import { User, UserDTO } from '../models/auth.model';
 import { isBrowser } from '../utils/helpers';
 import { environment } from 'src/enviroments/enviroment';
 
@@ -46,7 +46,7 @@ export class AuthService {
   }
 
   // 🚀 Registro real no backend
-  register(dto: any): Observable<User> {
+  register(dto: UserDTO): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/Auth/register`, dto).pipe(
       tap((response) => {
         if (isBrowser()) {

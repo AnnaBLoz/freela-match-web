@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { User } from 'src/app/core/models/auth.model';
 
 interface Review {
   id: string;
@@ -14,8 +15,8 @@ interface Review {
   receiverName?: string; // Nome do avaliado
   receiverAvatar?: string;
   receiverType?: 'freelancer' | 'client';
-  reviewer: any;
-  receiver: any;
+  reviewer: User;
+  receiver: User;
 }
 
 @Component({

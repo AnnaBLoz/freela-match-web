@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { GeneralService } from 'src/app/core/services/generalService.service';
+import { Skill } from 'src/app/core/services/profileService.service';
 
 interface Profile {
   name?: string;
   biography?: string;
-  website: any;
+  website: string;
   pricePerHour?: number;
   sector?: any;
 }
@@ -12,7 +13,7 @@ interface Profile {
 interface EditForm {
   name?: string;
   biography?: string;
-  website: any;
+  website: string;
   pricePerHour?: number;
   sector?: Sector;
 }
@@ -30,7 +31,7 @@ interface Sector {
 export class ProfileInfoComponent implements OnInit {
   @Input() profile: Profile | null = null;
   @Input() isEditing = false;
-  @Input() skills: any[] = [];
+  @Input() skills: Skill[] = [];
   @Input() editForm: EditForm = {
     website: undefined,
   };
@@ -60,7 +61,7 @@ export class ProfileInfoComponent implements OnInit {
     });
   }
 
-  onEditFormChange(field: string, value: any): void {
+  onEditFormChange(field: string, value: EditForm): void {
     const updated = { ...this.editForm, [field]: value };
     this.updateEditForm.emit(updated);
   }

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/core/services/authService.service';
+import { User } from 'src/app/core/models/auth.model';
 
 @Component({
   selector: 'app-login',
@@ -166,7 +167,7 @@ export class LoginComponent {
   }
 
   // TrackBy function para melhor performance nas listas
-  trackByFn(index: number, item: any): number {
+  trackByFn(index: number, item: User): number {
     return index;
   }
 
