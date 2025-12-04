@@ -8,7 +8,7 @@ import { UserService } from 'src/app/core/services/userService.service';
 interface EditForm {
   name?: string;
   biography?: string;
-  // userSkills?: { skillId: number; name?: string }[];
+  userSkills?: { skillId: number; skill: { name: string } }[];
   pricePerHour?: number;
   sector?: any;
   companyName?: string;
@@ -63,7 +63,7 @@ interface Profile {
 
 interface Portfolio {
   portfolioId: number;
-  url: string;
+  URL: string;
   isActive: boolean;
   userId?: number;
 }
@@ -81,7 +81,6 @@ interface EditPortfolio {
 })
 export class ProfileComponent implements OnInit {
   user: User | null = null;
-  // profile: Profile | null = null;
   profile: any;
   portfolio: Portfolio[] = [];
   skills: any[] = [];
@@ -228,6 +227,7 @@ export class ProfileComponent implements OnInit {
       sector: this.profile.experienceLevel || '',
       pricePerHour: this.profile.pricePerHour || 0,
       website: this.profile.website,
+      userSkills: this.profile.userSkills || [],
     };
 
     this.editUserForm = {
@@ -252,7 +252,7 @@ export class ProfileComponent implements OnInit {
       biography: this.editForm.biography,
       experienceLevel: this.editForm.sector,
       pricePerHour: Number(this.editForm.pricePerHour),
-      userSkills: this.editForm.website,
+      userSkills: this.editForm.userSkills || [],
     };
 
     const updatedUser = {

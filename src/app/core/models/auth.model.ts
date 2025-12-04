@@ -21,10 +21,10 @@ export class User {
 export interface Profile {
   biography?: string;
   hourlyRate?: number;
-  experience?: string;
+  experience?: number;
   portfolioUrls?: string[];
   pricePerHour?: number;
-  experienceLevel?: string;
+  experienceLevel?: number;
   user?: User;
 }
 

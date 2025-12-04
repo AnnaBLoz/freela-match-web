@@ -10,7 +10,7 @@ interface EditForm {
   biography?: string;
   userSkills?: { skillId?: number; name?: string }[];
   pricePerHour?: number;
-  experienceLevel?: string;
+  experienceLevel?: number;
   companyName?: string;
   description?: string;
   industry?: string;
@@ -45,26 +45,6 @@ interface User {
   isAvailable?: boolean;
 }
 
-interface Profile {
-  userId: number;
-  name?: string;
-  biography?: string;
-  skills?: string[];
-  pricePerHour?: number;
-  experience?: string;
-  profileImage?: string;
-  companyName?: string;
-  description?: string;
-  industry?: string;
-  contactPerson?: string;
-  website?: string;
-  logoUrl?: string;
-  experienceLevel?: number;
-  userSkills?: UserSkills[];
-  portfolio?: Portfolio[];
-  skillId?: number[];
-}
-
 interface Portfolio {
   portfolioId: number;
   URL: string;
@@ -86,7 +66,27 @@ interface UserSkills {
 
 interface Skill {
   skillId?: number;
-  name: string;
+  name?: string;
+}
+
+interface Profile {
+  userId?: number;
+  name?: string;
+  biography?: string;
+  skills?: string[];
+  pricePerHour?: number;
+  experience?: number;
+  profileImage?: string;
+  companyName?: string;
+  description?: string;
+  industry?: string;
+  contactPerson?: string;
+  website?: string;
+  logoUrl?: string;
+  experienceLevel?: number;
+  userSkills?: UserSkills[];
+  portfolio?: Portfolio[];
+  skillId?: number[];
 }
 
 @Component({
@@ -96,10 +96,9 @@ interface Skill {
 })
 export class ProfileComponent implements OnInit {
   user: User | null = null;
-  // profile: Profile | null = null;
   profile: Profile;
   portfolio: Portfolio[] = [];
-  skills: Skill[] = [];
+  skills: any[] = [];
   isLoading = true;
   isEditing = false;
   editForm: EditForm = {};
@@ -240,7 +239,7 @@ export class ProfileComponent implements OnInit {
 
     this.editForm = {
       biography: this.profile.biography || '',
-      experienceLevel: this.profile.experienceLevel?.toString() || '',
+      experienceLevel: this.profile.experienceLevel,
       pricePerHour: this.profile.pricePerHour || 0,
       userSkills: this.profile.userSkills
         ? this.profile.userSkills.map((us: UserSkills) => ({
@@ -273,7 +272,7 @@ export class ProfileComponent implements OnInit {
       experienceLevel: Number(this.editForm.experienceLevel),
       pricePerHour: Number(this.editForm.pricePerHour),
       userSkills: this.editForm.userSkills
-        ? this.editForm.userSkills.map((skill: Skill) => ({
+        ? this.editForm.userSkills.map((skill: any) => ({
             skillId: skill.skillId,
             skill: { name: skill.name },
           }))
@@ -291,7 +290,7 @@ export class ProfileComponent implements OnInit {
         // Atualiza o usuário
         this.userService.editUser(this.user!.id, updatedUser).subscribe({
           next: () => {
-            this.user = { ...this.user, ...updatedUser };
+            this.user = { ...this.user, ...updatedUser } as User;
             this.profile = { ...this.profile, ...updatedProfile };
             this.handleSavePortfolio();
             this.isEditing = false;
@@ -312,7 +311,7 @@ export class ProfileComponent implements OnInit {
         this.portfolioService.editPortfolio(item.portfolioId, item).subscribe({
           next: (updatedItem) => {
             const index = this.profile.portfolio.findIndex(
-              (p: Portfolio) => p.portfolioId === item.portfolioId
+              (p: any) => p.portfolioId === item.portfolioId
             );
             if (index !== -1) this.profile.portfolio[index] = updatedItem;
           },

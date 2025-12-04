@@ -19,7 +19,7 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/User/?userId=${userId}`);
   }
 
-  editUser(userId: number, updatedUser: updateUser): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/User/${userId}`, updatedUser);
+  editUser(userId: number, updatedUser: updateUser): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/User/${userId}`, updatedUser);
   }
 }
