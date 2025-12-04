@@ -31,6 +31,10 @@ interface FreelancerProfile {
 
 type Profile = FreelancerProfile;
 
+interface GeneralServiceSpy {
+  completedProjects: jasmine.Spy;
+}
+
 fdescribe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
@@ -38,7 +42,7 @@ fdescribe('DashboardComponent', () => {
   let authService: { currentUser: BehaviorSubject<User | null> };
   let userService: jasmine.SpyObj<UserService>;
   let proposalService: jasmine.SpyObj<ProposalService>;
-  let generalService: any;
+  let generalService: GeneralServiceSpy;
   let profileService: jasmine.SpyObj<ProfileService>;
   let reviewsService: jasmine.SpyObj<ReviewsService>;
 
@@ -212,7 +216,7 @@ fdescribe('DashboardComponent', () => {
   // ============================================================
   // TESTES DE CRIAÇÃO E INICIALIZAÇÃO
   // ============================================================
-  fdescribe('Criação e Inicialização', () => {
+  describe('Criação e Inicialização', () => {
     it('deve criar o componente', () => {
       expect(component).toBeTruthy();
     });
