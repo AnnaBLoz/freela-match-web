@@ -82,8 +82,8 @@ export class DashboardComponent implements OnInit {
   loadUserData(): void {
     this.isLoading = true;
 
-    this.authService.currentUser.subscribe(
-      (user: User | null) => {
+    this.authService.currentUser.subscribe({
+      next: (user: User | null) => {
         if (!user) {
           this.isLoading = false;
           this.router.navigate(['/']);
@@ -113,26 +113,26 @@ export class DashboardComponent implements OnInit {
             },
           });
       },
-      () => {
+      error: () => {
         this.isLoading = false;
         this.router.navigate(['/']);
-      }
-    );
+      },
+    });
   }
 
   loadProfile(): void {
     if (!this.user) return;
 
-    this.profileService.getProfile(this.user.id).subscribe(
-      (profile: Profile) => {
+    this.profileService.getProfile(this.user.id).subscribe({
+      next: (profile: Profile) => {
         this.profile = profile;
         this.isLoading = false;
       },
-      (err: Error) => {
+      error: (err: Error) => {
         console.error('Erro ao carregar perfil:', err);
         this.isLoading = false;
-      }
-    );
+      },
+    });
   }
 
   // ======== Métodos auxiliares ========
@@ -214,33 +214,33 @@ export class DashboardComponent implements OnInit {
     if (!this.user) return;
 
     this.isLoading = true;
-    this.generalService.completedProjects(this.user.id).subscribe(
-      (response: CompletedProject[]) => {
+    this.generalService.completedProjects(this.user.id).subscribe({
+      next: (response: CompletedProject[]) => {
         this.completedProjects = response?.length || 0;
         this.isLoading = false;
       },
-      (err: Error) => {
+      error: (err: Error) => {
         console.error('Erro ao carregar projetos concluídos:', err);
         this.isLoading = false;
-      }
-    );
+      },
+    });
   }
 
   private loadData(): void {
     if (!this.user) return;
 
     this.isLoading = true;
-    this.reviewsService.getReviews(this.user.id).subscribe(
-      (response: Review[]) => {
+    this.reviewsService.getReviews(this.user.id).subscribe({
+      next: (response: Review[]) => {
         this.userReviews = response;
         this.calculateAverageRating();
         this.isLoading = false;
       },
-      (err: Error) => {
+      error: (err: Error) => {
         console.error('Erro ao carregar avaliações:', err);
         this.isLoading = false;
-      }
-    );
+      },
+    });
   }
 
   calculateAverageRating(): void {
@@ -260,15 +260,15 @@ export class DashboardComponent implements OnInit {
   loadProposals(): void {
     if (!this.user) return;
 
-    this.proposalService.getProposalsByUserId(this.user.id).subscribe(
-      (proposals: Proposal[]) => {
+    this.proposalService.getProposalsByUserId(this.user.id).subscribe({
+      next: (proposals: Proposal[]) => {
         this.proposals = proposals;
         this.isLoading = false;
       },
-      (err: Error) => {
+      error: (err: Error) => {
         console.error('Erro ao carregar propostas:', err);
         this.isLoading = false;
-      }
-    );
+      },
+    });
   }
 }
