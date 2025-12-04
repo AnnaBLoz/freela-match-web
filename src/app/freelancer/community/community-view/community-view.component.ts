@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { PortfolioService } from 'src/app/core/services/portfolioService.service';
 import { UserService } from 'src/app/core/services/userService.service';
+import { User } from 'src/app/core/models/auth.model';
 
 interface Freelancer {
   id: number;
@@ -28,10 +29,20 @@ interface Review {
   createdAt: Date;
 }
 
-interface User {
+interface Portfolio {
   id: number;
-  type: 'company' | 'freelancer';
+  url: string;
+  title?: string;
+  description?: string;
+}
+
+interface CompanyInfo {
   name: string;
+  logo?: string;
+}
+
+interface CompanyData extends CompanyInfo {
+  userId: string;
 }
 
 @Component({
@@ -59,7 +70,7 @@ export class CommunityViewComponent implements OnInit {
 
   freelancerId: number;
 
-  portfolio: any[] = [];
+  portfolio: Portfolio[] = [];
 
   constructor(
     private router: Router,
@@ -69,7 +80,7 @@ export class CommunityViewComponent implements OnInit {
     private portfolioService: PortfolioService
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.freelancerId = Number(this.route.snapshot.paramMap.get('id'));
     if (!this.freelancerId) {
       this.isLoading = false;
@@ -78,42 +89,41 @@ export class CommunityViewComponent implements OnInit {
     this.loadFreelancer();
   }
 
-  loadFreelancer() {
+  loadFreelancer(): void {
     this.userService.getUser(this.freelancerId).subscribe({
-      next: (f) => {
+      next: (f: User) => {
         this.freelancer = {
           id: f.id,
-          userId: f.userId,
+          userId: f.userId || f.id,
           name: f.name,
           bio: f.profile?.biography || 'Sem biografia disponível',
-          skills:
-            f.userSkills?.map((s: any) => s.skill?.name || `Habilidade`) || [],
+          skills: f.userSkills?.map((s) => s.skill?.name || 'Habilidade') || [],
           hourlyRate: f.profile?.pricePerHour || 0,
           rating: f.rating || 0,
           completedProjects: f.completedProjects || 0,
           availability: f.isAvailable ? 'available' : 'unavailable',
           profileImage: 'assets/icons/user.png',
-          experience: f.profile?.experience || 'Experiência não informada',
+          experience: f.profile?.experienceLevel || 'Experiência não informada',
           portfolio: [],
         };
 
         this.loadPortfolio();
       },
-      error: (err) => {
-        // console.error('Erro ao carregar freelancer:', err);
+      error: (err: Error) => {
+        console.error('Erro ao carregar freelancer:', err);
         this.isLoading = false;
       },
     });
   }
 
-  loadPortfolio() {
+  loadPortfolio(): void {
     this.portfolioService.getPortfolios(this.freelancerId).subscribe({
-      next: (portfolio) => {
+      next: (portfolio: Portfolio[]) => {
         this.portfolio = portfolio;
 
         // Atualiza o portfólio dentro do freelancer
         if (this.freelancer) {
-          this.freelancer.portfolio = portfolio.map((p: any) => p.url);
+          this.freelancer.portfolio = portfolio.map((p) => p.url);
         }
 
         this.isLoading = false;
@@ -124,13 +134,14 @@ export class CommunityViewComponent implements OnInit {
           this.loadSimilarFreelancers(this.freelancer.id);
         }
       },
-      error: () => {
+      error: (err: Error) => {
+        console.error('Erro ao carregar portfólio:', err);
         this.isLoading = false;
       },
     });
   }
 
-  loadReviews(freelancerId: number) {
+  loadReviews(freelancerId: number): void {
     // Substituir por chamada real ao backend
     this.reviews = [
       {
@@ -152,14 +163,14 @@ export class CommunityViewComponent implements OnInit {
     ];
   }
 
-  loadSimilarFreelancers(freelancerId: number) {
+  loadSimilarFreelancers(freelancerId: number): void {
     // Substituir por chamada real ao backend
     if (!this.freelancer) return;
     this.similarFreelancers = [
       { ...this.freelancer, id: 2, name: 'Lucas Silva', hourlyRate: 100 },
       {
         ...this.freelancer,
-        id: 2,
+        id: 3,
         name: 'Cristian Domingues',
         hourlyRate: 110,
       },
@@ -168,7 +179,7 @@ export class CommunityViewComponent implements OnInit {
 
   // ---------------- METHODS ----------------
   getAvailabilityText(avail: string): string {
-    const map: { [key: string]: string } = {
+    const map: Record<string, string> = {
       available: 'Disponível',
       busy: 'Ocupado',
       unavailable: 'Indisponível',
@@ -176,8 +187,8 @@ export class CommunityViewComponent implements OnInit {
     return map[avail] || avail;
   }
 
-  getCompanyInfo(userId: string): { name: string; logo?: string } {
-    const companies = [
+  getCompanyInfo(userId: string): CompanyInfo {
+    const companies: CompanyData[] = [
       {
         userId: 'user1',
         name: 'Tech Solutions',
@@ -224,35 +235,35 @@ export class CommunityViewComponent implements OnInit {
     return Math.round(value);
   }
 
-  setActiveTab(tab: 'skills' | 'portfolio' | 'reviews') {
+  setActiveTab(tab: 'skills' | 'portfolio' | 'reviews'): void {
     this.activeTab = tab;
   }
 
-  navigateToFreelancers() {
+  navigateToFreelancers(): void {
     this.router.navigate(['/freelancer/community']);
   }
 
-  navigateToProfile(freelancerId: string) {
+  navigateToProfile(freelancerId: string): void {
     this.router.navigate(['/freelancer/community', freelancerId]);
   }
 
-  sendMessage() {
+  sendMessage(): void {
     alert('Abrir chat ou enviar mensagem');
   }
 
-  saveProfile() {
+  saveProfile(): void {
     alert('Salvar perfil do freelancer');
   }
 
-  openReviewModal() {
+  openReviewModal(): void {
     this.showReviewModal = true;
   }
 
-  closeReviewModal() {
+  closeReviewModal(): void {
     this.showReviewModal = false;
   }
 
-  submitReview() {
+  submitReview(): void {
     if (!this.freelancer || !this.user) return;
 
     const newReview: Review = {

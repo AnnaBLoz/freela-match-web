@@ -30,6 +30,14 @@ interface RatingDistribution {
   percentage: number;
 }
 
+interface ReviewCreate {
+  reviewerId: number;
+  receiverId: number;
+  reviewText: string;
+  rating: number;
+  proposalId: number;
+}
+
 @Component({
   selector: 'app-reviews',
   templateUrl: './reviews.component.html',
@@ -71,14 +79,14 @@ export class ReviewsComponent implements OnInit {
 
   loadProfileData(): void {
     this.authService.currentUser.subscribe({
-      next: (user) => {
+      next: (user: User | null) => {
         this.user = user;
         if (!user) {
           this.router.navigate(['/']);
           return;
         }
         this.userService.getUser(user.id).subscribe({
-          next: (fullUser) => {
+          next: (fullUser: User) => {
             this.user = fullUser;
             this.loadData();
             this.calculateStats();
@@ -98,7 +106,7 @@ export class ReviewsComponent implements OnInit {
     if (!this.user) return;
 
     this.reviewsService.getFreelancersToReview(this.user.id).subscribe({
-      next: (freelancers) => {
+      next: (freelancers: FreelancerToReview[]) => {
         this.freelancers = freelancers;
         this.isLoading = false;
       },
@@ -113,7 +121,7 @@ export class ReviewsComponent implements OnInit {
     if (!this.user) return;
 
     this.reviewsService.getReviews(this.user.id).subscribe({
-      next: (reviews) => {
+      next: (reviews: Review[]) => {
         this.reviewsReceived = reviews.filter(
           (r) => r.receiverId === this.user?.id || r.toUserId === this.user?.id
         );
@@ -173,7 +181,6 @@ export class ReviewsComponent implements OnInit {
     this.newReview.rating = star;
   }
 
-  // FIX 4: Usar userId OU id do freelancer, com fallback
   async submitReview(
     freelancer: FreelancerToReview,
     proposalId: number
@@ -181,10 +188,15 @@ export class ReviewsComponent implements OnInit {
     try {
       if (!this.user) return;
 
-      // Usar userId se disponível, caso contrário usar id
-      const receiverId = (freelancer as any).userId || (freelancer as any).id;
+      // Garantir que receiverId existe no FreelancerToReview
+      const receiverId = this.getFreelancerId(freelancer);
 
-      const reviewCreate = {
+      if (!receiverId) {
+        console.error('Freelancer ID não encontrado');
+        return;
+      }
+
+      const reviewCreate: ReviewCreate = {
         reviewerId: this.user.id,
         receiverId: receiverId,
         reviewText: this.newReview.comment,
@@ -200,6 +212,18 @@ export class ReviewsComponent implements OnInit {
     } catch (error) {
       console.error('Erro ao criar avaliação:', error);
     }
+  }
+
+  private getFreelancerId(freelancer: FreelancerToReview): number | null {
+    // Verifica se FreelancerToReview tem userId ou id
+    // Adicione aqui a lógica baseada na estrutura real do FreelancerToReview
+    if ('userId' in freelancer && typeof freelancer.userId === 'number') {
+      return freelancer.userId;
+    }
+    if ('id' in freelancer && typeof freelancer.id === 'number') {
+      return freelancer.id;
+    }
+    return null;
   }
 
   get roundedAverage(): number {
