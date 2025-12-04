@@ -340,7 +340,7 @@ fdescribe('DashboardComponent', () => {
     });
 
     it('deve retornar 0 se userReviews for null', () => {
-      component.userReviews = null as any;
+      component.userReviews = null!;
 
       component.calculateAverageRating();
 
@@ -348,7 +348,7 @@ fdescribe('DashboardComponent', () => {
     });
 
     it('deve retornar 0 se userReviews for undefined', () => {
-      component.userReviews = undefined as any;
+      component.userReviews = undefined!;
 
       component.calculateAverageRating();
 
