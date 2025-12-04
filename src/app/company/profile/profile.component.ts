@@ -1,16 +1,27 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/authService.service';
-import { PortfolioService } from 'src/app/core/services/portfolioService.service';
-import { ProfileService } from 'src/app/core/services/profileService.service';
+import {
+  EditPortfolio,
+  PortfolioService,
+} from 'src/app/core/services/portfolioService.service';
+import {
+  ProfileService,
+  UpdatedProfile,
+} from 'src/app/core/services/profileService.service';
 import { UserService } from 'src/app/core/services/userService.service';
+
+interface UserSkill {
+  skillId: number;
+  skill: { name: string };
+}
 
 interface EditForm {
   name?: string;
   biography?: string;
-  userSkills?: { skillId: number; skill: { name: string } }[];
+  userSkills?: UserSkill[];
   pricePerHour?: number;
-  sector?: any;
+  sector?: number;
   companyName?: string;
   description?: string;
   industry?: string;
@@ -40,18 +51,18 @@ interface User {
   lastName?: string;
   token?: string;
   email: string;
-  jwtToken: any;
+  jwtToken: string;
   type: number;
   isAvailable?: boolean;
 }
 
 interface Profile {
-  userId: number;
+  userId?: number;
   name?: string;
-  bio?: string;
-  skills?: string[];
+  biography?: string;
+  userSkills?: UserSkill[];
   pricePerHour?: number;
-  sector?: string;
+  experienceLevel?: number;
   profileImage?: string;
   companyName?: string;
   description?: string;
@@ -59,6 +70,7 @@ interface Profile {
   contactPerson?: string;
   website?: string;
   logoUrl?: string;
+  portfolio?: Portfolio[];
 }
 
 interface Portfolio {
@@ -68,12 +80,6 @@ interface Portfolio {
   userId?: number;
 }
 
-interface EditPortfolio {
-  portfolioId?: number;
-  URL?: string;
-  isActive?: boolean;
-}
-
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
@@ -81,9 +87,9 @@ interface EditPortfolio {
 })
 export class ProfileComponent implements OnInit {
   user: User | null = null;
-  profile: any;
+  profile: Profile | null = null;
   portfolio: Portfolio[] = [];
-  skills: any[] = [];
+  skills: { skillId?: number; name?: string }[] = [];
   isLoading = true;
   isEditing = false;
   editForm: EditForm = {};
@@ -169,15 +175,6 @@ export class ProfileComponent implements OnInit {
   }
 
   loadReviews(): void {
-    // if (!this.user) return;
-    // this.reviewService.getReviewsForUser(this.user.id).subscribe({
-    //   next: (reviews) => {
-    //     this.userReviews = reviews;
-    //     this.calculateAverageRating();
-    //   }
-    // });
-
-    // 🔹 Avaliações mockadas:
     if (!this.user) return;
 
     this.userReviews = [
@@ -224,7 +221,7 @@ export class ProfileComponent implements OnInit {
 
     this.editForm = {
       biography: this.profile.biography || '',
-      sector: this.profile.experienceLevel || '',
+      sector: this.profile.experienceLevel || 0,
       pricePerHour: this.profile.pricePerHour || 0,
       website: this.profile.website,
       userSkills: this.profile.userSkills || [],
@@ -236,7 +233,7 @@ export class ProfileComponent implements OnInit {
     };
 
     this.editPortfolioForm = this.profile.portfolio
-      ? this.profile.portfolio.map((p: any) => ({
+      ? this.profile.portfolio.map((p: Portfolio) => ({
           portfolioId: p.portfolioId,
           URL: p.URL,
           isActive: p.isActive,
@@ -248,7 +245,7 @@ export class ProfileComponent implements OnInit {
   handleSave(): void {
     if (!this.user || !this.profile) return;
 
-    const updatedProfile = {
+    const updatedProfile: UpdatedProfile = {
       biography: this.editForm.biography,
       experienceLevel: this.editForm.sector,
       pricePerHour: Number(this.editForm.pricePerHour),
@@ -266,8 +263,8 @@ export class ProfileComponent implements OnInit {
         // Atualiza o usuário
         this.userService.editUser(this.user!.id, updatedUser).subscribe({
           next: () => {
-            this.user = { ...this.user, ...updatedUser };
-            this.profile = { ...this.profile, ...updatedProfile };
+            this.user = { ...this.user!, ...updatedUser };
+            this.profile = { ...this.profile!, ...updatedProfile };
             this.handleSavePortfolio();
             this.isEditing = false;
             this.editForm = {};
@@ -279,6 +276,7 @@ export class ProfileComponent implements OnInit {
   }
 
   handleSavePortfolio(): void {
+    if (!this.profile) return;
     if (!this.profile.portfolio) this.profile.portfolio = [];
 
     this.editPortfolioForm.forEach((item) => {
@@ -286,18 +284,18 @@ export class ProfileComponent implements OnInit {
         // Edição
         this.portfolioService.editPortfolio(item.portfolioId, item).subscribe({
           next: (updatedItem) => {
-            const index = this.profile.portfolio.findIndex(
-              (p: any) => p.portfolioId === item.portfolioId
+            const index = this.profile!.portfolio!.findIndex(
+              (p: Portfolio) => p.portfolioId === item.portfolioId
             );
-            if (index !== -1) this.profile.portfolio[index] = updatedItem;
+            if (index !== -1) this.profile!.portfolio![index] = updatedItem;
           },
           error: (err) => console.error('Erro ao atualizar portfólio', err),
         });
       } else {
-        const newItem = { ...item, userId: this.user!.id };
+        const newItem: EditPortfolio = { ...item, userId: this.user!.id };
         this.portfolioService.createPortfolio(newItem).subscribe({
           next: (createdItem) => {
-            this.profile.portfolio.push(createdItem);
+            this.profile!.portfolio!.push(createdItem);
             item.portfolioId = createdItem.portfolioId;
           },
           error: (err) => console.error('Erro ao criar portfólio', err),
@@ -340,18 +338,23 @@ export class ProfileComponent implements OnInit {
   }
 
   addPortfolioItem(): void {
-    this.editPortfolioForm.push({ URL: '', isActive: true });
+    this.editPortfolioForm.push({
+      URL: '',
+      isActive: true,
+      userId: this.user?.id,
+    });
   }
 
   removePortfolioItem(index: number): void {
     const item = this.editPortfolioForm[index];
 
-    const portfolio = {
+    const portfolio: EditPortfolio = {
       isActive: false,
       URL: item.URL,
       userId: this.user?.id,
     };
-    if (item.portfolioId) {
+
+    if (item.portfolioId && portfolio.userId) {
       this.portfolioService
         .editPortfolio(portfolio.userId, portfolio)
         .subscribe(() => {

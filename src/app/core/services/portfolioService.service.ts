@@ -19,10 +19,11 @@ interface CreatedPortfolio {
   URL?: string;
   isActive?: boolean;
 }
-interface EditPortfolio {
+export interface EditPortfolio {
   portfolioId?: number;
   URL?: string;
   isActive?: boolean;
+  userId: number | undefined;
 }
 
 @Injectable({ providedIn: 'root' })

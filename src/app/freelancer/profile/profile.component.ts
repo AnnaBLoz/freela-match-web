@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/authService.service';
-import { PortfolioService } from 'src/app/core/services/portfolioService.service';
+import {
+  EditPortfolio,
+  PortfolioService,
+} from 'src/app/core/services/portfolioService.service';
 import { ProfileService } from 'src/app/core/services/profileService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
@@ -50,12 +53,6 @@ interface Portfolio {
   URL: string;
   isActive: boolean;
   userId?: number;
-}
-
-interface EditPortfolio {
-  portfolioId?: number;
-  URL?: string;
-  isActive?: boolean;
 }
 
 interface UserSkills {
@@ -364,7 +361,11 @@ export class ProfileComponent implements OnInit {
   }
 
   addPortfolioItem(): void {
-    this.editPortfolioForm.push({ URL: '', isActive: true });
+    this.editPortfolioForm.push({
+      URL: '',
+      isActive: true,
+      userId: this.user?.id,
+    });
   }
 
   removePortfolioItem(index: number): void {
