@@ -105,10 +105,14 @@
                     class="d-flex align-items-center text-success fw-semibold"
                   >
                     <i class="bi bi-currency-dollar me-1"></i>
-                    <span class="h5 mb-0"
-                      >R$ {{ freelancer.hourlyRate }}/h</span
-                    >
+                    <span class="h5 mb-0">
+                      {{
+                        freelancer.hourlyRate
+                          | currency : "BRL" : "symbol" : "1.2-2"
+                      }}/h
+                    </span>
                   </div>
+
                   <span class="text-muted"
                     >{{ freelancer.completedProjects }} projetos
                     concluídos</span
@@ -186,7 +190,9 @@
 
               <div>
                 <h6 class="fw-medium text-dark mb-2">Experiência</h6>
-                <p class="text-muted">{{ freelancer.experience }}</p>
+                <p class="text-muted">
+                  {{ ExperienceLevelEnum[freelancer.experience] }}
+                </p>
               </div>
             </div>
 

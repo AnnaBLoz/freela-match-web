@@ -5,6 +5,12 @@ import { PortfolioService } from 'src/app/core/services/portfolioService.service
 import { UserService } from 'src/app/core/services/userService.service';
 import { User } from 'src/app/core/models/auth.model';
 
+enum ExperienceLevel {
+  Junior = 1,
+  Pleno,
+  Senior,
+  Especialista,
+}
 interface Freelancer {
   id: number;
   userId: number;
@@ -71,6 +77,7 @@ export class CommunityViewComponent implements OnInit {
   freelancerId: number;
 
   portfolio: Portfolio[] = [];
+  ExperienceLevelEnum = ExperienceLevel;
 
   constructor(
     private router: Router,
@@ -98,7 +105,9 @@ export class CommunityViewComponent implements OnInit {
           name: f.name,
           bio: f.profile?.biography || 'Sem biografia disponível',
           skills: f.userSkills?.map((s) => s.skill?.name || 'Habilidade') || [],
-          hourlyRate: f.profile?.pricePerHour || 0,
+          hourlyRate: f.profile?.pricePerHour
+            ? f.profile.pricePerHour / 100
+            : 0,
           rating: f.rating || 0,
           completedProjects: f.completedProjects || 0,
           availability: f.isAvailable ? 'available' : 'unavailable',
@@ -131,7 +140,6 @@ export class CommunityViewComponent implements OnInit {
         // Carrega avaliações e freelancers similares após o portfólio
         if (this.freelancer) {
           this.loadReviews(this.freelancer.id);
-          this.loadSimilarFreelancers(this.freelancer.id);
         }
       },
       error: (err: Error) => {
@@ -159,20 +167,6 @@ export class CommunityViewComponent implements OnInit {
         rating: 4,
         comment: 'Trabalho muito bom, recomendo.',
         createdAt: new Date('2025-03-15'),
-      },
-    ];
-  }
-
-  loadSimilarFreelancers(freelancerId: number): void {
-    // Substituir por chamada real ao backend
-    if (!this.freelancer) return;
-    this.similarFreelancers = [
-      { ...this.freelancer, id: 2, name: 'Lucas Silva', hourlyRate: 100 },
-      {
-        ...this.freelancer,
-        id: 3,
-        name: 'Cristian Domingues',
-        hourlyRate: 110,
       },
     ];
   }
