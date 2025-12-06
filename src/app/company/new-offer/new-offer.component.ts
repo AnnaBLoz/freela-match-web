@@ -16,7 +16,7 @@ interface CreateNewProposalDto {
   description: string;
   price: number;
   maxDate: string;
-  companyId: number;
+  ownerId: number;
   requiredSkills: { skillId: number }[];
 }
 
@@ -134,7 +134,7 @@ export class NewOfferComponent implements OnInit {
         description: this.proposalForm.value.description,
         price: Number(this.proposalForm.value.price),
         maxDate: this.proposalForm.value.maxDate,
-        companyId: this.user.id,
+        ownerId: this.user.id,
         requiredSkills: this.requiredSkills.map((skill: Skill) => ({
           skillId: skill.id || skill.skillId || 0,
         })),
@@ -192,5 +192,25 @@ export class NewOfferComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/dashboard']);
+  }
+
+  formatCurrency(event: any) {
+    let value = event.target.value;
+
+    // remove anything not number
+    value = value.replace(/\D/g, '');
+
+    // convert to BRL format
+    value = (Number(value) / 100).toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+
+    event.target.value = value;
+
+    // atualiza no form sem o "R$"
+    this.proposalForm.patchValue({
+      price: Number(value.replace(/[^\d,]/g, '').replace(',', '.')),
+    });
   }
 }

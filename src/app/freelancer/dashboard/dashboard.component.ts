@@ -254,7 +254,7 @@ export class DashboardComponent implements OnInit {
       0
     );
 
-    this.averageRating = sum / this.userReviews.length;
+    this.averageRating = Number((sum / this.userReviews.length).toFixed(1));
   }
 
   loadProposals(): void {

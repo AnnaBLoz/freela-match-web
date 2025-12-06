@@ -132,14 +132,15 @@
                     Orçamento (R$) <span class="text-danger">*</span>
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     class="form-control"
                     [class.is-invalid]="isFieldInvalid('price')"
                     id="price"
                     formControlName="price"
-                    placeholder="5000"
-                    min="1"
+                    placeholder="5.000,00"
+                    (input)="formatCurrency($event)"
                   />
+
                   <div class="invalid-feedback" *ngIf="isFieldInvalid('price')">
                     {{ getFieldErrorMessage("price") }}
                   </div>
