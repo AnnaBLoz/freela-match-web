@@ -15,6 +15,7 @@ import {
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 import { User, Profile } from 'src/app/core/models/auth.model';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 interface Application {
   id: string;
@@ -180,6 +181,7 @@ fdescribe('DashboardComponent', () => {
     mockReviewsService.getReviews.and.returnValue(of(mockReviews));
 
     await TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       declarations: [DashboardComponent],
       providers: [
         { provide: Router, useValue: mockRouter },

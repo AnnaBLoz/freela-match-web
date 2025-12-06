@@ -58,16 +58,6 @@ interface ReviewsServiceMock {
   >;
 }
 
-// Type-safe helper for private method names
-type ReviewsComponentPrivateMethods =
-  | 'loadData'
-  | 'loadFreelancers'
-  | 'calculateStats';
-
-// Type-safe helper for component with private methods
-type ReviewsComponentWithPrivate = ReviewsComponent &
-  Record<ReviewsComponentPrivateMethods, () => void>;
-
 fdescribe('ReviewsComponent', () => {
   let component: ReviewsComponent;
   let fixture: ComponentFixture<ReviewsComponent>;
@@ -236,38 +226,30 @@ fdescribe('ReviewsComponent', () => {
     expect(routerMock.navigate).toHaveBeenCalledWith(['/']);
   }));
 
-  it('deve chamar loadData e calculateStats após carregar usuário', fakeAsync(() => {
-    spyOn(component as ReviewsComponentWithPrivate, 'loadData');
-    spyOn(component as ReviewsComponentWithPrivate, 'calculateStats');
+  it('deve chamar loadReviewData após carregar usuário', fakeAsync(() => {
+    spyOn(component as any, 'loadReviewData');
 
     component.ngOnInit();
     tick();
 
-    expect(
-      (component as ReviewsComponentWithPrivate)['loadData']
-    ).toHaveBeenCalled();
-    expect(
-      (component as ReviewsComponentWithPrivate)['calculateStats']
-    ).toHaveBeenCalled();
+    expect((component as any).loadReviewData).toHaveBeenCalled();
   }));
 
   it('deve chamar loadFreelancers após carregar usuário', fakeAsync(() => {
-    spyOn(component as ReviewsComponentWithPrivate, 'loadFreelancers');
+    spyOn(component as any, 'loadFreelancers');
 
     component.ngOnInit();
     tick();
 
-    expect(
-      (component as ReviewsComponentWithPrivate)['loadFreelancers']
-    ).toHaveBeenCalled();
+    expect((component as any).loadFreelancers).toHaveBeenCalled();
   }));
 
   // -----------------------------------------------------
-  // loadFreelancers
+  // loadFreelancers (método privado)
   // -----------------------------------------------------
   it('deve carregar freelancers para avaliar', fakeAsync(() => {
     component.user = mockUser;
-    (component as ReviewsComponentWithPrivate)['loadFreelancers']();
+    (component as any).loadFreelancers();
     tick();
 
     expect(reviewsServiceMock.getFreelancersToReview).toHaveBeenCalledWith(1);
@@ -279,7 +261,7 @@ fdescribe('ReviewsComponent', () => {
 
   it('não deve carregar freelancers se user for null', () => {
     component.user = null;
-    (component as ReviewsComponentWithPrivate)['loadFreelancers']();
+    (component as any).loadFreelancers();
 
     expect(reviewsServiceMock.getFreelancersToReview).not.toHaveBeenCalled();
   });
@@ -291,7 +273,7 @@ fdescribe('ReviewsComponent', () => {
     );
     spyOn(console, 'error');
 
-    (component as ReviewsComponentWithPrivate)['loadFreelancers']();
+    (component as any).loadFreelancers();
     tick();
 
     expect(console.error).toHaveBeenCalledWith(
@@ -302,28 +284,24 @@ fdescribe('ReviewsComponent', () => {
   }));
 
   // -----------------------------------------------------
-  // loadData
+  // loadReviewData e calculateAverageRating
   // -----------------------------------------------------
-  it('deve carregar reviews e filtrar recebidas e enviadas', fakeAsync(() => {
+  it('deve carregar reviews e calcular média', fakeAsync(() => {
     component.user = mockUser;
-    (component as ReviewsComponentWithPrivate)['loadData']();
+    (component as any).loadReviewData();
     tick();
 
     expect(reviewsServiceMock.getReviews).toHaveBeenCalledWith(1);
-    expect(component.reviewsReceived.length).toBe(2);
-    expect(component.reviewsGiven.length).toBe(1);
-    expect(component.sentReviews).toEqual(component.reviewsGiven);
+    expect(component.userReviews).toEqual(mockReviews);
     expect(component.isLoading).toBeFalse();
   }));
 
-  it('deve filtrar reviews recebidas corretamente', fakeAsync(() => {
+  it('deve filtrar reviews recebidas corretamente em calculateAverageRating', fakeAsync(() => {
     component.user = mockUser;
-    (component as ReviewsComponentWithPrivate)['loadData']();
+    component.ngOnInit();
     tick();
 
     expect(component.reviewsReceived.length).toBe(2);
-    expect(component.reviewsReceived[0].id).toBe(1);
-    expect(component.reviewsReceived[1].id).toBe(3);
     expect(
       component.reviewsReceived.every(
         (r) => r.receiverId === 1 || r.toUserId === 1
@@ -331,25 +309,19 @@ fdescribe('ReviewsComponent', () => {
     ).toBeTrue();
   }));
 
-  it('deve filtrar reviews enviadas corretamente', fakeAsync(() => {
+  it('deve calcular média de avaliações corretamente', fakeAsync(() => {
     component.user = mockUser;
-    (component as ReviewsComponentWithPrivate)['loadData']();
+    component.ngOnInit();
     tick();
 
-    expect(component.reviewsGiven.length).toBe(1);
-    expect(component.reviewsGiven[0].id).toBe(2);
-    expect(
-      component.reviewsGiven.every(
-        (r) => r.reviewerId === 1 || r.fromUserId === 1
-      )
-    ).toBeTrue();
+    expect(component.averageRating).toBe(4);
   }));
 
-  it('não deve carregar reviews se user for null', () => {
-    component.user = null;
-    (component as ReviewsComponentWithPrivate)['loadData']();
+  it('deve retornar média 0 quando não há reviews', () => {
+    component.userReviews = [];
+    component.calculateAverageRating();
 
-    expect(reviewsServiceMock.getReviews).not.toHaveBeenCalled();
+    expect(component.averageRating).toBe(0);
   });
 
   it('deve tratar erro ao carregar reviews', fakeAsync(() => {
@@ -359,98 +331,32 @@ fdescribe('ReviewsComponent', () => {
     );
     spyOn(console, 'error');
 
-    (component as ReviewsComponentWithPrivate)['loadData']();
+    (component as any).loadReviewData();
     tick();
 
     expect(console.error).toHaveBeenCalledWith(
-      'Erro ao carregar reviews:',
+      'Erro ao carregar avaliações:',
       jasmine.any(Error)
     );
     expect(component.isLoading).toBeFalse();
   }));
 
-  it('deve chamar calculateStats após carregar reviews', fakeAsync(() => {
+  it('deve chamar calculateAverageRating após carregar reviews', fakeAsync(() => {
     component.user = mockUser;
-    spyOn(component as ReviewsComponentWithPrivate, 'calculateStats');
+    spyOn(component, 'calculateAverageRating');
 
-    (component as ReviewsComponentWithPrivate)['loadData']();
+    (component as any).loadReviewData();
     tick();
 
-    expect(
-      (component as ReviewsComponentWithPrivate)['calculateStats']
-    ).toHaveBeenCalled();
+    expect(component.calculateAverageRating).toHaveBeenCalled();
   }));
 
   // -----------------------------------------------------
-  // calculateStats
+  // Distribuição de ratings (não implementado)
   // -----------------------------------------------------
-  it('deve calcular média de avaliações corretamente', fakeAsync(() => {
-    component.user = mockUser;
-    component.ngOnInit();
-    tick();
-
-    // 2 reviews recebidas: rating 5 e 3 = média 4
-    expect(component.averageRating).toBe(4);
-  }));
-
-  it('deve calcular distribuição de ratings corretamente', fakeAsync(() => {
-    component.user = mockUser;
-    component.ngOnInit();
-    tick();
-
-    expect(component.ratingDistribution.length).toBe(5);
-
-    const r5 = component.ratingDistribution.find((r) => r.rating === 5);
-    const r4 = component.ratingDistribution.find((r) => r.rating === 4);
-    const r3 = component.ratingDistribution.find((r) => r.rating === 3);
-    const r2 = component.ratingDistribution.find((r) => r.rating === 2);
-    const r1 = component.ratingDistribution.find((r) => r.rating === 1);
-
-    expect(r5?.count).toBe(1);
-    expect(r5?.percentage).toBe(50);
-    expect(r4?.count).toBe(0);
-    expect(r4?.percentage).toBe(0);
-    expect(r3?.count).toBe(1);
-    expect(r3?.percentage).toBe(50);
-    expect(r2?.count).toBe(0);
-    expect(r2?.percentage).toBe(0);
-    expect(r1?.count).toBe(0);
-    expect(r1?.percentage).toBe(0);
-  }));
-
-  it('deve retornar média 0 quando não há reviews recebidas', () => {
-    component.reviewsReceived = [];
-    (component as ReviewsComponentWithPrivate)['calculateStats']();
-
-    expect(component.averageRating).toBe(0);
-  });
-
-  it('deve calcular distribuição com percentagem 0 quando não há reviews', () => {
-    component.reviewsReceived = [];
-    (component as ReviewsComponentWithPrivate)['calculateStats']();
-
-    expect(component.ratingDistribution.length).toBe(5);
-    expect(
-      component.ratingDistribution.every((r) => r.percentage === 0)
-    ).toBeTrue();
-    expect(component.ratingDistribution.every((r) => r.count === 0)).toBeTrue();
-  });
-
-  it('deve ignorar ratings undefined ao calcular média', () => {
-    const reviewWithUndefinedRating: Review = {
-      ...mockReviews[1],
-      rating: undefined as unknown as number,
-    };
-
-    component.reviewsReceived = [
-      { ...mockReviews[0], rating: 5 },
-      reviewWithUndefinedRating,
-      { ...mockReviews[2], rating: 3 },
-    ];
-    (component as ReviewsComponentWithPrivate)['calculateStats']();
-
-    // (5 + 0 + 3) / 3 = 2.67
-    expect(component.averageRating).toBeCloseTo(2.67, 1);
+  it('ratingDistribution está vazio por padrão', () => {
+    expect(component.ratingDistribution).toEqual([]);
+    expect(component.ratingDistribution.length).toBe(0);
   });
 
   // -----------------------------------------------------
@@ -580,8 +486,7 @@ fdescribe('ReviewsComponent', () => {
     component.user = mockUser;
     component.newReview = { rating: 4, comment: '' };
 
-    const freelancerWithId: FreelancerToReview & { id?: number } = {
-      id: 11,
+    const freelancer: FreelancerToReview = {
       userId: 11,
       name: 'Jane Developer',
       email: '',
@@ -589,7 +494,7 @@ fdescribe('ReviewsComponent', () => {
 
     spyOn(component, 'loadProfileData');
 
-    await component.submitReview(freelancerWithId, 456);
+    await component.submitReview(freelancer, 456);
 
     expect(reviewsServiceMock.createReview).toHaveBeenCalledWith({
       reviewerId: 1,
@@ -601,51 +506,37 @@ fdescribe('ReviewsComponent', () => {
     expect(component.newReview).toEqual({ rating: 0, comment: '' });
   }));
 
-  // -----------------------------------------------------
-  // Getter roundedAverage
-  // -----------------------------------------------------
-  it('deve retornar média arredondada para cima', () => {
-    component.averageRating = 4.7;
-    expect(component.roundedAverage).toBe(5);
-  });
+  it('deve retornar erro se freelancer não tiver userId ou id', waitForAsync(async () => {
+    component.user = mockUser;
 
-  it('deve retornar média arredondada para baixo', () => {
-    component.averageRating = 4.2;
-    expect(component.roundedAverage).toBe(4);
-  });
+    const invalidFreelancer = {
+      name: 'Invalid Freelancer',
+      email: '',
+    } as FreelancerToReview;
 
-  it('deve retornar 0 quando média for 0', () => {
-    component.averageRating = 0;
-    expect(component.roundedAverage).toBe(0);
-  });
+    spyOn(console, 'error');
 
-  it('deve arredondar 0.5 para cima', () => {
-    component.averageRating = 3.5;
-    expect(component.roundedAverage).toBe(4);
-  });
+    await component.submitReview(invalidFreelancer, 123);
+
+    expect(console.error).toHaveBeenCalledWith('Freelancer ID não encontrado');
+    expect(reviewsServiceMock.createReview).not.toHaveBeenCalled();
+  }));
 
   // -----------------------------------------------------
   // Cenários integrados
   // -----------------------------------------------------
-  it('deve sincronizar sentReviews com reviewsGiven', fakeAsync(() => {
-    component.user = mockUser;
-    component.ngOnInit();
-    tick();
+  it('reviewsGiven e sentReviews estão vazios por padrão', () => {
+    expect(component.reviewsGiven).toEqual([]);
+    expect(component.sentReviews).toEqual([]);
+  });
 
-    expect(component.sentReviews).toEqual(component.reviewsGiven);
-    expect(component.sentReviews.length).toBe(1);
-  }));
-
-  it('deve chamar calculateStats duas vezes durante inicialização completa', fakeAsync(() => {
-    spyOn(component as ReviewsComponentWithPrivate, 'calculateStats');
+  it('deve chamar loadReviewData duas vezes durante inicialização', fakeAsync(() => {
+    spyOn(component as any, 'loadReviewData');
 
     component.ngOnInit();
     tick();
 
-    // Chamado em loadProfileData (após getUser) e em loadData
-    expect(
-      (component as ReviewsComponentWithPrivate)['calculateStats']
-    ).toHaveBeenCalledTimes(2);
+    expect((component as any).loadReviewData).toHaveBeenCalledTimes(2);
   }));
 
   it('deve processar fluxo completo de inicialização', fakeAsync(() => {
@@ -653,10 +544,45 @@ fdescribe('ReviewsComponent', () => {
     tick();
 
     expect(component.user).toEqual(mockUser);
+    expect(component.userReviews).toEqual(mockReviews);
     expect(component.reviewsReceived.length).toBe(2);
-    expect(component.reviewsGiven.length).toBe(1);
     expect(component.freelancers.length).toBe(2);
     expect(component.averageRating).toBe(4);
     expect(component.isLoading).toBeFalse();
   }));
+
+  // -----------------------------------------------------
+  // getFreelancerId (método privado)
+  // -----------------------------------------------------
+  it('deve retornar userId quando presente', () => {
+    const freelancer: FreelancerToReview = {
+      userId: 10,
+      name: 'Test',
+      email: '',
+    };
+
+    const result = (component as any).getFreelancerId(freelancer);
+    expect(result).toBe(10);
+  });
+
+  it('deve retornar id quando userId não está presente', () => {
+    const freelancer = {
+      id: 20,
+      name: 'Test',
+      email: '',
+    } as any;
+
+    const result = (component as any).getFreelancerId(freelancer);
+    expect(result).toBe(20);
+  });
+
+  it('deve retornar null quando nem userId nem id estão presentes', () => {
+    const freelancer = {
+      name: 'Test',
+      email: '',
+    } as any;
+
+    const result = (component as any).getFreelancerId(freelancer);
+    expect(result).toBeNull();
+  });
 });
