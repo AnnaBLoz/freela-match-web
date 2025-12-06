@@ -150,7 +150,7 @@ O projeto segue o modelo cliente-servidor com arquitetura SPA (Single Page Appli
 ### Ferramentas de Desenvolvimento
 
 - **Controle de Versão**: Git/GitHub
-- **CI/CD**: Azure DevOps
+- **CI/CD**: GitHub Actions
 - **Análise de Código**: DeepSource
 - **Gestão de Projeto**: Jira, Confluence
 
