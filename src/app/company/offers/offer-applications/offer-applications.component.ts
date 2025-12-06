@@ -285,26 +285,30 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
       .filter((cp) => cp.freelancerId === candidateId)
       .sort(
         (a, b) =>
-          new Date(b.estimatedDate).getTime() -
-          new Date(a.estimatedDate).getTime()
+          new Date(b.createdAt || b.estimatedDate).getTime() -
+          new Date(a.createdAt || a.estimatedDate).getTime()
       );
   }
 
   isLastCounterProposalFromFreelancer(candidateId: number): boolean {
     const list = this.getCounterProposalsFor(candidateId);
-    if (list.length === 0) return true;
+
+    if (list.length === 0) return false;
 
     const last = list[list.length - 1];
+
     if (last.isAccepted === true) return true;
-    return last.isSendedByCompany === true;
+
+    return last.isSendedByCompany === false;
   }
 
   isLastCounterProposalFromFreelancers(candidateId: number): boolean {
     const list = this.getCounterProposalsFor(candidateId);
+
     if (list.length === 0) return false;
 
     const last = list[list.length - 1];
-    if (last.isAccepted === true) return false;
-    return last.isSendedByCompany === false;
+
+    return last.isSendedByCompany === true;
   }
 }
