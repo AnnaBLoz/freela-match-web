@@ -45,6 +45,8 @@ export class OffersComponent implements OnInit {
       next: (proposals: Proposal[]) => {
         this.proposals = proposals;
         this.filteredProposals = proposals; // inicializa a lista
+        console.log(proposals);
+
         this.isLoading = false;
       },
       error: (err: Error) => {

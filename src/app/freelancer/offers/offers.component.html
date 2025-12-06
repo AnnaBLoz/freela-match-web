@@ -131,10 +131,10 @@
               <h6 class="text-dark mb-2">Habilidades necessárias:</h6>
               <div class="d-flex flex-wrap gap-1">
                 <span
-                  *ngFor="let skill of proposal?.requiredSkills"
+                  *ngFor="let skill of proposal"
                   class="badge bg-light text-dark border small"
                 >
-                  {{ skill.name }}
+                  {{ skill.requiredSkills.name }}
                 </span>
               </div>
             </div>

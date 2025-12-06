@@ -33,9 +33,7 @@ export class PortfolioService {
   constructor(private http: HttpClient) {}
 
   getPortfolios(userId: number): Observable<Portfolio[]> {
-    return this.http.get<Portfolio[]>(
-      `${this.apiUrl}/Portfolio?userId=${userId}`
-    );
+    return this.http.get<Portfolio[]>(`${this.apiUrl}/Portfolio/${userId}`);
   }
 
   editPortfolio(
@@ -50,7 +48,7 @@ export class PortfolioService {
 
   createPortfolio(createdPortfolio: CreatedPortfolio): Observable<Portfolio> {
     return this.http.post<Portfolio>(
-      `${this.apiUrl}/Portfolio/create`,
+      `${this.apiUrl}/Portfolio`,
       createdPortfolio
     );
   }

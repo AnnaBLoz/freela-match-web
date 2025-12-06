@@ -139,7 +139,6 @@ export class ProfileComponent implements OnInit {
         });
 
         this.loadProfile();
-        this.loadReviews();
       },
       error: () => {
         this.router.navigate(['/']);
@@ -178,40 +177,6 @@ export class ProfileComponent implements OnInit {
         this.initializeEditForm();
       },
     });
-  }
-
-  loadReviews(): void {
-    // if (!this.user) return;
-    // this.reviewService.getReviewsForUser(this.user.id).subscribe({
-    //   next: (reviews) => {
-    //     this.userReviews = reviews;
-    //     this.calculateAverageRating();
-    //   }
-    // });
-
-    // 🔹 Avaliações mockadas:
-    if (!this.user) return;
-
-    this.userReviews = [
-      {
-        id: 1,
-        fromUserId: '2',
-        toUserId: this.user.id,
-        rating: 5,
-        comment: 'Excelente trabalho!',
-        createdAt: new Date('2025-09-01'),
-      },
-      {
-        id: 2,
-        fromUserId: '3',
-        toUserId: this.user.id,
-        rating: 4,
-        comment: 'Profissional muito competente.',
-        createdAt: new Date('2025-09-10'),
-      },
-    ];
-
-    this.calculateAverageRating();
   }
 
   calculateAverageRating(): void {
