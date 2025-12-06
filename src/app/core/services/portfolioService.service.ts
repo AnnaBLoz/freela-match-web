@@ -6,7 +6,7 @@ import { environment } from 'src/enviroments/enviroment';
 interface Portfolio {
   id: number;
   portfolioId: number;
-  URL: string;
+  url: string;
   isActive: boolean;
   userId?: number;
   createdAt?: Date;

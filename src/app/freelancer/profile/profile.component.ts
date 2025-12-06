@@ -50,7 +50,7 @@ interface User {
 
 interface Portfolio {
   portfolioId: number;
-  URL: string;
+  url: string;
   isActive: boolean;
   userId?: number;
 }
@@ -173,6 +173,7 @@ export class ProfileComponent implements OnInit {
     this.portfolioService.getPortfolios(this.user.id).subscribe({
       next: (portfolio) => {
         this.portfolio = portfolio;
+        this.profile.portfolio = portfolio;
         this.isLoading = false;
         this.initializeEditForm();
       },
@@ -216,10 +217,12 @@ export class ProfileComponent implements OnInit {
       isAvailable: this.user?.isAvailable || false,
     };
 
+    console.log(this.profile.portfolio);
+
     this.editPortfolioForm = this.profile.portfolio
       ? this.profile.portfolio.map((p: Portfolio) => ({
           portfolioId: p.portfolioId,
-          URL: p.URL,
+          URL: p.url,
           isActive: p.isActive,
           userId: this.user?.id,
         }))
@@ -267,29 +270,26 @@ export class ProfileComponent implements OnInit {
   handleSavePortfolio(): void {
     if (!this.profile.portfolio) this.profile.portfolio = [];
 
-    this.editPortfolioForm.forEach((item) => {
+    const requests = this.editPortfolioForm.map((item) => {
       if (item.portfolioId) {
         // Edição
-        this.portfolioService.editPortfolio(item.portfolioId, item).subscribe({
-          next: (updatedItem) => {
-            const index = this.profile.portfolio.findIndex(
-              (p: Portfolio) => p.portfolioId === item.portfolioId
-            );
-            if (index !== -1) this.profile.portfolio[index] = updatedItem;
-          },
-          error: (err) => console.error('Erro ao atualizar portfólio', err),
-        });
+        return this.portfolioService.editPortfolio(item.portfolioId, item);
       } else {
+        // Criação
         const newItem = { ...item, userId: this.user!.id };
-        this.portfolioService.createPortfolio(newItem).subscribe({
-          next: (createdItem) => {
-            this.profile.portfolio.push(createdItem);
-            item.portfolioId = createdItem.portfolioId;
-          },
-          error: (err) => console.error('Erro ao criar portfólio', err),
-        });
+        return this.portfolioService.createPortfolio(newItem);
       }
     });
+
+    // Aguarda todas as requisições antes de atualizar a interface
+    Promise.all(requests.map((r) => r.toPromise()))
+      .then(() => {
+        // Atualiza a tela
+        this.getPortfolios();
+      })
+      .catch((err) => {
+        console.error('Erro ao salvar portfólio:', err);
+      });
   }
 
   handleCancel(): void {
@@ -308,21 +308,6 @@ export class ProfileComponent implements OnInit {
 
   setActiveTab(tab: string): void {
     this.activeTab = tab;
-  }
-
-  getReviewerName(
-    reviewerId: string,
-    reviewerProfile: Profile | undefined
-  ): string {
-    if (this.user?.type === 1) {
-      return reviewerProfile?.name || 'Usuário';
-    }
-    return reviewerProfile?.companyName || 'Empresa';
-  }
-
-  getReviewerType(reviewerId: string): 'freelancer' | 'company' {
-    // Implementar lógica para obter o tipo de revisor
-    return 'freelancer';
   }
 
   addPortfolioItem(): void {

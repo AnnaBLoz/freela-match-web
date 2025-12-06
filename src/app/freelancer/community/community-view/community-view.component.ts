@@ -31,7 +31,7 @@ interface Review {
 
 interface Portfolio {
   id: number;
-  URL: string;
+  url: string;
   title?: string;
   description?: string;
 }
@@ -123,7 +123,7 @@ export class CommunityViewComponent implements OnInit {
 
         // Atualiza o portfólio dentro do freelancer
         if (this.freelancer) {
-          this.freelancer.portfolio = portfolio.map((p) => p.URL);
+          this.freelancer.portfolio = portfolio.map((p) => p.url);
         }
 
         this.isLoading = false;

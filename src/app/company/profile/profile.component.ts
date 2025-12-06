@@ -75,7 +75,7 @@ interface Profile {
 
 interface Portfolio {
   portfolioId: number;
-  URL: string;
+  url: string;
   isActive: boolean;
   userId?: number;
 }
@@ -235,7 +235,7 @@ export class ProfileComponent implements OnInit {
     this.editPortfolioForm = this.profile.portfolio
       ? this.profile.portfolio.map((p: Portfolio) => ({
           portfolioId: p.portfolioId,
-          URL: p.URL,
+          URL: p.url,
           isActive: p.isActive,
           userId: this.user?.id,
         }))

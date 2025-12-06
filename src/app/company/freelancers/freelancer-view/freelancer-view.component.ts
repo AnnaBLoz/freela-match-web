@@ -19,7 +19,7 @@ interface UserSkill {
 
 interface Portfolio {
   id: number;
-  URL: string;
+  url: string;
   title?: string;
   description?: string;
   createdAt?: Date;
@@ -178,7 +178,7 @@ export class FreelancerViewComponent implements OnInit {
 
         // Atualiza o portfólio dentro do freelancer
         if (this.freelancer) {
-          this.freelancer.portfolio = portfolio.map((p: Portfolio) => p.URL);
+          this.freelancer.portfolio = portfolio.map((p: Portfolio) => p.url);
         }
 
         this.isLoading = false;

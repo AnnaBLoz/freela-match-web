@@ -190,21 +190,13 @@
                         class="list-group-item d-flex justify-content-between align-items-center"
                       >
                         <a
-                          [href]="item.URL"
+                          [href]="item.url"
                           target="_blank"
                           rel="noopener noreferrer"
                           class="text-primary text-decoration-none"
                         >
                           <i class="bi bi-link-45deg me-2"></i>{{ item.url }}
                         </a>
-                        <!-- <span
-                          class="badge"
-                          [ngClass]="
-                            item.isActive ? 'bg-success' : 'bg-secondary'
-                          "
-                        >
-                          {{ item.isActive ? "Ativo" : "Inativo" }}
-                        </span> -->
                       </li>
                     </ul>
                   </ng-container>
