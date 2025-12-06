@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
-import { ReviewsService } from 'src/app/core/services/reviewsService.service';
+import {
+  Review,
+  ReviewsService,
+} from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
 interface Profile {
@@ -12,16 +15,6 @@ interface Profile {
   email: string;
   skills: string[];
   profileImage?: string;
-}
-
-interface Review {
-  id: number;
-  reviewerId?: number;
-  receiverId?: number;
-  proposalId: number;
-  rating: number;
-  comment: string;
-  createdAt: Date;
 }
 
 interface RatingDistribution {
@@ -48,7 +41,7 @@ export class ReviewsComponent implements OnInit {
   user: User | null = null;
   profile: Profile | null = null;
   isLoading = true;
-
+  userReviews: Review[] | null = null;
   reviewsReceived: Review[] = [];
   reviewsGiven: Review[] = [];
   sentReviews: Review[] = [];
@@ -90,7 +83,7 @@ export class ReviewsComponent implements OnInit {
           next: (user) => {
             this.user = user;
             this.loadData();
-            this.calculateStats();
+            this.loadReviewData();
           },
         });
 
@@ -135,7 +128,7 @@ export class ReviewsComponent implements OnInit {
 
         this.sentReviews = this.reviewsGiven;
 
-        this.calculateStats();
+        this.calculateAverageRating();
 
         this.isLoading = false;
       },
@@ -146,23 +139,37 @@ export class ReviewsComponent implements OnInit {
     });
   }
 
-  private calculateStats() {
-    if (this.reviewsReceived.length > 0) {
-      this.averageRating =
-        this.reviewsReceived.reduce((sum, r) => sum + r.rating, 0) /
-        this.reviewsReceived.length;
+  private loadReviewData() {
+    this.isLoading = true;
+    this.reviewsService.getReviews(this.user.id).subscribe({
+      next: (response) => {
+        this.userReviews = response;
+        this.calculateAverageRating();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar avaliações:', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  calculateAverageRating(): void {
+    if (!this.userReviews || this.userReviews.length === 0) {
+      this.averageRating = 0;
+      return;
     }
 
-    this.ratingDistribution = [5, 4, 3, 2, 1].map((rating) => {
-      const count = this.reviewsReceived.filter(
-        (r) => r.rating === rating
-      ).length;
-      const percentage =
-        this.reviewsReceived.length > 0
-          ? (count / this.reviewsReceived.length) * 100
-          : 0;
-      return { rating, count, percentage };
-    });
+    const sum = this.userReviews.reduce(
+      (acc, review) => acc + review.rating,
+      0
+    );
+
+    this.reviewsReceived = this.userReviews.filter(
+      (r) => r.receiverId === this.user?.id || r.toUserId === this.user?.id
+    );
+
+    this.averageRating = Number((sum / this.userReviews.length).toFixed(1));
   }
 
   setActiveTab(tab: 'received' | 'sent') {

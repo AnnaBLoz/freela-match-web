@@ -60,13 +60,13 @@
                   {{ averageRating.toFixed(1) }}
                 </div>
                 <app-star-rating
-                  [rating]="roundedAverage"
+                  [rating]="averageRating"
                   [readonly]="true"
                   [size]="'lg'"
                   class="d-flex justify-content-center mb-3"
                 ></app-star-rating>
                 <p class="text-muted small mb-0">
-                  Baseado em {{ reviewsReceived.length }} avaliação(ões)
+                  Baseado em {{ reviewsReceived.length }} avaliações
                 </p>
               </div>
             </div>

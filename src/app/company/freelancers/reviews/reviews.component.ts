@@ -51,7 +51,8 @@ export class ReviewsComponent implements OnInit {
   reviewsReceived: Review[] = [];
   reviewsGiven: Review[] = [];
   sentReviews: Review[] = [];
-  averageRating = 0;
+  userReviews: Review[] | null = null;
+  averageRating: number = 0;
   ratingDistribution: RatingDistribution[] = [];
 
   mainTab: 'avaliacoes' | 'avaliar' = 'avaliacoes';
@@ -88,8 +89,8 @@ export class ReviewsComponent implements OnInit {
         this.userService.getUser(user.id).subscribe({
           next: (fullUser: User) => {
             this.user = fullUser;
-            this.loadData();
-            this.calculateStats();
+            this.loadReviewData();
+            this.loadReviewData();
           },
         });
 
@@ -117,50 +118,37 @@ export class ReviewsComponent implements OnInit {
     });
   }
 
-  private loadData(): void {
-    if (!this.user) return;
-
+  private loadReviewData() {
+    this.isLoading = true;
     this.reviewsService.getReviews(this.user.id).subscribe({
-      next: (reviews: Review[]) => {
-        this.reviewsReceived = reviews.filter(
-          (r) => r.receiverId === this.user?.id || r.toUserId === this.user?.id
-        );
-
-        this.reviewsGiven = reviews.filter(
-          (r) =>
-            r.reviewerId === this.user?.id || r.fromUserId === this.user?.id
-        );
-
-        this.sentReviews = this.reviewsGiven;
-        this.calculateStats();
+      next: (response) => {
+        this.userReviews = response;
+        this.calculateAverageRating();
         this.isLoading = false;
       },
-      error: (err: Error) => {
-        console.error('Erro ao carregar reviews:', err);
+      error: (err) => {
+        console.error('Erro ao carregar avaliações:', err);
         this.isLoading = false;
       },
     });
   }
 
-  private calculateStats(): void {
-    const total = this.reviewsReceived.reduce((acc, review) => {
-      return acc + (review.rating || 0);
-    }, 0);
+  calculateAverageRating(): void {
+    if (!this.userReviews || this.userReviews.length === 0) {
+      this.averageRating = 0;
+      return;
+    }
 
-    this.averageRating =
-      this.reviewsReceived.length > 0 ? total / this.reviewsReceived.length : 0;
+    const sum = this.userReviews.reduce(
+      (acc, review) => acc + review.rating,
+      0
+    );
 
-    this.ratingDistribution = [5, 4, 3, 2, 1].map((rating) => {
-      const count = this.reviewsReceived.filter(
-        (r) => r.rating === rating
-      ).length;
-      const percentage =
-        this.reviewsReceived.length > 0
-          ? (count / this.reviewsReceived.length) * 100
-          : 0;
+    this.reviewsReceived = this.userReviews.filter(
+      (r) => r.receiverId === this.user?.id || r.toUserId === this.user?.id
+    );
 
-      return { rating, count, percentage };
-    });
+    this.averageRating = Number((sum / this.userReviews.length).toFixed(1));
   }
 
   setActiveTab(tab: 'received' | 'sent'): void {
@@ -224,9 +212,5 @@ export class ReviewsComponent implements OnInit {
       return freelancer.id;
     }
     return null;
-  }
-
-  get roundedAverage(): number {
-    return Math.round(this.averageRating);
   }
 }
