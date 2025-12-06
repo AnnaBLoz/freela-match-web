@@ -282,13 +282,14 @@
                     <div class="d-flex align-items-center mb-2">
                       <div
                         class="me-2"
-                        [innerHTML]="getStars(freelancer.rating).join('')"
+                        [innerHTML]="
+                          getStars(freelancer.averageRating || 0).join('')
+                        "
                       ></div>
+
                       <small class="text-muted">
-                        {{ freelancer.rating }} ({{
-                          getReviewCount(freelancer.userId)
-                        }}
-                        avaliações)
+                        {{ freelancer.averageRating }}
+                        ({{ freelancer.reviewCount }} avaliações)
                       </small>
                     </div>
                   </div>

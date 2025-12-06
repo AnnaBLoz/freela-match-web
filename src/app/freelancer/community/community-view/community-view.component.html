@@ -263,20 +263,20 @@
                       >
                         <div>
                           <p class="fw-medium mb-1">
-                            {{ getCompanyInfo(review.fromUserId).name }}
+                            {{ review?.reviewer?.name }}
                           </p>
                           <div class="d-flex align-items-center">
                             <div
                               class="me-2"
-                              [innerHTML]="getStars(review.rating).join('')"
+                              [innerHTML]="getStars(review?.rating).join('')"
                             ></div>
                             <small class="text-muted">{{
-                              formatDate(review.createdAt)
+                              formatDate(review?.createdAt)
                             }}</small>
                           </div>
                         </div>
                       </div>
-                      <p class="text-muted mb-0">{{ review.comment }}</p>
+                      <p class="text-muted mb-0">{{ review?.reviewText }}</p>
                     </div>
                   </div>
                 </div>

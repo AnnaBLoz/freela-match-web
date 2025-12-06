@@ -88,9 +88,11 @@
                     class="me-2"
                     [innerHTML]="getStars(round(averageRating)).join('')"
                   ></div>
-                  <span class="fw-semibold me-2">{{
-                    averageRating.toFixed(1)
-                  }}</span>
+
+                  <span class="fw-semibold me-2">
+                    {{ averageRating }}
+                  </span>
+
                   <span class="text-muted">
                     ({{ reviews.length }} avaliaç{{
                       reviews.length !== 1 ? "ões" : "ão"
@@ -266,20 +268,20 @@
                       >
                         <div>
                           <p class="fw-medium mb-1">
-                            {{ getCompanyInfo(review.fromUserId).name }}
+                            {{ review?.reviewer?.name }}
                           </p>
                           <div class="d-flex align-items-center">
                             <div
                               class="me-2"
-                              [innerHTML]="getStars(review.rating).join('')"
+                              [innerHTML]="getStars(review?.rating).join('')"
                             ></div>
                             <small class="text-muted">{{
-                              formatDate(review.createdAt)
+                              formatDate(review?.createdAt)
                             }}</small>
                           </div>
                         </div>
                       </div>
-                      <p class="text-muted mb-0">{{ review.comment }}</p>
+                      <p class="text-muted mb-0">{{ review?.reviewText }}</p>
                     </div>
                   </div>
                 </div>

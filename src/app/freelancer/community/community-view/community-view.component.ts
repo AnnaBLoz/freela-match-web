@@ -4,6 +4,7 @@ import { GeneralService } from 'src/app/core/services/generalService.service';
 import { PortfolioService } from 'src/app/core/services/portfolioService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 import { User } from 'src/app/core/models/auth.model';
+import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 
 enum ExperienceLevel {
   Junior = 1,
@@ -24,6 +25,9 @@ interface Freelancer {
   profileImage?: string;
   experience: number;
   portfolio: string[];
+
+  reviewCount?: number;
+  averageRating?: number;
 }
 
 interface Review {
@@ -84,7 +88,8 @@ export class CommunityViewComponent implements OnInit {
     private route: ActivatedRoute,
     private generalService: GeneralService,
     private userService: UserService,
-    private portfolioService: PortfolioService
+    private portfolioService: PortfolioService,
+    private reviewsService: ReviewsService
   ) {}
 
   ngOnInit(): void {
@@ -113,6 +118,26 @@ export class CommunityViewComponent implements OnInit {
           experience: f.profile?.experienceLevel,
           portfolio: [],
         };
+
+        this.reviewsService.getReviews(f.id).subscribe({
+          next: (reviews) => {
+            this.reviews = reviews;
+
+            this.freelancer!.reviewCount = reviews.length;
+
+            if (reviews.length > 0) {
+              const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+              this.freelancer!.averageRating = Number(
+                (sum / reviews.length).toFixed(1)
+              );
+            } else {
+              this.freelancer!.averageRating = 0;
+            }
+          },
+          error: () => {
+            this.reviews = [];
+          },
+        });
 
         this.loadPortfolio();
       },
@@ -201,7 +226,7 @@ export class CommunityViewComponent implements OnInit {
   }
 
   formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('pt-BR').format(date);
+    return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
   getStars(rating: number): string[] {
@@ -218,9 +243,7 @@ export class CommunityViewComponent implements OnInit {
   }
 
   get averageRating(): number {
-    if (!this.reviews.length) return this.freelancer?.rating || 0;
-    const total = this.reviews.reduce((acc, r) => acc + r.rating, 0);
-    return total / this.reviews.length;
+    return this.calculateAverageRating();
   }
 
   round(value: number): number {
@@ -271,5 +294,17 @@ export class CommunityViewComponent implements OnInit {
     this.reviewRating = 5;
     this.reviewComment = '';
     this.closeReviewModal();
+  }
+
+  calculateAverageRating(): number {
+    if (!this.reviews || this.reviews.length === 0) {
+      return this.freelancer?.rating || 0;
+    }
+
+    const sum = this.reviews.reduce((acc, review) => acc + review.rating, 0);
+    const avg = sum / this.reviews.length;
+
+    // 🔥 arredondar para 1 casa decimal
+    return Math.round(avg * 10) / 10;
   }
 }

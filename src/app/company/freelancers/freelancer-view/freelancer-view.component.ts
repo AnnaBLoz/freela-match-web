@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { User } from 'src/app/core/models/auth.model';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { PortfolioService } from 'src/app/core/services/portfolioService.service';
+import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
 interface Skill {
@@ -68,6 +69,9 @@ interface Freelancer {
   experience: number;
   portfolio: string[];
   profile?: Profile;
+
+  reviewCount?: number;
+  averageRating?: number;
 }
 
 enum ExperienceLevel {
@@ -132,7 +136,8 @@ export class FreelancerViewComponent implements OnInit {
     private route: ActivatedRoute,
     private generalService: GeneralService,
     private userService: UserService,
-    private portfolioService: PortfolioService
+    private portfolioService: PortfolioService,
+    private reviewsService: ReviewsService
   ) {}
 
   ngOnInit(): void {
@@ -160,7 +165,29 @@ export class FreelancerViewComponent implements OnInit {
           profileImage: 'assets/icons/user.png',
           experience: f.profile?.experienceLevel,
           portfolio: [],
+          averageRating: 0,
+          reviewCount: 0,
         };
+
+        this.reviewsService.getReviews(f.id).subscribe({
+          next: (reviews) => {
+            this.reviews = reviews;
+
+            this.freelancer!.reviewCount = reviews.length;
+
+            if (reviews.length > 0) {
+              const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+              this.freelancer!.averageRating = Number(
+                (sum / reviews.length).toFixed(1)
+              );
+            } else {
+              this.freelancer!.averageRating = 0;
+            }
+          },
+          error: () => {
+            this.reviews = [];
+          },
+        });
 
         this.loadPortfolio();
       },
@@ -182,53 +209,11 @@ export class FreelancerViewComponent implements OnInit {
         }
 
         this.isLoading = false;
-
-        // Carrega avaliações e freelancers similares após o portfólio
-        if (this.freelancer) {
-          this.loadReviews(this.freelancer.id);
-          this.loadSimilarFreelancers(this.freelancer.id);
-        }
       },
       error: (err: Error) => {
         this.isLoading = false;
       },
     });
-  }
-
-  loadReviews(freelancerId: number): void {
-    // Substituir por chamada real ao backend
-    this.reviews = [
-      {
-        id: 1,
-        fromUserId: 1,
-        toUserId: freelancerId,
-        rating: 5,
-        comment: 'Excelente profissional, entrega no prazo!',
-        createdAt: new Date('2025-01-10'),
-      },
-      {
-        id: 2,
-        fromUserId: 2,
-        toUserId: freelancerId,
-        rating: 4,
-        comment: 'Trabalho muito bom, recomendo.',
-        createdAt: new Date('2025-03-15'),
-      },
-    ];
-  }
-
-  loadSimilarFreelancers(freelancerId: number): void {
-    // Substituir por chamada real ao backend
-    if (!this.freelancer) return;
-    this.similarFreelancers = [
-      { ...this.freelancer, id: 2, name: 'Lucas Silva', hourlyRate: 100 },
-      {
-        ...this.freelancer,
-        id: 3,
-        name: 'Cristian Domingues',
-        hourlyRate: 110,
-      },
-    ];
   }
 
   // ---------------- METHODS ----------------
@@ -268,7 +253,7 @@ export class FreelancerViewComponent implements OnInit {
   }
 
   formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('pt-BR').format(date);
+    return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
   }
 
   getStars(rating: number): string[] {
@@ -285,12 +270,7 @@ export class FreelancerViewComponent implements OnInit {
   }
 
   get averageRating(): number {
-    if (!this.reviews.length) return this.freelancer?.rating || 0;
-    const total = this.reviews.reduce(
-      (acc: number, r: Review) => acc + r.rating,
-      0
-    );
-    return total / this.reviews.length;
+    return this.calculateAverageRating();
   }
 
   round(value: number): number {
@@ -347,5 +327,17 @@ export class FreelancerViewComponent implements OnInit {
     if (level === undefined || level === null)
       return 'Nenhuma experiência adicionada.';
     return ExperienceLevel[level];
+  }
+
+  calculateAverageRating(): number {
+    if (!this.reviews || this.reviews.length === 0) {
+      return this.freelancer?.rating || 0;
+    }
+
+    const sum = this.reviews.reduce((acc, review) => acc + review.rating, 0);
+    const avg = sum / this.reviews.length;
+
+    // 🔥 arredondar para 1 casa decimal
+    return Math.round(avg * 10) / 10;
   }
 }

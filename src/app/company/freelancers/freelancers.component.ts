@@ -116,8 +116,6 @@ export class FreelancersComponent implements OnInit {
         }));
 
         this.freelancers.forEach((f) => {
-          console.log(f.id);
-
           this.reviewsService.getReviews(f.id).subscribe({
             next: (reviews) => {
               f.reviewCount = reviews.length;

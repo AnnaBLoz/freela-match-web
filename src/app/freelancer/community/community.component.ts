@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Profile } from 'src/app/core/models/auth.model';
 import { GeneralService } from 'src/app/core/services/generalService.service';
+import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
 interface Freelancer {
-  id: string;
+  id: number;
   userId: string;
   name: string;
   biography: string;
@@ -18,6 +19,9 @@ interface Freelancer {
   compatibility?: number;
   userSkills?: string[];
   profile: Profile;
+
+  reviewCount?: number;
+  averageRating?: number;
 }
 
 interface User {
@@ -86,7 +90,8 @@ export class CommunityComponent implements OnInit {
   constructor(
     private router: Router,
     private userService: UserService,
-    private generalService: GeneralService
+    private generalService: GeneralService,
+    private reviewsService: ReviewsService
   ) {}
 
   loadFreelancers(): void {
@@ -94,7 +99,7 @@ export class CommunityComponent implements OnInit {
       next: (freelancers: BackendFreelancer[]) => {
         // Transforma os dados vindos do backend no formato esperado pelo front
         this.freelancers = freelancers.map((f: BackendFreelancer) => ({
-          id: f.id?.toString() || f.userId?.toString() || '',
+          id: f.id,
           userId: f.userId?.toString() || f.id?.toString() || '',
           name: f.name || 'Nome não informado',
           biography: f.profile?.biography || 'Sem biografia disponível',
@@ -112,6 +117,23 @@ export class CommunityComponent implements OnInit {
           availability: f.isAvailable ? 'available' : 'unavailable',
           profile: f.profile,
         }));
+
+        this.freelancers.forEach((f) => {
+          this.reviewsService.getReviews(f.id).subscribe({
+            next: (reviews) => {
+              f.reviewCount = reviews.length;
+
+              if (reviews.length > 0) {
+                const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+                f.averageRating = Number((sum / reviews.length).toFixed(1));
+              } else {
+                f.averageRating = 0;
+              }
+
+              this.applyFilters();
+            },
+          });
+        });
 
         const maxPrice = Math.max(...this.freelancers.map((f) => f.hourlyRate));
         this.priceRange = [0, maxPrice]; // define o novo range máximo

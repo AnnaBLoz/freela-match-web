@@ -17,6 +17,9 @@ export class User {
   userSkills?: UserSkills[];
   rating?: number;
   completedProjects?: number;
+
+  reviewCount?: number;
+  averageRating?: number;
 }
 
 export class UserDTO {
