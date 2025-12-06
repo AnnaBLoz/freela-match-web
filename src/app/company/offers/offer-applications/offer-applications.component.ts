@@ -293,15 +293,17 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   }
 
   isLastCounterProposalFromFreelancer(candidateId: number): boolean {
-    const list = this.getCounterProposalsFor(candidateId);
+    const hasCounter = this.hasCounterProposal(candidateId);
 
-    if (list.length === 0) return false;
+    if (!hasCounter) return false;
+
+    const list = this.getCounterProposalsFor(candidateId);
+    if (list.length === 0) return true;
 
     const last = list[list.length - 1];
 
     if (last.isAccepted === true) return true;
-
-    return last.isSendedByCompany === false;
+    return last.isSendedByCompany === true;
   }
 
   isLastCounterProposalFromFreelancers(candidateId: number): boolean {
@@ -310,7 +312,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     if (list.length === 0) return false;
 
     const last = list[list.length - 1];
-
-    return last.isSendedByCompany === true;
+    if (last.isAccepted === true) return false;
+    return last.isSendedByCompany === false;
   }
 }

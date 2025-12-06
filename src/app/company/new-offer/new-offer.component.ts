@@ -210,7 +210,7 @@ export class NewOfferComponent implements OnInit {
 
     // atualiza no form sem o "R$"
     this.proposalForm.patchValue({
-      price: Number(value.replace(/[^\d,]/g, '').replace(',', '.')),
+      price: parseInt(value.replace(/\D/g, ''), 10),
     });
   }
 }
