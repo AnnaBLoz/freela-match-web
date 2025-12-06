@@ -4,7 +4,7 @@
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  z-index: 1000;
+  z-index: 100000;
 }
 
 /* Dashboard link */
