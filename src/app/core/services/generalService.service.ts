@@ -34,4 +34,10 @@ export class GeneralService {
       `${this.apiUrl}/General/CompletedProjects?userId=${userId}`
     );
   }
+
+  match(userId: number) {
+    return this.http.get<User[]>(
+      `${this.apiUrl}/General/match?userId=${userId}`
+    );
+  }
 }

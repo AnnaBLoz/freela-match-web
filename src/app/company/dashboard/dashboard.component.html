@@ -122,7 +122,7 @@
 
         <!-- Quick Actions -->
         <div class="card shadow-sm rounded-4 p-3 h-100 border-0">
-          <h6 class="display-6 fw-bold text-dark mb-2">Ações Rápidas</h6>
+          <h6 class="display-6 fw-bold text-dark mb-5">Ações Rápidas</h6>
 
           <!-- Botão principal -->
           <button
@@ -142,6 +142,63 @@
             Explorar Freelancers
           </button>
         </div>
+
+        <div
+          class="card shadow-sm rounded-4 p-3 h-100 border-0 mt-5"
+          *ngIf="proposals?.length > 0; else noProposals"
+        >
+          <div class="card-header border-0 bg-white">
+            <h5 class="card-title mb-1">Matchs</h5>
+            <p class="card-text text-muted">
+              Freelancers que podem te interessar
+            </p>
+          </div>
+          <div class="card-body">
+            <div class="proposal-list">
+              <div
+                *ngFor="let match of matchs.slice(0, 4)"
+                class="proposal-item p-3 border rounded mb-3"
+              >
+                <div class="row align-items-center">
+                  <div class="col-lg-8 col-md-7">
+                    <h6 class="fw-semibold mb-2">{{ match?.name }}</h6>
+                    <p class="text-muted mb-2 small">
+                      {{ truncateText(match?.profile.biography, 120) }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 mb-2 small text-muted">
+                      <span>
+                        <i class="bi bi-currency-dollar me-1"></i>
+                        {{ formatCurrency(match?.profile.pricePerHour) }}
+                      </span>
+                    </div>
+                    <div class="skills-container">
+                      <span
+                        *ngFor="let skill of match?.userSkills?.slice(0, 4)"
+                        class="badge bg-light text-dark me-1 mb-1 small"
+                      >
+                        {{ skill.name }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 col-md-5 text-md-end mt-3 mt-md-0">
+                    <button
+                      class="btn btn-primary w-50 w-md-auto"
+                      (click)="navigateToFreelancer(match?.id)"
+                    >
+                      Ver Detalhes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ng-template #noProposals>
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-emoji-frown fs-1 d-block mb-3"></i>
+            <p>Você ainda não tem nenhum match.</p>
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>

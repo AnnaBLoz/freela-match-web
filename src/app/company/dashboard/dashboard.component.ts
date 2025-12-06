@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { Profile, User } from 'src/app/core/models/auth.model';
 import { AuthService } from 'src/app/core/services/authService.service';
+import { GeneralService } from 'src/app/core/services/generalService.service';
 import {
   Proposal,
   ProposalService,
@@ -27,16 +28,20 @@ export class DashboardComponent {
   userReviews: Review[] | null = null;
   averageRating: number = 0;
 
+  matchs: User[] = [];
+
   constructor(
     private router: Router,
     private authService: AuthService,
     private userService: UserService,
     private proposalService: ProposalService,
-    private reviewsService: ReviewsService
+    private reviewsService: ReviewsService,
+    private generalService: GeneralService
   ) {}
 
   ngOnInit() {
     this.loadProfileData();
+    this.GetMatchs();
   }
 
   isCompany(): boolean {
@@ -72,6 +77,24 @@ export class DashboardComponent {
       },
     });
     this.isLoading = false;
+  }
+
+  GetMatchs(): void {
+    if (!this.user) return;
+
+    this.isLoading = true;
+    this.generalService.match(this.user.id).subscribe({
+      next: (response: User[]) => {
+        this.matchs = response;
+        this.isLoading = false;
+
+        console.log(this.matchs);
+      },
+      error: (err: Error) => {
+        console.error('Erro ao carregar projetos concluídos:', err);
+        this.isLoading = false;
+      },
+    });
   }
 
   loadProposals(): void {
@@ -111,6 +134,10 @@ export class DashboardComponent {
 
   navigateToFreelancers() {
     this.router.navigate(['/company/freelancers']);
+  }
+
+  navigateToFreelancer(freelancerId: number) {
+    this.router.navigate(['/company/freelancer', freelancerId]);
   }
 
   formatCurrency(value: number): string {
