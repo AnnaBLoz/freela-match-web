@@ -249,7 +249,7 @@
             *ngFor="let freelancer of filteredFreelancers"
           >
             <div class="card h-100 shadow-sm hover-card">
-              <div class="card-header border-0 bg-white">
+              <div class="card-header border-0 bg-white pb-0">
                 <div class="d-flex align-items-start">
                   <div class="position-relative me-3">
                     <img
@@ -279,45 +279,34 @@
                       </span>
                     </div>
 
-                    <!-- <div class="d-flex align-items-center mb-2">
+                    <div class="d-flex align-items-center mb-2">
                       <div
                         class="me-2"
-                        [innerHTML]="getStars(freelancer.rating).join('')"
+                        [innerHTML]="
+                          getStars(freelancer.averageRating || 0).join('')
+                        "
                       ></div>
-                      <small class="text-muted">
-                        {{ freelancer.rating }} ({{
-                          getReviewCount(freelancer.userId)
-                        }}
-                        avaliações)
-                      </small>
-                    </div> -->
 
-                    <div
-                      *ngIf="
-                        user?.type === 'company' &&
-                        freelancer.compatibility &&
-                        freelancer.compatibility > 0
-                      "
-                    >
-                      <span class="badge bg-primary">
-                        {{ freelancer.compatibility.toFixed(0) }}% compatível
-                      </span>
+                      <small class="text-muted">
+                        {{ freelancer.averageRating }}
+                        ({{ freelancer.reviewCount }} avaliações)
+                      </small>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="card-body">
-                <!-- <p class="card-text text-muted small">
+              <div class="card-body pt-0">
+                <p class="card-text text-muted small">
                   {{
-                    freelancer.bio.length > 120
-                      ? freelancer.bio.substring(0, 120) + "..."
-                      : freelancer.bio
+                    freelancer.profile?.biography.length > 120
+                      ? freelancer.profile?.biography.substring(0, 120) + "..."
+                      : freelancer.profile?.biography
                   }}
-                </p> -->
+                </p>
 
                 <!-- Skills -->
-                <!-- <div class="mb-3">
+                <div class="mb-3">
                   <p class="small fw-semibold text-muted mb-2">
                     Principais habilidades:
                   </p>
@@ -345,21 +334,17 @@
                       >Nenhuma habilidade informada</span
                     >
                   </ng-template>
-                </div> -->
+                </div>
 
                 <!-- Stats -->
-                <!-- <div
+                <div
                   class="d-flex justify-content-between align-items-center small mb-3"
                 >
                   <div class="text-success fw-semibold">
                     <i class="bi bi-currency-dollar"></i>
                     R$ {{ freelancer.hourlyRate }}/h
                   </div>
-                  <span class="text-muted"
-                    >{{ freelancer.completedProjects }} projetos
-                    concluídos</span
-                  >
-                </div> -->
+                </div>
 
                 <!-- Action Button -->
                 <button

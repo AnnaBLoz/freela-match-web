@@ -217,8 +217,6 @@ export class ProfileComponent implements OnInit {
       isAvailable: this.user?.isAvailable || false,
     };
 
-    console.log(this.profile.portfolio);
-
     this.editPortfolioForm = this.profile.portfolio
       ? this.profile.portfolio.map((p: Portfolio) => ({
           portfolioId: p.portfolioId,

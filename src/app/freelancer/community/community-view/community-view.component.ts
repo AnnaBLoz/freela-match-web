@@ -105,9 +105,7 @@ export class CommunityViewComponent implements OnInit {
           name: f.name,
           bio: f.profile?.biography || 'Sem biografia disponível',
           skills: f.userSkills?.map((s) => s.skill?.name || 'Habilidade') || [],
-          hourlyRate: f.profile?.pricePerHour
-            ? f.profile.pricePerHour / 100
-            : 0,
+          hourlyRate: f.profile?.pricePerHour || 0,
           rating: f.rating || 0,
           completedProjects: f.completedProjects || 0,
           availability: f.isAvailable ? 'available' : 'unavailable',

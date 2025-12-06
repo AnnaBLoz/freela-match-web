@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Profile } from 'src/app/core/models/auth.model';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { UserService } from 'src/app/core/services/userService.service';
 
@@ -7,7 +8,7 @@ interface Freelancer {
   id: string;
   userId: string;
   name: string;
-  bio: string;
+  biography: string;
   skills: string[];
   hourlyRate: number;
   rating: number;
@@ -16,6 +17,7 @@ interface Freelancer {
   profileImage?: string;
   compatibility?: number;
   userSkills?: string[];
+  profile: Profile;
 }
 
 interface User {
@@ -95,7 +97,7 @@ export class CommunityComponent implements OnInit {
           id: f.id?.toString() || f.userId?.toString() || '',
           userId: f.userId?.toString() || f.id?.toString() || '',
           name: f.name || 'Nome não informado',
-          bio: f.profile?.biography || 'Sem biografia disponível',
+          biography: f.profile?.biography || 'Sem biografia disponível',
           skills:
             f.userSkills?.map(
               (s) => s.skill?.name || `Habilidade ${s.userSkillsId}`
@@ -108,9 +110,13 @@ export class CommunityComponent implements OnInit {
           rating: f.rating || 0,
           completedProjects: f.completedProjects || f.projectsCount || 0,
           availability: f.isAvailable ? 'available' : 'unavailable',
+          profile: f.profile,
         }));
 
-        // Aplica filtros iniciais
+        const maxPrice = Math.max(...this.freelancers.map((f) => f.hourlyRate));
+        this.priceRange = [0, maxPrice]; // define o novo range máximo
+
+        // Aplica filtros
         this.applyFilters();
         this.isLoading = false;
       },
@@ -157,7 +163,7 @@ export class CommunityComponent implements OnInit {
           freelancer.name
             .toLowerCase()
             .includes(this.searchTerm.toLowerCase()) ||
-          freelancer.bio
+          freelancer.biography
             .toLowerCase()
             .includes(this.searchTerm.toLowerCase()) ||
           freelancer.skills.some((skill) =>
