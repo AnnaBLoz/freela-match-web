@@ -69,6 +69,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
   freelancers: User[] = [];
 
   selectedCandidateId: number | null = null;
+  selectedCandidateUserId: number;
 
   counterProposal: CounterProposalForm = {
     price: null,
@@ -204,8 +205,9 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     }
   }
 
-  sendCounterProposal(candidateId: number): void {
+  sendCounterProposal(candidateId: number, userId: number): void {
     this.selectedCandidateId = candidateId;
+    this.selectedCandidateUserId = userId;
 
     this.counterProposal = {
       price: null,
@@ -224,7 +226,7 @@ export class OfferApplicationsComponent implements OnInit, OnDestroy {
     if (!this.selectedCandidateId || !this.proposal) return;
 
     const candidate = this.proposal.candidates.find(
-      (c) => c.userId === this.selectedCandidateId
+      (c) => c.user.id === this.selectedCandidateUserId
     );
 
     const payload = {

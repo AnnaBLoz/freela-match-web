@@ -102,7 +102,7 @@
             >
               <button
                 class="btn btn-warning btn-sm button-text"
-                (click)="sendCounterProposal(app.candidateId)"
+                (click)="sendCounterProposal(app.candidateId, app.userId)"
                 [disabled]="isLastCounterProposalFromFreelancer(app.user.id)"
               >
                 Enviar Contra Proposta
