@@ -84,7 +84,6 @@ export class CommunityComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadFreelancers();
-    this.loadMockReviews();
   }
 
   constructor(
@@ -150,16 +149,6 @@ export class CommunityComponent implements OnInit {
       },
     });
     this.isLoading = false;
-  }
-
-  loadMockReviews(): void {
-    this.mockReviews = [
-      { id: '1', toUserId: 'user1', rating: 5 },
-      { id: '2', toUserId: 'user1', rating: 4 },
-      { id: '3', toUserId: 'user2', rating: 5 },
-      { id: '4', toUserId: 'user3', rating: 4 },
-      { id: '5', toUserId: 'user3', rating: 5 },
-    ];
   }
 
   // ---------------- FILTRAGEM ----------------
