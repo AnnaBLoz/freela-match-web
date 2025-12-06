@@ -172,14 +172,16 @@ export class FreelancerViewComponent implements OnInit {
 
         this.reviewsService.getReviews(f.id).subscribe({
           next: (reviews) => {
-            this.reviews = reviews;
+            const received = reviews.filter((r) => r.receiverId === f.id);
 
-            this.freelancer!.reviewCount = reviews.length;
+            this.reviews = received;
 
-            if (reviews.length > 0) {
-              const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+            this.freelancer!.reviewCount = received.length;
+
+            if (received.length > 0) {
+              const sum = received.reduce((acc, r) => acc + r.rating, 0);
               this.freelancer!.averageRating = Number(
-                (sum / reviews.length).toFixed(1)
+                (sum / received.length).toFixed(1)
               );
             } else {
               this.freelancer!.averageRating = 0;

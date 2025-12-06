@@ -121,11 +121,13 @@ export class CommunityComponent implements OnInit {
         this.freelancers.forEach((f) => {
           this.reviewsService.getReviews(f.id).subscribe({
             next: (reviews) => {
-              f.reviewCount = reviews.length;
+              const received = reviews.filter((r) => r.receiverId === f.id);
 
-              if (reviews.length > 0) {
-                const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
-                f.averageRating = Number((sum / reviews.length).toFixed(1));
+              f.reviewCount = received.length;
+
+              if (received.length > 0) {
+                const sum = received.reduce((acc, r) => acc + r.rating, 0);
+                f.averageRating = Number((sum / received.length).toFixed(1));
               } else {
                 f.averageRating = 0;
               }
