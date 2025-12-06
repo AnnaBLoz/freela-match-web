@@ -87,8 +87,6 @@ export class DashboardComponent {
       next: (response: User[]) => {
         this.matchs = response;
         this.isLoading = false;
-
-        console.log(this.matchs);
       },
       error: (err: Error) => {
         console.error('Erro ao carregar projetos concluídos:', err);
