@@ -130,6 +130,7 @@ export class FreelancerViewComponent implements OnInit {
 
   portfolio: Portfolio[] = [];
   ExperienceYears = ExperienceYears;
+  ExperienceLevelEnum = ExperienceLevel;
 
   constructor(
     private router: Router,
@@ -157,7 +158,7 @@ export class FreelancerViewComponent implements OnInit {
           userId: f.userId,
           name: f.name,
           bio: f.profile?.biography || 'Sem biografia disponível',
-          skills: f.userSkills?.map((s: UserSkill) => s.skill?.name) || [],
+          skills: f.userSkills?.map((s) => s.skill?.name || 'Habilidade') || [],
           hourlyRate: f.profile?.pricePerHour || 0,
           rating: f.rating || 0,
           completedProjects: f.completedProjects || 0,

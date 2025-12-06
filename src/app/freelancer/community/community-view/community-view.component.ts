@@ -3,7 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { PortfolioService } from 'src/app/core/services/portfolioService.service';
 import { UserService } from 'src/app/core/services/userService.service';
-import { User } from 'src/app/core/models/auth.model';
+import { Profile, User, UserSkills } from 'src/app/core/models/auth.model';
 import { ReviewsService } from 'src/app/core/services/reviewsService.service';
 
 enum ExperienceLevel {
@@ -12,6 +12,14 @@ enum ExperienceLevel {
   Senior,
   Especialista,
 }
+
+export const ExperienceYears: Record<ExperienceLevel, string> = {
+  [ExperienceLevel.Junior]: '0 – 2 anos',
+  [ExperienceLevel.Pleno]: '2 – 5 anos',
+  [ExperienceLevel.Senior]: '5 – 10 anos',
+  [ExperienceLevel.Especialista]: '10+ anos',
+};
+
 interface Freelancer {
   id: number;
   userId: number;
@@ -25,6 +33,8 @@ interface Freelancer {
   profileImage?: string;
   experience: number;
   portfolio: string[];
+  profile: Profile;
+  userSkills: UserSkills[];
 
   reviewCount?: number;
   averageRating?: number;
@@ -78,9 +88,10 @@ export class CommunityViewComponent implements OnInit {
   isLoading = true;
   activeTab: 'skills' | 'portfolio' | 'reviews' = 'skills';
 
-  freelancerId: number;
+  freelancerId: number = 0;
 
   portfolio: Portfolio[] = [];
+  ExperienceYears = ExperienceYears;
   ExperienceLevelEnum = ExperienceLevel;
 
   constructor(
@@ -106,10 +117,10 @@ export class CommunityViewComponent implements OnInit {
       next: (f: User) => {
         this.freelancer = {
           id: f.id,
-          userId: f.userId || f.id,
+          userId: f.userId,
           name: f.name,
           bio: f.profile?.biography || 'Sem biografia disponível',
-          skills: f.userSkills?.map((s) => s.skill?.name || 'Habilidade') || [],
+          skills: f.userSkills?.map((s) => s.skill?.name) || [],
           hourlyRate: f.profile?.pricePerHour || 0,
           rating: f.rating || 0,
           completedProjects: f.completedProjects || 0,
@@ -117,6 +128,10 @@ export class CommunityViewComponent implements OnInit {
           profileImage: 'assets/icons/user.png',
           experience: f.profile?.experienceLevel,
           portfolio: [],
+          averageRating: 0,
+          reviewCount: 0,
+          profile: f.profile,
+          userSkills: f.userSkills,
         };
 
         this.reviewsService.getReviews(f.id).subscribe({
@@ -142,7 +157,7 @@ export class CommunityViewComponent implements OnInit {
         this.loadPortfolio();
       },
       error: (err: Error) => {
-        console.error('Erro ao carregar freelancer:', err);
+        // console.error('Erro ao carregar freelancer:', err);
         this.isLoading = false;
       },
     });
@@ -155,43 +170,15 @@ export class CommunityViewComponent implements OnInit {
 
         // Atualiza o portfólio dentro do freelancer
         if (this.freelancer) {
-          this.freelancer.portfolio = portfolio.map((p) => p.url);
+          this.freelancer.portfolio = portfolio.map((p: Portfolio) => p.url);
         }
 
         this.isLoading = false;
-
-        // Carrega avaliações e freelancers similares após o portfólio
-        if (this.freelancer) {
-          this.loadReviews(this.freelancer.id);
-        }
       },
       error: (err: Error) => {
-        console.error('Erro ao carregar portfólio:', err);
         this.isLoading = false;
       },
     });
-  }
-
-  loadReviews(freelancerId: number): void {
-    // Substituir por chamada real ao backend
-    this.reviews = [
-      {
-        id: 1,
-        fromUserId: 1,
-        toUserId: freelancerId,
-        rating: 5,
-        comment: 'Excelente profissional, entrega no prazo!',
-        createdAt: new Date('2025-01-10'),
-      },
-      {
-        id: 2,
-        fromUserId: 2,
-        toUserId: freelancerId,
-        rating: 4,
-        comment: 'Trabalho muito bom, recomendo.',
-        createdAt: new Date('2025-03-15'),
-      },
-    ];
   }
 
   // ---------------- METHODS ----------------
@@ -202,27 +189,6 @@ export class CommunityViewComponent implements OnInit {
       unavailable: 'Indisponível',
     };
     return map[avail] || avail;
-  }
-
-  getCompanyInfo(userId: string): CompanyInfo {
-    const companies: CompanyData[] = [
-      {
-        userId: 'user1',
-        name: 'Tech Solutions',
-        logo: 'https://via.placeholder.com/40',
-      },
-      {
-        userId: 'user2',
-        name: 'Digital Agency',
-        logo: 'https://via.placeholder.com/40',
-      },
-      {
-        userId: 'user3',
-        name: 'StartupXYZ',
-        logo: 'https://via.placeholder.com/40',
-      },
-    ];
-    return companies.find((c) => c.userId === userId) || { name: 'Empresa' };
   }
 
   formatDate(date: Date): string {
@@ -255,11 +221,11 @@ export class CommunityViewComponent implements OnInit {
   }
 
   navigateToFreelancers(): void {
-    this.router.navigate(['/freelancer/community']);
+    this.router.navigate(['company/freelancers']);
   }
 
-  navigateToProfile(freelancerId: string): void {
-    this.router.navigate(['/freelancer/community', freelancerId]);
+  navigateToProfile(freelancerId: number): void {
+    this.router.navigate(['company/freelancer', freelancerId]);
   }
 
   sendMessage(): void {
@@ -294,6 +260,12 @@ export class CommunityViewComponent implements OnInit {
     this.reviewRating = 5;
     this.reviewComment = '';
     this.closeReviewModal();
+  }
+
+  getExperienceName(level?: ExperienceLevel): string {
+    if (level === undefined || level === null)
+      return 'Nenhuma experiência adicionada.';
+    return ExperienceLevel[level];
   }
 
   calculateAverageRating(): number {

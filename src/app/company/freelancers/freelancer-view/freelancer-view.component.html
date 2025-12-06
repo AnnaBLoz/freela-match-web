@@ -189,14 +189,7 @@
               <div>
                 <h6 class="fw-medium text-dark mb-2">Experiência</h6>
                 <p class="text-muted">
-                  {{
-                    freelancer?.experience
-                      ? getExperienceName(freelancer?.experience) +
-                        " (" +
-                        ExperienceYears[freelancer?.experience] +
-                        ")"
-                      : "Nenhuma experiência adicionada."
-                  }}
+                  {{ ExperienceLevelEnum[freelancer.experience] }}
                 </p>
               </div>
             </div>
