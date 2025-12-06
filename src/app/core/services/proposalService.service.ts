@@ -127,8 +127,8 @@ export class ProposalService {
     return this.http.get<Proposal[]>(`${this.apiUrl}/Proposal/all`);
   }
 
-  getProposalById(proposalId: number): Observable<Proposal[]> {
-    return this.http.get<Proposal[]>(
+  getProposalById(proposalId: number): Observable<Proposal> {
+    return this.http.get<Proposal>(
       `${this.apiUrl}/Proposal/proposalId/${proposalId}`
     );
   }

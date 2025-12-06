@@ -113,10 +113,9 @@ export class OfferViewComponent implements OnInit {
       .getProposalById(proposalId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (proposals: Proposal[]) => {
-          // A API retorna um array, então pegamos o primeiro elemento
-          if (proposals && proposals.length > 0) {
-            this.proposal = proposals[0];
+        next: (proposals: Proposal) => {
+          if (proposals) {
+            this.proposal = proposals;
           } else {
             console.error('Nenhuma proposta encontrada');
             this.proposal = null;
