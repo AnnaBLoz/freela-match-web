@@ -193,24 +193,4 @@ export class NewOfferComponent implements OnInit {
   cancel(): void {
     this.router.navigate(['/dashboard']);
   }
-
-  formatCurrency(event: any) {
-    let value = event.target.value;
-
-    // remove anything not number
-    value = value.replace(/\D/g, '');
-
-    // convert to BRL format
-    value = (Number(value) / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-
-    event.target.value = value;
-
-    // atualiza no form sem o "R$"
-    this.proposalForm.patchValue({
-      price: parseInt(value.replace(/\D/g, ''), 10),
-    });
-  }
 }

@@ -40,23 +40,7 @@ export class ProfileInfoComponent implements OnInit {
 
   constructor(private generalService: GeneralService) {}
 
-  ngOnInit() {
-    this.getSectors();
-  }
-
-  getSectors(): void {
-    this.generalService.getSectors().subscribe({
-      next: (sectors) => {
-        this.sectors = sectors;
-        if (this.profile?.sector.sectorId) {
-          this.editForm.sector =
-            this.sectors.find(
-              (s) => s.sectorId === this.profile?.sector.sectorId
-            ) || null;
-        }
-      },
-    });
-  }
+  ngOnInit() {}
 
   onEditFormChange(field: string, value: EditForm): void {
     const updated = { ...this.editForm, [field]: value };
