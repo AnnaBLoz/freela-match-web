@@ -16,7 +16,7 @@
           <div class="info-section">
             <label class="info-label">Setor</label>
             <p class="info-value">
-              {{ profile?.sector.name }}
+              {{ profile?.sector?.name }}
             </p>
           </div>
           <div class="info-section">
@@ -79,7 +79,7 @@
               id="sector"
             >
               <option *ngFor="let sector of sectors" [ngValue]="sector">
-                {{ sector.name }}
+                {{ sector?.name }}
               </option>
             </select>
           </div>

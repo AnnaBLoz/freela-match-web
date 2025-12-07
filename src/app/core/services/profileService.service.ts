@@ -11,6 +11,7 @@ export interface Skill {
 
 export interface UpdatedProfile {
   biography?: string;
+  website?: string;
   experienceLevel?: number;
   pricePerHour?: number;
   userSkills?: Array<{

@@ -32,9 +32,7 @@ export class ProfileInfoComponent implements OnInit {
   @Input() profile: Profile | null = null;
   @Input() isEditing = false;
   @Input() skills: Skill[] = [];
-  @Input() editForm: EditForm = {
-    website: undefined,
-  };
+  @Input() editForm: EditForm;
   @Output() updateEditForm = new EventEmitter<EditForm>();
 
   skillSearch = '';
@@ -50,6 +48,7 @@ export class ProfileInfoComponent implements OnInit {
     this.generalService.getSectors().subscribe({
       next: (sectors) => {
         this.sectors = sectors;
+        console.log(this.profile);
 
         if (this.profile?.sector.sectorId) {
           this.editForm.sector =

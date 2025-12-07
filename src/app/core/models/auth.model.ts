@@ -36,6 +36,7 @@ export interface Profile {
   pricePerHour?: number;
   experienceLevel?: number;
   user?: User;
+  website?: string;
 }
 
 export interface UserSkills {
