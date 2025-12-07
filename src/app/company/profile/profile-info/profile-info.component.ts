@@ -28,7 +28,7 @@ interface Sector {
   templateUrl: './profile-info.component.html',
   styleUrl: './profile-info.component.css',
 })
-export class ProfileInfoComponent implements OnInit {
+export class ProfileInfoComponent {
   @Input() profile: Profile | null = null;
   @Input() isEditing = false;
   @Input() skills: Skill[] = [];
@@ -39,8 +39,6 @@ export class ProfileInfoComponent implements OnInit {
   sectors: Sector[] = [];
 
   constructor(private generalService: GeneralService) {}
-
-  ngOnInit() {}
 
   onEditFormChange(field: string, value: EditForm): void {
     const updated = { ...this.editForm, [field]: value };
