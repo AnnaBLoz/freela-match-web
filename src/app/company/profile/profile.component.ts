@@ -219,8 +219,6 @@ export class ProfileComponent implements OnInit {
   initializeEditForm(): void {
     if (!this.profile) return;
 
-    console.log(this.profile.website);
-
     this.editForm = {
       biography: this.profile.biography || '',
       sector: this.profile.experienceLevel || 0,

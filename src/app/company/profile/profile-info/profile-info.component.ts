@@ -48,8 +48,6 @@ export class ProfileInfoComponent implements OnInit {
     this.generalService.getSectors().subscribe({
       next: (sectors) => {
         this.sectors = sectors;
-        console.log(this.profile);
-
         if (this.profile?.sector.sectorId) {
           this.editForm.sector =
             this.sectors.find(
