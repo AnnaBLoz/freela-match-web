@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { GeneralService } from 'src/app/core/services/generalService.service';
 import { Skill } from 'src/app/core/services/profileService.service';
 
